@@ -1,0 +1,20 @@
+<?php
+/**
+ * @file
+ * Install file.
+ */
+
+/**
+ * Implements hook_install().
+ */
+function entityreference_entity_translation_test_install() {
+  include_once DRUPAL_ROOT . '/includes/language.inc';
+  include_once DRUPAL_ROOT . '/includes/locale.inc';
+  $negotiation = array(
+    LOCALE_LANGUAGE_NEGOTIATION_URL => -10,
+    'language-default' => 10,
+  );
+  drupal_static_reset("language_negotiation_info");
+  language_negotiation_set(LANGUAGE_TYPE_INTERFACE, $negotiation);
+  language_negotiation_set(LANGUAGE_TYPE_CONTENT, $negotiation);
+}

@@ -1,0 +1,91 @@
+<?php
+/**
+ * @file
+ * Code for the Nexteuropa footer feature.
+ */
+
+include_once 'nexteuropa_footer.features.inc';
+module_load_include('inc', 'nexteuropa_footer', 'inc/nexteuropa_footer_translations');
+
+/**
+ * Implements hook_theme_registry_alter().
+ */
+function nexteuropa_footer_theme_registry_alter(&$theme_registry) {
+  // Defined path to the current module.
+  $module_path = drupal_get_path('module', 'nexteuropa_footer');
+  // Find all .tpl.php files in this module's folder recursively.
+  $template_file_objects = drupal_find_theme_templates($theme_registry, '.tpl.php', $module_path);
+  // Iterate through all found template file objects.
+  foreach ($template_file_objects as $key => $template_file_object) {
+    // If the template has not already been overridden by a theme.
+    if (!isset($theme_registry[$key]['theme path']) || !preg_match('#/themes/#', $theme_registry[$key]['theme path'])) {
+      // Alter the theme path and template elements.
+      $theme_registry[$key]['theme path'] = $module_path;
+      $theme_registry[$key] = array_merge($theme_registry[$key], $template_file_object);
+      $theme_registry[$key]['type'] = 'module';
+    }
+  }
+}
+
+/**
+ * Helper function to get the mlid basing on the link name.
+ */
+function _nexteuropa_footer_item_name_get($title, $menu) {
+  $mlid = db_select('menu_links', 'ml')
+    ->fields('ml', array('mlid'))
+    ->condition('link_title', $title)
+    ->condition('menu_name', $menu)
+    ->execute()
+    ->fetchField();
+
+  if (is_numeric($mlid)) {
+    return $mlid;
+  }
+  else {
+    return FALSE;
+  }
+}
+
+/**
+ * Translate menu items.
+ *
+ * @return array $logs
+ *   Saved info about updated items.
+ */
+function _nexteuropa_footer_translate() {
+  $items = _nexteuropa_footer_translations();
+  $logs = [];
+  // Set the menu title translations.
+  foreach ($items as $menu_name => $item) {
+    if (!empty($item['title']) && !(empty($item['title']['languages']))) {
+      $name = 'menu:menu:' . $menu_name . ':title';
+      foreach ($item['title']['languages'] as $lang => $translation) {
+        i18n_string_translation_update($name, $translation, $lang);
+
+        $logs['title'][] = [
+          'menu_name' => $menu_name,
+          'lang' => $lang,
+        ];
+      }
+    }
+    // Set the menu items translations.
+    foreach ($item['items'] as $menu_item) {
+      $mlid = _nexteuropa_footer_item_name_get($menu_item['title'], $menu_name);
+
+      if ($mlid && !empty($menu_item['languages'])) {
+        $name = 'menu:item:' . $mlid . ':title';
+        foreach ($menu_item['languages'] as $lang => $translation) {
+          i18n_string_translation_update($name, $translation, $lang);
+
+          $logs['item'][] = [
+            'menu_name' => $menu_name,
+            'mlid' => $mlid,
+            'lang' => $lang,
+          ];
+        }
+      }
+    }
+  }
+
+  return $logs;
+}

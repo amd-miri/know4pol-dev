@@ -1,0 +1,208 @@
+<?php
+
+/**
+ * @file
+ * Alter language switcher at site level.
+ */
+
+/**
+ * Implements hook_preprocess_block().
+ *
+ * Default implementation of language selector.
+ */
+function nexteuropa_language_selector_site_popup_preprocess_block(&$variables) {
+  if (isset($variables['block']->bid)
+    && $variables['block']->bid === 'language_selector_site-language_selector_site'
+  ) {
+    // Add accessibility js to control the tab flow.
+    drupal_add_js(drupal_get_path('module', 'nexteuropa_language_selector_site_popup') . '/js/nexteuropa_language_selector_site_popup.js');
+
+  }
+}
+
+/**
+ * Implements hook_preprocess().
+ *
+ * This mostly is copy paste work from the splash_screen module. But I tend to
+ * keep the modifications to a minimum.
+ */
+function nexteuropa_language_selector_site_popup_preprocess_splash(&$variables) {
+  // We load our global.
+  global $language;
+
+  // Initialize variables.
+  $href = variable_get('site_frontpage', '');
+  $languages_blacklist = variable_get('splash_screen_blacklist', []);
+  $languages = language_list('enabled');
+  $languages_list = NULL;
+
+  // Prepare links href when destination is set.
+  // Use case: use site level language selector.
+  $options = [];
+  if (isset($_GET['destination'])) {
+    $href_array = drupal_parse_url($_GET['destination']);
+    $href = $href_array['path'];
+
+    if (strpos($href, 'node/') == 0 &&
+        function_exists('translation_path_get_translations')) {
+      $translations = translation_path_get_translations($href);
+    }
+
+    if (isset($href_array['query'])) {
+      parse_str($href_array['query'], $parameters);
+      $options['query'] = $parameters;
+    }
+  }
+  $options['attributes']['class'] = "splash-page__btn-close";
+
+  // Enable close button.
+  $variables['close_button'] = l(t('Close'), $href, $options);
+
+  // Add enabled languages, if not in blacklist. Add all these languages to our
+  // processed list.
+  foreach ($languages[1] as $lang) {
+    if (!in_array($lang->prefix, $languages_blacklist)) {
+
+      if (isset($translations[$lang->language])) {
+        $href = $translations[$lang->language];
+      }
+      // Start from an empty array.
+      $options = [];
+
+      // Prepare links options.
+      $options['attributes']['lang'] = $lang->language;
+      $options['attributes']['hreflang'] = $lang->prefix;
+      $options['attributes']['rel'] = "alternate";
+      $options['attributes']['class'][] = "btn";
+      $options['attributes']['class'][] = "splash-page__btn-language";
+      $options['attributes']['data-languagespecific'] = "true";
+
+      if ($lang->language == $language->language) {
+        $options['attributes']['class'][] = "is-active icon icon--check";
+        $options['html'] = TRUE;
+        $text = $lang->native . '<span class="sr-only"> ' . t('(Current language)') . '</span>';
+        $processed_languages[] = l($text, drupal_get_path_alias($href), $options);
+      }
+      else {
+        // Add to our processed array.
+        $processed_languages[] = l($lang->native, drupal_get_path_alias($href), $options);
+      }
+    }
+  }
+
+  // Get the total amount of languages we now have. Split them into 2 and
+  // process them into the correct display.
+  if (is_array($processed_languages)) {
+    $processed = 0;
+    $languages_count = count($processed_languages);
+    $splitcount = ceil($languages_count / 2);
+
+    // Open our div (row+col).
+    $languages_list = '<div class="row"><div class="col-sm-6">';
+
+    // Loop our results.
+    foreach ($processed_languages as $lang) {
+      if ($processed == $splitcount && $languages_count > 1) {
+        $languages_list .= '</div><div class="col-sm-6">';
+      }
+      $languages_list .= $lang;
+
+      $processed++;
+    }
+
+    // Close our list (row+col).
+    $languages_list .= '</div></div>';
+
+    // Set it to our variables.
+    $variables['languages_list'] = $languages_list;
+    $variables['language_current'] = $language->prefix;
+  }
+
+  // Get our helper message if we have it defined.
+  // Set our base data.
+  $overlay_data = variable_get('nexteuropa_language_selector_site_popup_message');
+
+  // We can rely on the fact that we will have a destination when it's an
+  // overlay. In other cases no destination will be set.
+  if ($overlay_data['value'] !== "" && isset($_GET['destination'])) {
+    $variables['overlay_helper_text'] = check_markup($overlay_data['value'], $overlay_data['format']);
+  }
+
+  // Get our helper message if we have it defined.
+  // Set our base data.
+  $splash_data = variable_get('dt_language_selector_site_splash_message');
+
+  if ($splash_data['value'] !== "" && !isset($_GET['destination'])) {
+    $variables['splash_helper_text'] = check_markup($splash_data['value'], $splash_data['format']);
+  }
+
+  // Push our vars back.
+  $variables['header_text'] = t('Select your language');
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ *
+ * This will add an extra textbox to the splash page configuration page.
+ */
+function nexteuropa_language_selector_site_popup_form__splash_screen_settings_form_alter(&$form, &$form_state, $form_id) {
+
+  // Set our base data.
+  $overlay_data = variable_get(
+    'nexteuropa_language_selector_site_popup_message',
+    [
+      'value' => '',
+      'format' => 'plain_text',
+    ]
+  );
+
+  // And our splash page text.
+  $splash_data = variable_get(
+    'dt_language_selector_site_splash_message',
+    [
+      'value' => '',
+      'format' => 'plain_text',
+    ]
+  );
+
+  // Add our custom form element to get the message which we display under as
+  // a help text.
+  $form['splash_screen']['nexteuropa_language_selector_site_popup_message'] = [
+    '#type' => 'text_format',
+    '#title' => t('Languages help message for the overlay'),
+    '#description' => t('Enter the message to be displayed under the language selector overlay.'),
+    '#default_value' => $overlay_data['value'],
+    '#format' => $overlay_data['format'],
+  ];
+
+  // Add our custom form element to get the message which we display under as
+  // a help text.
+  $form['splash_screen']['dt_language_selector_site_splash_message'] = [
+    '#type' => 'text_format',
+    '#title' => t('Languages help message for the splash page'),
+    '#description' => t('Enter the message to be displayed under the language selector splash page.'),
+    '#default_value' => $splash_data['value'],
+    '#format' => $splash_data['format'],
+  ];
+
+  // Add our validation function to set our variable.
+  $form['#validate'][] = '_nexteuropa_language_selector_site_popup_form_validate';
+}
+
+/**
+ * Our form validation to set the value to a variable.
+ *
+ * @see nexteuropa_language_selector_site_popup_form__splash_screen_settings_form_alter
+ */
+function _nexteuropa_language_selector_site_popup_form_validate($form, &$form_state) {
+  // Save the data to our variable.
+  variable_set(
+    'nexteuropa_language_selector_site_popup_message',
+    $form_state['values']['nexteuropa_language_selector_site_popup_message']['value']
+  );
+  // Save the data to our variable.
+  variable_set(
+    'dt_language_selector_site_splash_message',
+    $form_state['values']['dt_language_selector_site_splash_message']['value']
+  );
+}

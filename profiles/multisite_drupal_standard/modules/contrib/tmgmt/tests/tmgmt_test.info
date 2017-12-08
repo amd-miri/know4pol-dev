@@ -1,0 +1,14 @@
+name = Translation Management Test plugins
+package = Translation Management
+core = 7.x
+hidden = TRUE
+dependencies[] = tmgmt
+files[] = tmgmt_test.plugin.source.inc
+files[] = tmgmt_test.plugin.html_source.inc
+files[] = tmgmt_test.plugin.translator.inc
+files[] = tmgmt_test.ui.translator.inc
+
+; Information added by drush on 2015-11-20
+version = "7.x-1.0-rc1+18-dev"
+project = "tmgmt"
+datestamp = "1447976287"

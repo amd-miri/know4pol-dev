@@ -1,0 +1,6 @@
+vendor
+grumphp.yml
+composer.lock
+node_modules
+phpunit.xml
+.idea/

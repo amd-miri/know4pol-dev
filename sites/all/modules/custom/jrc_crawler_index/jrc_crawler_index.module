@@ -1,0 +1,206 @@
+<?php
+
+/**
+ * @file
+ * JRC Crawler Index: Returns configurable list of nodes for indexing purpose.
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function jrc_crawler_index_menu() {
+  $items = array();
+  $items['admin/config/crawler'] = array(
+    'title' => 'Crawler Index',
+    'description' => 'Crawler Index Settings',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('jrc_crawler_index_settings_form'),
+    'access arguments' => array('administer site configuration'),
+    'type' => MENU_LOCAL_TASK,
+  );
+
+  $items['admin/content/crawler/IDOLindexation'] = array(
+    'title' => 'IDOLindexation pages',
+    'description' => 'Crawler Index pages',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('jrc_crawler_index_pages'),
+    'access arguments' => array('access content'),
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_form().
+ */
+function jrc_crawler_index_settings_form($form, &$form_state) {
+
+  $content_types = field_info_bundles('node');
+  $types = array();
+
+  foreach ($content_types as $content_type_machinename => $content_type) {
+    $types[$content_type_machinename] = $content_type['label'];
+  }
+  ksort($types);
+
+  $form['config_fieldset'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Crawler Settings'),
+    '#collapsible' => TRUE,
+    '#collapsed' => FALSE,
+  );
+
+  $form['config_fieldset']['types'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Content Types'),
+    '#collapsible' => TRUE,
+    '#collapsed' => FALSE,
+  );
+
+  $form['config_fieldset']['urls'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('URLs'),
+    '#collapsible' => TRUE,
+    '#collapsed' => FALSE,
+  );
+
+  $form['config_fieldset']['limit'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Limits'),
+    '#collapsible' => TRUE,
+    '#collapsed' => FALSE,
+  );
+
+  $form['config_fieldset']['types']['jrc_crawler_index_types'] = array(
+    '#type' => 'checkboxes',
+    '#default_value' => variable_get('jrc_crawler_index_types', ''),
+    '#title' => t('Select at least one content type.'),
+    '#required' => 1,
+    '#options' => $types,
+    '#description' => t('Select content types for which nodes will be shown in crawler index.'),
+  );
+
+  $form['config_fieldset']['urls']['jrc_crawler_index_skip_urls'] = array(
+    '#type' => 'textarea',
+    '#default_value' => variable_get('jrc_crawler_index_skip_urls', ''),
+    '#title' => t('Skip these URLs'),
+    '#description' => t('URLs to exclude from index, even if they are in selected content types. Insert each URL in a new line.'),
+  );
+
+  $form['config_fieldset']['urls']['jrc_crawler_index_add_urls'] = array(
+    '#type' => 'textarea',
+    '#default_value' => variable_get('jrc_crawler_index_add_urls', ''),
+    '#title' => t('Add these URLs'),
+    '#description' => t('URLs to add to index, even if their content types are not selected. Insert each URL in a new line.'),
+  );
+
+  $form['config_fieldset']['limit']['jrc_crawler_index_limit'] = array(
+    '#type' => 'textfield',
+    '#default_value' => variable_get('jrc_crawler_index_limit', 500),
+    '#title' => t('Nodes per page'),
+    '#required' => 1,
+    '#description' => t('How many nodes should be listed in every page.'),
+  );
+
+  return system_settings_form($form);
+}
+
+/**
+ * Page callback : Print the nodes list.
+ */
+function jrc_crawler_index_pages() {
+  global $base_root;
+
+  // Get data from variables.
+  $types = variable_get('jrc_crawler_index_types');
+  $limit = variable_get('jrc_crawler_index_limit', 500);
+  $skip = explode("\r\n", variable_get('jrc_crawler_index_skip_urls'));
+  $add = explode("\r\n", variable_get('jrc_crawler_index_add_urls'));
+  $records = array();
+
+  if ($types != "") {
+    // Node select query.
+    $query = db_select('node', 'n');
+    $query->fields('n', array('nid'));
+    $query->condition('status', 1, '=');
+    $query->condition('type', $types, 'IN');
+    $query->orderBy('nid', 'ASC');
+    $total = $query->countQuery()->execute()->fetchCol();
+    $records = $query->execute()->fetchCol();
+  }
+
+  if (count($records) == 0) {
+    print t('No content types selected (or no nodes for that content types) in <a href="admin/config/crawler">Crawler Index Settings</a>');
+    drupal_exit();
+  }
+
+  // Start adding other single nodes.
+  $to_add = _jrc_crawler_index_check_alias($add);
+
+  foreach ($to_add as &$value) {
+    $value = str_replace("node/", "", $value);
+  }
+  unset($value);
+
+  $records = array_merge($records, $to_add);
+
+  // Fill array with internal paths.
+  foreach ($records as $nid) {
+    $paths[] = "node/$nid";
+  }
+
+  // Then remove nodes to skip.
+  $diff = array_diff($paths, _jrc_crawler_index_check_alias($skip));
+
+  // Aliased urls array.
+  foreach ($diff as $url) {
+    $alias_paths[] = l($base_root . url($url), $url);
+  }
+
+  $per_page = $limit;
+  $current_page = pager_default_initialize($total[0], $per_page);
+  $chunks = array_chunk($alias_paths, $per_page, TRUE);
+
+  // Page links count.
+  $pages = (count($records) - 1) % $per_page;
+
+  if (!isset($_GET['page'])) {
+    print theme('pager', array('quantity' => $pages));
+  }
+
+  // Data for index item list.
+  $list_type = 'ul';
+  $list_attributes = array(
+    'id' => 'idol-index-list',
+    'style' => 'margin-left: 40px;',
+  );
+
+  count($records) > 0 ? $list_items = $chunks[$current_page] : $list_items = '';
+
+  if (isset($_GET['page']) && $_GET['page'] >= 0) {
+    print theme('item_list', array(
+      'items' => $list_items,
+      'type' => $list_type,
+      'attributes' => $list_attributes,
+    ));
+  }
+
+  drupal_add_js(drupal_get_path('module', 'jrc_crawler_index') . '/js/jrc_crawler_index.js', 'file');
+  drupal_add_css(drupal_get_path('module', 'jrc_crawler_index') . '/css/jrc_crawler_index.css', CSS_DEFAULT);
+}
+
+/**
+ * Helper function to check urls.
+ *
+ * @param array $alias_list
+ *   An array of URL aliases.
+ *
+ * @return array
+ *   Returns a list of links.
+ */
+function _jrc_crawler_index_check_alias(array $alias_list) {
+  foreach ($alias_list as $alias_url) {
+    $sources[] = drupal_lookup_path('source', $alias_url);
+  }
+  return $sources;
+}

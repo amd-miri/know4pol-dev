@@ -1,0 +1,20 @@
+<?php
+
+/**
+ * @file
+ * Install file.
+ */
+
+ /**
+  * Implements hook_enable().
+  */
+function jrc_news_to_su_import_enable() {
+  drupal_set_message(t('The JRC migration module is enabled. You can now run the import.'), 'status');
+}
+
+/**
+ * Implements hook_disable().
+ */
+function jrc_news_to_su_import_disable() {
+  drupal_set_message(t('The JRC migration module is disabled.'), 'status');
+}

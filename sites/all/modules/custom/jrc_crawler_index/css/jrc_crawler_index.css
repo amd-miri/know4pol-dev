@@ -1,0 +1,51 @@
+body {
+  background: none !important;
+}
+
+body.page-admin-content-crawler-idolindexation div#branding {
+  display: none;
+}
+
+body.page-admin-content-crawler-idolindexation ul.pager {
+  text-align: left !important;
+  list-style-type: circle;
+  padding: 5px;
+}
+
+body.page-admin-content-crawler-idolindexation ul.pager li a {
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+body.page-admin-content-crawler-idolindexation ul.pager li a:hover {
+  background: none;
+  text-decoration: none;
+}
+
+body.page-admin-content-crawler-idolindexation ul.pager li.pager-next,
+body.page-admin-content-crawler-idolindexation ul.pager li.pager-last,
+body.page-admin-content-crawler-idolindexation ul.pager li.pager-previous,
+body.page-admin-content-crawler-idolindexation ul.pager li.pager-first {
+  display: none;
+}
+
+body.page-admin-content-crawler-idolindexation .container {
+  display: none;
+}
+
+body.page-admin-content-crawler-idolindexation #share-tool-right {
+  display: none;
+}
+
+body.page-admin-content-crawler-idolindexation #layout-header {
+  display: none;
+}
+
+body.page-admin-content-crawler-idolindexation .region-featured-wrapper {
+  display: none;
+}
+
+body.page-admin-content-crawler-idolindexation #cookie-consent-banner {
+  display: none;
+}

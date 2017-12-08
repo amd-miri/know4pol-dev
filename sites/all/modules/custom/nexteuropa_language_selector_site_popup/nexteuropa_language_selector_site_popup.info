@@ -1,0 +1,7 @@
+name = Digital Transformation Language selector (Site)
+description = Alters the default Site language selector for digital transformation.
+core = 7.x
+dependencies[] = language_selector_site
+dependencies[] = splash_screen
+php = 5.5
+multisite_version = 2.2

@@ -1,0 +1,70 @@
+<?php
+
+/**
+ * @file
+ * Europa settings install file.
+ */
+
+/**
+ * Implements hook_enable().
+ */
+function nexteuropa_theme_settings_enable() {
+  $t = get_t();
+  drupal_set_message($t('Europa settings are now active on your site.'));
+}
+
+/**
+ * Implements hook_disable().
+ */
+function nexteuropa_theme_settings_disable() {
+  $t = get_t();
+  drupal_set_message($t('Europa settings are now disabled on your site.'));
+}
+
+/**
+ * Implements hook_install().
+ */
+function nexteuropa_theme_settings_install() {
+  $modules = [
+    'dt_europa_settings',
+  ];
+
+  db_delete('system')
+    ->condition('name', $modules, 'IN')
+    ->condition('type', 'module')
+    ->execute();
+  $t = get_t();
+
+  variable_set('node_admin_theme', TRUE);
+
+  drupal_set_message($t('Europa settings are now installed on your site.'));
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function nexteuropa_theme_settings_uninstall() {
+  $t = get_t();
+  drupal_set_message($t('Europa settings have been succesfully uninstalled.'));
+}
+
+/**
+ * Delete {system} records for long-lost modules.
+ */
+function nexteuropa_theme_settings_update_7101() {
+  $modules = [
+    'dt_europa_settings',
+  ];
+
+  db_delete('system')
+    ->condition('name', $modules, 'IN')
+    ->condition('type', 'module')
+    ->execute();
+}
+
+/**
+ * EUTHEME-250 - Enforce th usage of the backend theme for content editing.
+ */
+function nexteuropa_theme_settings_update_7102() {
+  variable_set('node_admin_theme', TRUE);
+}

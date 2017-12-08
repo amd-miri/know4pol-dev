@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Entityreference - Entity Translation tests feature.
+ */
+
+include_once 'entityreference_entity_translation_test.features.inc';

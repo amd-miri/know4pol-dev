@@ -1,0 +1,10 @@
+{
+    "name": "ec-europa/ec_europa",
+    "description": "EC Europa base theme.",
+    "git-version": "0.0.4",
+    "type": "drupal-theme",
+    "require-dev": {
+        "drupal/coder": "^8.2",
+        "phpro/grumphp": "^0.11"
+    }
+}

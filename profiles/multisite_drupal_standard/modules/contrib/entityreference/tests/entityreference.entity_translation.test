@@ -1,0 +1,166 @@
+<?php
+
+/**
+ * @file
+ * Test integration between Entity Reference and Entity Translation.
+ */
+
+/**
+ * Class EntityReferenceEntityTranslationTestCase.
+ */
+class EntityReferenceEntityTranslationTestCase extends DrupalWebTestCase {
+
+  /**
+   * Administrator user created.
+   *
+   * @var object
+   */
+  public $administrator = NULL;
+
+  /**
+   * Array of articles
+   *
+   * @var array
+   */
+  public $data = array();
+
+  /**
+   * Array of created nodes.
+   *
+   * @var array[object]
+   */
+  public $nodes = array();
+
+  /**
+   * Test info function.
+   */
+  public static function getInfo() {
+    return array(
+      'name' => 'Entity Translation integration',
+      'description' => 'Test integration between Entity Reference and Entity Translation.',
+      'group' => 'Entity Reference',
+      'dependencies' => array(
+        'entity_translation',
+        'features',
+        'strongarm',
+        'title',
+      ),
+    );
+  }
+
+  /**
+   * @{inheritdoc}
+   */
+  public function setUp() {
+    parent::setUp();
+    module_enable(array('entityreference_entity_translation_test'), TRUE);
+    $this->resetAll();
+
+    $permissions[] = 'access content';
+    $permissions[] = 'administer site configuration';
+    $permissions[] = 'administer content types';
+    $permissions[] = 'administer nodes';
+    $permissions[] = 'bypass node access';
+    $permissions[] = 'administer entity translation';
+    $permissions[] = 'translate any entity';
+
+    // Create an admin user and log in.
+    $this->administrator = $this->drupalCreateUser($permissions);
+    $this->drupalLogin($this->administrator);
+
+    $this->data['first'] = array(
+      'en' => 'First article in English',
+      'it' => 'First article in Italian',
+    );
+    $this->data['second'] = array(
+      'en' => 'Second article in English',
+      'it' => 'Second article in Italian',
+    );
+    $this->data['third'] = array(
+      'en' => 'Third article in English',
+      'it' => 'Third article in Italian',
+    );
+
+    foreach ($this->data as $id => $article) {
+      $this->nodes[$id] = $this->createTranslatableArticle($article);
+    }
+
+    // Make sure that the first node references the other two.
+    $node = $this->nodes['first'];
+    $node->field_reference[LANGUAGE_NONE][0]['target_id'] = $this->nodes['second']->nid;
+    $node->field_reference[LANGUAGE_NONE][1]['target_id'] = $this->nodes['third']->nid;
+    node_save($node);
+  }
+
+  /**
+   * Test that "Rendered entity" formatter is language aware.
+   */
+  public function testRenderedEntityFormatter() {
+    $node = $this->nodes['first'];
+
+    $this->drupalGet("node/$node->nid");
+    foreach ($this->data as $id => $article) {
+      $this->assertText($this->data[$id]['en']);
+    }
+
+    $this->clickLink('Italiano');
+    foreach ($this->data as $id => $article) {
+      $this->assertText($this->data[$id]['it']);
+    }
+  }
+
+  /**
+   * Create translatable article content.
+   *
+   * @param array $translations
+   *    Array of translations, keyed by language code, "en" is required.
+   *
+   * @return object
+   *    Created node object.
+   */
+  protected function createTranslatableArticle(array $translations) {
+
+    $values = array();
+    $values['title'] = $translations['en'];
+    $values['title_field']['en'][0]['value'] = $translations['en'];
+    $values['body']['en'][0]['value'] = $translations['en'];
+    $values['language'] = 'en';
+    $values['type'] = 'article';
+    unset($translations['en']);
+
+    $node = $this->drupalCreateNode($values);
+
+    $translation = array(
+      'translate' => 0,
+      'status' => TRUE,
+      'source' => $node->language,
+    );
+
+    foreach ($translations as $language => $node_translation) {
+      $translation_handler = entity_translation_get_handler('node', $node);
+      $translation_handler->loadTranslations();
+
+      $translation['uid'] = $node->uid;
+      $translation['created'] = $node->created;
+      $translation['changed'] = $node->changed;
+      $translation['language'] = $language;
+
+      $values = array();
+      $values['title_field'][$language][0]['value'] = $node_translation;
+      $values['body'][$language][0]['value'] = $node_translation;
+
+      // Add the new translation and store it.
+      $translation_handler->setTranslation($translation, $values);
+
+      // Preserve original language setting.
+      $node->field_language = $node->language;
+      $node->language = $node->translations->original;
+
+      // Save entity.
+      node_save($node);
+    }
+
+    return $node;
+  }
+
+}

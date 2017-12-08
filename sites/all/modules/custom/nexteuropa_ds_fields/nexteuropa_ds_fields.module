@@ -1,0 +1,74 @@
+<?php
+
+/**
+ * @file
+ * nexteuropa_ds_fields.module
+ */
+
+include_once 'nexteuropa_ds_fields.features.inc';
+
+/**
+ * Implements hook_ds_fields_info_alter().
+ */
+function nexteuropa_ds_fields_ds_fields_info_alter(&$fields, $entity_type) {
+  if (isset($fields['title'])) {
+    $fields['title']['title'] = t('Title (use this with the Europa Theme)');
+    $fields['title']['properties']['default']['wrapper'] = 'h1';
+  }
+}
+
+/**
+ * Implements hook_ds_fields_info().
+ */
+function nexteuropa_ds_fields_ds_fields_info($entity_type) {
+  $fields = [];
+
+  $fields['comment_count'] = [
+    'title' => t('Comments count'),
+    'field_type' => DS_FIELD_TYPE_FUNCTION,
+    'function' => '_nexteuropa_ds_fields_token_replace',
+    'properties' => [
+      'value' => '[node:comment-count] comments',
+    ],
+  ];
+
+  // A simple field containing a floating hr.
+  $amount_of_lines = 2;
+  for ($i = 1; $i <= $amount_of_lines; $i++) {
+    $fields['hr_' . $i] = [
+      'title' => t('Horizontal line (@line)', ['@line' => $i]),
+      'field_type' => DS_FIELD_TYPE_FUNCTION,
+      'function' => '_nexteuropa_ds_fields_hr',
+    ];
+  }
+
+  return ['node' => $fields];
+
+}
+
+/**
+ * Custom function to return a simple hr element in a field.
+ *
+ * @return string
+ *    Horizontal rule markup, in-line with our style-guide.
+ */
+function _nexteuropa_ds_fields_hr() {
+  return '<hr class="hr--fullwidth">';
+}
+
+/**
+ * Custom function for single token replacement in a field.
+ *
+ * @param array $field
+ *   The configuration of a DS field.
+ *
+ * @return string
+ *    Value with replaced tokens.
+ */
+function _nexteuropa_ds_fields_token_replace($field) {
+  if (isset($field['properties']['value'])) {
+    $value = $field['properties']['value'];
+    $value = token_replace($value, [$field['entity_type'] => $field['entity']], ['clear' => TRUE]);
+    return $value;
+  }
+}

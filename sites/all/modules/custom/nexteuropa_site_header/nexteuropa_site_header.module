@@ -1,0 +1,157 @@
+<?php
+
+/**
+ * @file
+ * Code for the NextEuropa Site Header feature.
+ */
+
+include_once 'nexteuropa_site_header.features.inc';
+
+/**
+ * Implements hook_form_system_theme_settings_alter().
+ */
+function nexteuropa_site_header_form_system_theme_settings_alter(&$form, &$form_state) {
+  // Build the form.
+  if (empty($form['europa'])) {
+    $form['europa'] = [
+      '#type' => 'fieldset',
+      '#title' => t('Europa settings'),
+    ];
+  }
+
+  $form['europa']['ec_europa_breadcrumb_menu'] = [
+    '#type' => 'select',
+    '#title' => t('Check the menu to be used at the beginning of your breadcrumb.'),
+    '#options' => menu_get_menus(),
+    '#description' => t('By default this is set to be the breadcrumb menu provided by the NextEuropa platform.'),
+    '#default_value' => theme_get_setting('ec_europa_breadcrumb_menu', 'europa'),
+  ];
+
+  $form['europa']['ec_europa_site_header_home'] = [
+    '#type' => 'checkbox',
+    '#title' => t('Is your site header going to be shown in the home page of this website?'),
+    '#default_value' => theme_get_setting('ec_europa_site_header_home', 'europa'),
+    '#description' => t('If you untick this the site header will not be printed in the home page.'),
+  ];
+
+  $form['europa']['ec_europa_breadcrumb_home'] = [
+    '#type' => 'checkbox',
+    '#title' => t('Do you need the breadcrumb in the home page?'),
+    '#default_value' => theme_get_setting('ec_europa_breadcrumb_home', 'europa'),
+    '#description' => t('You can hide the breadcrumb for the home page here.'),
+    '#states' => [
+      'visible' => [
+        ':input[name="ec_europa_site_header_home"]' => [
+          'checked' => TRUE,
+        ],
+      ],
+    ],
+  ];
+
+  $form['europa']['ec_europa_multilingual'] = [
+    '#type' => 'checkbox',
+    '#title' => t('Does your website implement multilingualism?'),
+    '#default_value' => theme_get_setting('ec_europa_multilingual', 'europa'),
+    '#description' => t('If you have a multilingual website we will handle your language switcher'),
+  ];
+
+  $form_state['ec_europa_site_header_home'] = $form['europa']['ec_europa_site_header_home']['#default_value'];
+  $form_state['ec_europa_multilingual'] = $form['europa']['ec_europa_multilingual']['#default_value'];
+
+  $form['#submit'][] = '_nexteuropa_site_header_theme_settings_submit';
+}
+
+/**
+ * Custom submit function for the theme setting form.
+ */
+function _nexteuropa_site_header_theme_settings_submit(&$form, &$form_state) {
+  $old_home_setting = $form_state['ec_europa_site_header_home'];
+  $old_multilingualism = $form_state['ec_europa_multilingual'];
+  $new_home_setting = $form_state['values']['ec_europa_site_header_home'];
+  $new_multilingualism = $form_state['values']['ec_europa_multilingual'];
+
+  if ($old_home_setting != $new_home_setting) {
+    _nexteuropa_site_header_handle_homepage($new_home_setting);
+  }
+
+  if ($old_multilingualism != $new_multilingualism) {
+    _nexteuropa_site_header_handle_multilingualism($new_multilingualism);
+  }
+}
+
+/**
+ * Helper function to hide/show the site header in the homepage.
+ */
+function _nexteuropa_site_header_handle_homepage($op) {
+  $context = module_invoke('context', 'load', 'ec_europa_site_header');
+
+  if (!$op) {
+    $context->conditions['path'] = _nexteuropa_site_header_no_homepage();
+    $message = t('You deactivated the site header in the home page');
+  }
+  else {
+    if (!empty($context->conditions['path'])) {
+      unset($context->conditions['path']);
+      $message = t('You enabled the site header in the home page');
+    }
+  }
+
+  module_invoke('context', 'save', $context);
+  drupal_set_message($message, 'status', FALSE);
+}
+
+/**
+ * Helper function to enable or disable the language switcher.
+ */
+function _nexteuropa_site_header_handle_multilingualism($op) {
+  if ($op) {
+    if (!module_exists('nexteuropa_language_selector_site_popup')) {
+      module_enable([
+        'nexteuropa_language_selector_site_popup',
+        'splash_screen',
+      ]);
+
+      $message = t('You activated the language switcher');
+    }
+  }
+  else {
+    $message = t("The language switcher doesn't seem to be enabled, doing nothing, then");
+
+    if (module_exists('nexteuropa_language_selector_site_popup')) {
+      module_disable([
+        'nexteuropa_language_selector_site_popup',
+        'splash_screen',
+      ]);
+
+      $message = t('You disabled the language switcher, you will still see that as a "placeholder"');
+    }
+  }
+
+  drupal_set_message($message, 'status', FALSE);
+}
+
+/**
+ * Implements hook_context_default_contexts_alter().
+ */
+function nexteuropa_site_header_context_default_contexts_alter(&$contexts) {
+  $context = module_invoke('context', 'load', 'ec_europa_site_header');
+
+  if (!empty($context->conditions['path']) &&
+      !empty($contexts['ec_europa_site_header'])) {
+    $contexts['ec_europa_site_header']->conditions['path'] = _nexteuropa_site_header_no_homepage();
+  }
+}
+
+/**
+ * Function defining the path condition for a context.
+ *
+ * @return array
+ *   Path condition for context..
+ */
+function _nexteuropa_site_header_no_homepage() {
+  return [
+    'values' => [
+      '~<front>' => '~<front>',
+    ],
+  ];
+}

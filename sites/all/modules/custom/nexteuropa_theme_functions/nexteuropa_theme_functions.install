@@ -1,0 +1,38 @@
+<?php
+
+/**
+ * @file
+ * Nexteuropa_theme_functions settings install file.
+ */
+
+/**
+ * Implements hook_enable().
+ */
+function nexteuropa_theme_functions_enable() {
+  $t = get_t();
+  drupal_set_message($t('nexteuropa_theme_functions is now active on your site.'));
+}
+
+/**
+ * Implements hook_disable().
+ */
+function nexteuropa_theme_functions_disable() {
+  $t = get_t();
+  drupal_set_message($t('nexteuropa_theme_functions is now disabled on your site.'));
+}
+
+/**
+ * Implements hook_install().
+ */
+function nexteuropa_theme_functions_install() {
+  $t = get_t();
+  drupal_set_message($t('nexteuropa_theme_functions is now installed on your site.'));
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function nexteuropa_theme_functions_uninstall() {
+  $t = get_t();
+  drupal_set_message($t('nexteuropa_theme_functions has been successfully uninstalled.'));
+}

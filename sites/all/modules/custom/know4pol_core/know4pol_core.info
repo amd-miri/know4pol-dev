@@ -1,0 +1,8 @@
+name = know4pol-core
+description = Basic settings and views for Knowledge4policy site.
+core = 7.x
+package = JRC
+php = 5.2.4
+features[features_api][] = api:2
+features_exclude[dependencies][ctools] = ctools
+multisite_version = 2.4

@@ -1,0 +1,7 @@
+name = JRC Crawler Index
+description = This will provide a crawler page for Europa Search
+package = JRC
+core = 7.x
+php = 5.2.4
+multisite_version = 2.3
+features[features_api][] = api:2

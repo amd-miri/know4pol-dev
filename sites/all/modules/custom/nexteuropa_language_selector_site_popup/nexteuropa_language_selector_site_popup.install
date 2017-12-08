@@ -1,0 +1,58 @@
+<?php
+
+/**
+ * @file
+ * Holds install and update hooks for our language switcher implementation.
+ */
+
+/**
+ * Implements hook_install().
+ *
+ * This install hook makes sure that the weight of this module is higher tran
+ * the base module. This in order to make our alters always run as last.
+ */
+function nexteuropa_language_selector_site_popup_install() {
+  db_update('system')
+    ->fields(['weight' => 999])
+    ->condition('name', 'nexteuropa_language_selector_site_popup', '=')
+    ->execute();
+
+  $t = get_t();
+  drupal_set_message($t('Nexteuropa language selector site popup settings are now installed on your site.'));
+}
+
+/**
+ * Implements hook_enable().
+ */
+function nexteuropa_language_selector_site_popup_enable() {
+  $t = get_t();
+  drupal_set_message($t('Nexteuropa language selector site popup has been successfully enabled.'));
+}
+
+/**
+ * Implements hook_disable().
+ */
+function nexteuropa_language_selector_site_popup_disable() {
+  $t = get_t();
+  drupal_set_message($t('Nexteuropa language selector site popup has been successfully disabled.'));
+}
+
+/**
+ * Implements hook_uninstall().
+ *
+ * Removes variables that are no longer needed.
+ */
+function nexteuropa_language_selector_site_popup_uninstall() {
+  variable_del('nexteuropa_language_selector_site_popup_message');
+  variable_del('dt_language_selector_site_splash_message');
+
+  $t = get_t();
+  drupal_set_message($t('Nexteuropa language selector site popup has been successfully uninstalled.'));
+}
+
+/**
+ * Remove the splash_screen_home_page variable.
+ */
+function nexteuropa_language_selector_site_popup_update_7101() {
+  variable_del('splash_screen_home_page');
+}

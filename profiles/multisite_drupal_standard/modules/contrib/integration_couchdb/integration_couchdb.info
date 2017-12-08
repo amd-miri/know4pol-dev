@@ -1,0 +1,16 @@
+name = Integration CouchDB backend
+description = Provides a CouchDB backend for the Integration module.
+core = 7.x
+package = Integration
+
+dependencies[] = integration
+dependencies[] = integration_ui
+dependencies[] = registry_autoload
+registry_autoload[] = PSR-4
+
+; Information added by Drupal.org packaging script on 2016-07-26
+version = "7.x-1.x-dev"
+core = "7.x"
+project = "integration_couchdb"
+datestamp = "1469536745"
+

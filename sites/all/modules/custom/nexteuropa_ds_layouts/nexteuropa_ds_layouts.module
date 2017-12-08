@@ -1,0 +1,206 @@
+<?php
+
+/**
+ * @file
+ * nexteuropa_ds_layouts.module
+ */
+
+/**
+ * Implements hook_ds_layout_info_alter().
+ */
+function nexteuropa_ds_layouts_ds_layout_info_alter(&$layouts) {
+  // Remove all layouts not created by this module.
+  $layouts = [];
+  $path = drupal_get_path('module', 'nexteuropa_ds_layouts');
+
+  $layouts['ne_bootstrap_3_6_3_stacked'] = [
+    'label' => t('NE Bootstrap: 3-6-3 stacked'),
+    'path' => $path . '/layouts/ne_bootstrap_3_6_3_stacked',
+    'regions' => [
+      'left_header' => t('Left Header'),
+      'right_header' => t('Right Header'),
+      'top' => t('Top'),
+      'left' => t('Left'),
+      'central' => t('Middle'),
+      'right' => t('Right'),
+    ],
+    'form' => TRUE,
+    'image' => TRUE,
+    'is_nexteuropa' => TRUE,
+  ];
+
+  $layouts['ne_bootstrap_3_9_stacked'] = [
+    'label' => t('NE Bootstrap: 3-9 stacked'),
+    'path' => $path . '/layouts/ne_bootstrap_3_9_stacked',
+    'regions' => [
+      'left_header' => t('Left Header'),
+      'right_header' => t('Right Header'),
+      'top' => t('Top'),
+      'left' => t('Left'),
+      'central' => t('Middle'),
+    ],
+    'form' => TRUE,
+    'image' => TRUE,
+    'is_nexteuropa' => TRUE,
+  ];
+
+  $layouts['ne_bootstrap_3_9_stacked_conditional'] = [
+    'label' => t('NE Bootstrap: 3-9(12) stacked conditional sidebar'),
+    'path' => $path . '/layouts/ne_bootstrap_3_9_stacked_conditional',
+    'regions' => [
+      'left_header' => t('Left Header'),
+      'right_header' => t('Right Header'),
+      'top' => t('Top'),
+      'left' => t('Left'),
+      'central' => t('Middle'),
+      'bottom_left' => t('Bottom Left'),
+      'bottom_central' => t('Bottom Middle'),
+    ],
+    'form' => TRUE,
+    'image' => TRUE,
+    'is_nexteuropa' => TRUE,
+  ];
+
+  $layouts['ne_bootstrap_3_9_advanced_top_conditional'] = [
+    'label' => t('NE Bootstrap: 3-9(12) advanced top conditional'),
+    'path' => $path . '/layouts/ne_bootstrap_3_9_advanced_top_conditional',
+    'regions' => [
+      'left_header' => t('Left Header'),
+      'right_header' => t('Right Header'),
+      'top_top' => t('Top'),
+      'top_middle_left' => t('Top middle left'),
+      'top_middle_right' => t('Top middle right'),
+      'top_bottom_left' => t('Top bottom left'),
+      'top_bottom_right' => t('Top bottom right'),
+      'left' => t('Left'),
+      'central' => t('Middle'),
+    ],
+    'form' => TRUE,
+    'image' => TRUE,
+    'is_nexteuropa' => TRUE,
+  ];
+
+  $layouts['ne_bootstrap_1col_stacked'] = [
+    'label' => t('NE Bootstrap: 1col stacked'),
+    'path' => $path . '/layouts/ne_bootstrap_1col_stacked',
+    'regions' => [
+      'left_header' => t('Left Header'),
+      'right_header' => t('Right Header'),
+      'top' => t('Top'),
+      'central' => t('Main'),
+    ],
+    'form' => TRUE,
+    'image' => TRUE,
+    'is_nexteuropa' => TRUE,
+  ];
+
+  $layouts['ne_bootstrap_1col_stacked_bottom_header'] = [
+    'label' => t('NE Bootstrap: 1col stacked with bottom header'),
+    'path' => $path . '/layouts/ne_bootstrap_1col_stacked_bottom_header',
+    'regions' => [
+      'left_header' => t('Left Header'),
+      'right_header' => t('Right Header'),
+      'bottom_header' => t('Bottom Header'),
+      'top' => t('Top'),
+      'central' => t('Main'),
+    ],
+    'form' => TRUE,
+    'image' => TRUE,
+    'is_nexteuropa' => TRUE,
+  ];
+
+  $layouts['ne_2col'] = [
+    'label' => t('NE: 2col'),
+    'path' => $path . '/layouts/ne_2col',
+    'regions' => [
+      'main' => t('Main'),
+      'second' => t('Second'),
+    ],
+    'form' => TRUE,
+    'image' => TRUE,
+    'is_nexteuropa' => TRUE,
+  ];
+
+  $layouts['ne_2col_sidebar_no_link'] = [
+    'label' => t('NE: 2col - sidebar without link'),
+    'path' => $path . '/layouts/ne_2col_sidebar_no_link',
+    'regions' => [
+      'main' => t('Main'),
+      'second' => t('Second'),
+    ],
+    'form' => TRUE,
+    'image' => TRUE,
+    'is_nexteuropa' => TRUE,
+  ];
+
+  $layouts['ne_1col'] = [
+    'label' => t('NE: 1col'),
+    'path' => $path . '/layouts/ne_1col',
+    'regions' => [
+      'main' => t('Main'),
+    ],
+    'form' => TRUE,
+    'image' => TRUE,
+    'is_nexteuropa' => TRUE,
+  ];
+
+  /*
+   * This is a temporary custom solution to add the hitme library that was made
+   * by Roel, to be possible to have two links with different actions in the
+   * same block.
+   *
+   * @todo: after having a ticket that will improve the markup of NE Bootstrap
+   * template files to be HTML5, then this should be removed.
+   */
+  $layouts['ne_1col_hitme'] = [
+    'label' => t('NE: 1col hitme'),
+    'path' => $path . '/layouts/ne_1col_hitme',
+    'regions' => [
+      'main' => t('Main'),
+    ],
+    'form' => TRUE,
+    'image' => TRUE,
+    'is_nexteuropa' => TRUE,
+  ];
+
+  $layouts['ne_1col_section_item'] = [
+    'label' => t('NE: 1col section item'),
+    'path' => $path . '/layouts/ne_1col_section_item',
+    'regions' => [
+      'title' => t('Title'),
+      'description' => t('Description'),
+      'children' => t('Children'),
+      'links' => t('Links'),
+    ],
+    'form' => TRUE,
+    'image' => TRUE,
+    'is_nexteuropa' => TRUE,
+  ];
+
+  $layouts['ne_featured_item'] = [
+    'label' => t('Component: Featured item'),
+    'path' => $path . '/layouts/ne_featured_item',
+    'regions' => [
+      'featured_image' => t('Featured image'),
+      'meta' => t('Meta'),
+      'main' => t('Main content'),
+    ],
+    'form' => TRUE,
+    'image' => TRUE,
+    'is_nexteuropa' => TRUE,
+  ];
+
+  $layouts['ne_2col_hitme'] = [
+    'label' => t('NE: 2col hitme'),
+    'path' => $path . '/layouts/ne_2col_hitme',
+    'regions' => [
+      'main' => t('Main'),
+      'second' => t('Second'),
+    ],
+    'form' => TRUE,
+    'image' => TRUE,
+    'is_nexteuropa' => TRUE,
+  ];
+
+  return $layouts;
+}

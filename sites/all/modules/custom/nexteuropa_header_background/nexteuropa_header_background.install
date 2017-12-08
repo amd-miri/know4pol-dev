@@ -1,0 +1,66 @@
+<?php
+
+/**
+ * @file
+ * Digital Transformation Header Background install file.
+ */
+
+/**
+ * Implements hook_enable().
+ */
+function nexteuropa_header_background_enable() {
+  // Activation message.
+  drupal_set_message(t('NextEuropa Header Background module is now active on your site.'));
+}
+
+/**
+ * Implements hook_disable().
+ */
+function nexteuropa_header_background_disable() {
+  drupal_set_message(t('NextEuropa Header Background module is now disabled on your site.'));
+}
+
+/**
+ * Implements hook_install().
+ */
+function nexteuropa_header_background_install() {
+  $modules = [
+    'dt_header_background',
+  ];
+
+  db_delete('system')
+    ->condition('name', $modules, 'IN')
+    ->condition('type', 'module')
+    ->execute();
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function nexteuropa_header_background_uninstall() {
+  // Delete the variables created by this module.
+  variable_del('nexteuropa_header_background_default');
+  variable_del('nexteuropa_header_background_per_content_type');
+  // Get a list of the existing content type.
+  $content_types = node_type_get_types();
+  foreach ($content_types as $machine_name => $content_type) {
+    // Check if the content type holds the relevant field.
+    if (field_info_instance('node', NEXTEUROPA_HEADER_BACKGROUND_FIELD, $machine_name) !== NULL) {
+      variable_del('nexteuropa_header_background_' . $machine_name);
+    }
+  }
+}
+
+/**
+ * Implements hook_update().
+ */
+function nexteuropa_header_background_update_7001() {
+  $modules = [
+    'dt_header_background',
+  ];
+
+  db_delete('system')
+    ->condition('name', $modules, 'IN')
+    ->condition('type', 'module')
+    ->execute();
+}

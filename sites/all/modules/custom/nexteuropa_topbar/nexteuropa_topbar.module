@@ -1,0 +1,176 @@
+<?php
+
+/**
+ * @file
+ * Code for the NextEuropa TopBar feature.
+ */
+
+include_once 'nexteuropa_topbar.features.inc';
+include_once 'nexteuropa_topbar.helpers.inc';
+include_once 'nexteuropa_topbar.theme.inc';
+
+/**
+ * Implements hook_form_system_theme_settings_alter().
+ */
+function nexteuropa_topbar_form_system_theme_settings_alter(&$form, &$form_state) {
+  // Build the form.
+  if (empty($form['europa'])) {
+    $form['europa'] = [
+      '#type' => 'fieldset',
+      '#title' => t('Europa settings'),
+    ];
+  }
+
+  $form['europa']['ec_europa_site_switcher'] = [
+    '#type' => 'radios',
+    '#title' => t('Choose which site your website belongs to:'),
+    '#default_value' => theme_get_setting('ec_europa_site_switcher', 'europa'),
+    '#options' => [
+      'informational' => t('Informational'),
+      'political' => t('Political'),
+    ],
+    '#description' => t('This will determine the default selected tab in the site switcher'),
+    '#weight' => 0,
+  ];
+
+  $form['europa']['user'] = [
+    '#type' => 'fieldset',
+    '#title' => t('Europa settings for the user menu'),
+  ];
+
+  $form['europa']['user']['ec_europa_user_menu'] = [
+    '#type' => 'checkbox',
+    '#title' => t('Do you want to show the user menu logged in users?'),
+    '#default_value' => theme_get_setting('ec_europa_user_menu', 'europa'),
+    '#description' => t('The user menu contains info about the logged in user and links to login/logout (it handle ecas login as well)'),
+    '#weight' => 0,
+  ];
+
+  $form['europa']['user']['ec_europa_user_login'] = [
+    '#type' => 'checkbox',
+    '#title' => t('Do you want to show the login link?'),
+    '#default_value' => theme_get_setting('ec_europa_user_login', 'europa'),
+    '#weight' => 1,
+    '#description' => t('You can choose to hide the login link keeping this unchecked'),
+    '#states' => [
+      'visible' => [
+        ':input[name="ec_europa_user_menu"]' => [
+          'checked' => TRUE,
+        ],
+      ],
+    ],
+  ];
+
+  $form_state['ec_europa_user_menu'] = $form['europa']['user']['ec_europa_user_menu']['#default_value'];
+
+  $form['#submit'][] = '_nexteuropa_topbar_theme_settings_submit';
+}
+
+/**
+ * Custom submit function for the theme setting form.
+ */
+function _nexteuropa_topbar_theme_settings_submit(&$form, &$form_state) {
+  $old_user_menu = $form_state['ec_europa_user_menu'];
+  $new_user_menu = $form_state['values']['ec_europa_user_menu'];
+  if ($new_user_menu != $old_user_menu) {
+    _nexteuropa_topbar_handle_user_menu($new_user_menu);
+  }
+}
+
+/**
+ * Implements hook_block_info().
+ */
+function nexteuropa_topbar_block_info() {
+  // Block to display user name and the option to login/logout.
+  $blocks['nexteuropa_user_menu'] = [
+    'info' => t('Nexteuropa user menu'),
+  ];
+
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function nexteuropa_topbar_block_view($delta = '') {
+  $block = [];
+
+  switch ($delta) {
+    case 'nexteuropa_user_menu':
+      $block['content']['#markup'] = theme('nexteuropa_user_menu');
+      break;
+  }
+
+  return $block;
+}
+
+/**
+ * Implements hook_theme_registry_alter().
+ */
+function nexteuropa_topbar_theme_registry_alter(&$theme_registry) {
+  $module_path = drupal_get_path('module', 'nexteuropa_topbar');
+  $template_file_objects = drupal_find_theme_templates($theme_registry, '.tpl.php', $module_path);
+
+  foreach ($template_file_objects as $key => $template_file_object) {
+    // If the template has not already been overridden by a theme.
+    if (!isset($theme_registry[$key]['theme path']) || !preg_match('#/themes/#', $theme_registry[$key]['theme path'])) {
+      // Alter the theme path and template elements.
+      $theme_registry[$key]['theme path'] = $module_path;
+      $theme_registry[$key] = array_merge($theme_registry[$key], $template_file_object);
+      $theme_registry[$key]['type'] = 'module';
+    }
+  }
+}
+
+/**
+ * Implements hook_theme().
+ */
+function nexteuropa_topbar_theme() {
+  return [
+    'nexteuropa_user_menu' => [],
+  ];
+}
+
+/**
+ * Implements hook_preprocess_block().
+ */
+function nexteuropa_topbar_preprocess_block(&$variables) {
+  $block = $variables['block'];
+
+  switch ($block->delta) {
+    case 'menu-nexteuropa-site-links':
+      if ($block->region == 'header_top') {
+        $variables['classes_array'][] = 'nexteuropa_site_switcher';
+
+        if ($links = menu_navigation_links('menu-nexteuropa-site-links')) {
+          foreach ($links as $key => $link) {
+            $links[$key]['attributes']['class'] = ['site-switcher__option'];
+
+            if (variable_get('ec_europa_site_switcher', 'informational') == $links[$key]['attributes']['name']) {
+              $links[$key]['attributes']['class'][] = 'is-selected';
+            }
+          }
+
+          $content = theme('links', [
+            'links' => $links,
+            'attributes' => ['class' => ['site-switcher__list']],
+          ]);
+
+          $variables['content'] = $content;
+        }
+      }
+      break;
+  }
+}
+
+/**
+ * Implements hook_context_default_contexts_alter().
+ */
+function nexteuropa_topbar_context_default_contexts_alter(&$contexts) {
+  $context = module_invoke('context', 'load', 'ec_europa_topbar');
+
+  if (!empty($context->reactions['block']['blocks']['nexteuropa_topbar-nexteuropa_user_menu']) &&
+      !empty($contexts['ec_europa_topbar'])) {
+    $contexts['ec_europa_topbar']->reactions['block']['blocks']['nexteuropa_topbar-nexteuropa_user_menu'] = _nexteuropa_topbar_user_menu_info();
+  }
+}

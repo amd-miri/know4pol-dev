@@ -1,0 +1,234 @@
+<?php
+
+/**
+ * @file
+ * Code for the header background feature.
+ */
+
+module_load_include('inc', 'nexteuropa_header_background', 'nexteuropa_header_background.admin');
+define('NEXTEUROPA_HEADER_BACKGROUND_DIR', 'public://css/header-backgrounds/');
+define('NEXTEUROPA_HEADER_BACKGROUND_FIELD', variable_get('nexteuropa_header_background_field', FALSE));
+
+/**
+ * Implements hook_nexteuropa_header_background_info().
+ */
+function nexteuropa_header_background_nexteuropa_header_background_info() {
+  return [
+    [
+      'view_mode' => 'full',
+      'content_type' => '*',
+    ],
+  ];
+}
+
+/**
+ * Implements template_preprocess_node().
+ */
+function nexteuropa_header_background_preprocess_node(&$variables) {
+  $header_back = FALSE;
+  // Our checking value.
+  $add_header = FALSE;
+  // Get the settings for the content type visibility.
+  $selected = variable_get('nexteuropa_header_background_which_content_type', _nexteuropa_header_background_prepare_options('check_options'));
+
+  // Check the modules, if we have a match we can stop.
+  foreach (module_implements('nexteuropa_header_background_info') as $module) {
+    // The hook returns an array, so we have to check each of them.
+    foreach (module_invoke($module, 'nexteuropa_header_background_info') as $implementation) {
+      if ($implementation['view_mode'] == $variables['view_mode'] && ($implementation['content_type'] == '*' || $implementation['content_type'] == $variables['type'])) {
+        $add_header = TRUE;
+        break;
+      }
+    }
+  }
+
+  // If we have the field and if we are viewing the node's page.
+  if ($add_header && in_array($variables['node']->type, $selected)) {
+    // Check if have a value for the field.
+    if (NEXTEUROPA_HEADER_BACKGROUND_FIELD) {
+      $header_back = field_get_items('node', $variables['node'], NEXTEUROPA_HEADER_BACKGROUND_FIELD);
+    }
+    // Get the fid from the value or check for a default value.
+    if ($header_back) {
+      $fid = $header_back[0]['fid'];
+    }
+    else {
+      $ct = $variables['node']->type;
+      $fid = variable_get('nexteuropa_header_background_' . $ct, FALSE);
+      if (!$fid) {
+        $fid = variable_get('nexteuropa_header_background_default', FALSE);
+      }
+    }
+
+    // Fid might be still unexistent.
+    if ($fid) {
+      $uri = NEXTEUROPA_HEADER_BACKGROUND_DIR . 'header_background_' . $fid . '.css';
+      if (!file_exists($uri)) {
+        // Prepare and store the css file.
+        _nexteuropa_header_background_handle_header_background(NULL, $fid);
+      }
+      // Set a variable available in the tpls.
+      $variables['header_back'] = TRUE;
+      // Add the css to the page.
+      $uri = NEXTEUROPA_HEADER_BACKGROUND_DIR . 'header_background_' . $fid . '.css';
+      drupal_add_css($uri, ['group' => CSS_THEME, 'every_page' => FALSE]);
+    }
+  }
+}
+
+/**
+ * Implements template_preprocess_page().
+ */
+function nexteuropa_header_background_preprocess_page(&$variables) {
+  $activate = variable_get('nexteuropa_header_background_activate_listing', FALSE);
+
+  if ($activate) {
+    $views_page = views_get_page_view();
+
+    // If we are viewing a views generated page.
+    if (is_object($views_page)) {
+      $fid = variable_get('nexteuropa_header_background_default', FALSE);
+      $variables['header_back'] = TRUE;
+      // Add the css to the page.
+      $uri = NEXTEUROPA_HEADER_BACKGROUND_DIR . 'header_background_' . $fid . '.css';
+      drupal_add_css($uri, ['group' => CSS_THEME, 'every_page' => FALSE]);
+    }
+  }
+}
+
+/**
+ * Implements hook_workbench_moderation_transition().
+ */
+function nexteuropa_header_background_workbench_moderation_transition($node) {
+  // Create the Entity wrapper and handle the header background image.
+  $entity_wrapper = entity_metadata_wrapper('node', $node);
+  if (isset($node->{NEXTEUROPA_HEADER_BACKGROUND_FIELD})
+    && NULL !== $entity_wrapper->{NEXTEUROPA_HEADER_BACKGROUND_FIELD}->value()
+  ) {
+    _nexteuropa_header_background_handle_header_background($entity_wrapper);
+  }
+}
+
+/**
+ * Set the default header background image.
+ */
+function _nexteuropa_header_background_set_default_header_background($ct = FALSE, $fid = FALSE) {
+  // We receive the fid only on a theme setting form submit.
+  if (!$fid) {
+    // Set the "default" image for the header background.
+    $filepath = drupal_realpath(drupal_get_path('module', 'nexteuropa_header_background') . '/images/header_background_default.png');
+
+    if (file_exists($filepath)) {
+      $file = (object) [
+        'uid' => 1,
+        'uri' => $filepath,
+        'filemime' => file_get_mimetype($filepath),
+        'status' => FILE_STATUS_PERMANENT,
+      ];
+
+      // Copy the default image in the public folder.
+      $file = file_copy($file, 'public://');
+      $fid = $file->fid;
+      file_usage_add($file, 'nexteuropa_header_background', 'default', 1);
+    }
+  }
+
+  // Setting a variable containing the file id.
+  if (!$ct) {
+    $ct = 'default';
+  }
+
+  variable_set('nexteuropa_header_background_' . $ct, $fid);
+}
+
+/**
+ * Helper function to generate css files for the header background.
+ */
+function _nexteuropa_header_background_handle_header_background($entity_wrapper = NULL, $fid = FALSE) {
+  if (!$fid && NEXTEUROPA_HEADER_BACKGROUND_FIELD) {
+    // We need the file id.
+    $fid = $entity_wrapper->{NEXTEUROPA_HEADER_BACKGROUND_FIELD}->value()['fid'];
+  }
+  // Load the managed file.
+  $file = file_load($fid);
+  // Build the uri for our css file.
+  $uri = NEXTEUROPA_HEADER_BACKGROUND_DIR . 'header_background_' . $fid . '.css';
+  // Get the real path basing on the uri.
+  $filepath = drupal_realpath($uri);
+
+  // If we already a this file no reasons to go further.
+  if (!file_exists($filepath)) {
+    $dir = NEXTEUROPA_HEADER_BACKGROUND_DIR;
+    // Prepare the filesystem.
+    file_prepare_directory($dir, FILE_CREATE_DIRECTORY);
+    // Get all the breakpoints belonging to "this" theme.
+    $breakpoints = breakpoints_breakpoint_load_all_theme('europa');
+    // Need to reverse the order of the breakpoint, mobile first.
+    $breakpoints = array_reverse($breakpoints);
+    // Get all the images presets.
+    $styles = image_styles();
+    // Get the presets name.
+    $style_names = array_keys($styles);
+    // Filter the ones regarding the header image.
+    $header_styles = preg_grep('#^header_image*#', $style_names);
+    // Prepare containers.
+    $mapping = [];
+    $css = '';
+
+    foreach ($breakpoints as $breakpoint) {
+      $name = $breakpoint->machine_name;
+      // Get the key to find correspondencies in the image presets.
+      $breakpoint_key = drupal_substr($name, strrpos($name, '.') + 1);
+      // Get the styles related to this breakpoint.
+      $style_names_breakpoint = preg_grep('#' . $breakpoint_key . '#', $header_styles);
+
+      if (!empty($style_names_breakpoint)) {
+        // We base on the multiplier.
+        sort($style_names_breakpoint);
+
+        foreach ($style_names_breakpoint as $style_name) {
+          // Well, image_style_url returned value would have been enough...
+          $style_url = image_style_url($style_name, $file->uri);
+          // Get also the uri to generate the image.
+          $style_path = image_style_path($style_name, $file->uri);
+          // Create the image since we're going to call it from a relative path.
+          image_style_create_derivative(image_style_load($style_name), $file->uri, $style_path);
+          // And that's just the way to retrieve an absolute, but relative path.
+          $url = drupal_parse_url($style_url);
+          $url_path = $url['path'] . '?' . (!empty($url['query']['itok']) ? $url['query']['itok'] : $url['query']);
+          // Build an array mapping the breakpoints media queries and the image.
+          $mapping[$breakpoints[$name]->breakpoint][] = $url_path;
+        }
+      }
+      // Create the css rules for each breakpoint.
+      $css .= '@media ' . $breakpoints[$name]->breakpoint . ' {' . PHP_EOL;
+      $css .= ' .page-header--image {' . PHP_EOL;
+      $css .= '   background-image: url("' . $mapping[$breakpoints[$name]->breakpoint][0] . '");' . PHP_EOL;
+      $css .= ' }' . PHP_EOL;
+      $css .= '}' . PHP_EOL;
+      $css .= PHP_EOL;
+
+      // High resolution displays.
+      $css .= '@media ' . $breakpoints[$name]->breakpoint . ', (-webkit-min-device-pixel-ratio: 2), (min--moz-device-pixel-ratio: 2), (-o-min-device-pixel-ratio: 2/1), (min-device-pixel-ratio: 2),(min-resolution: 2dppx)  {' . PHP_EOL;
+      $css .= ' .page-header--image {' . PHP_EOL;
+      $css .= '   background-image: url("' . $mapping[$breakpoints[$name]->breakpoint][1] . '");' . PHP_EOL;
+      $css .= ' }' . PHP_EOL;
+      $css .= '}' . PHP_EOL;
+      $css .= PHP_EOL;
+    }
+
+    // Save the file.
+    file_unmanaged_save_data($css, $uri, FILE_EXISTS_REPLACE);
+  }
+}
+
+/**
+ * Implements hook_help().
+ */
+function nexteuropa_header_background_help($path, $arg) {
+  switch ($path) {
+    // Main module help for the nexteuropa_header_background module.
+    case 'admin/help#nexteuropa_header_background':
+      return '<p>' . t('NextEuropa Header background module requires class "@class" to be defined on the template that displays the full-node content.', array('@class' => ".page-header--image")) . '</p>';
+  }
+}

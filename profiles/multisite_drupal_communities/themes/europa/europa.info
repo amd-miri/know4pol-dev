@@ -1,0 +1,78 @@
+name = Europa
+description = NextEuropa base theme, based on Bootstrap 3.
+base theme = bootstrap
+core = 7.x
+php = 5.2.4
+
+; ========================================
+; Regions
+; ========================================
+regions[navigation] = Navigation
+regions[header_top] = Header top
+regions[header] = Header
+regions[header_bottom] = Header bottom
+regions[highlighted] = Highlighted
+regions[help] = Help
+regions[content] = Content
+regions[content_bottom] = Content bottom
+regions[sidebar_first] = Sidebar first
+regions[sidebar_second] = Sidebar second
+regions[footer_top] = Footer Top
+regions[footer] = Footer
+regions[footer_right] = Footer right
+
+; ========================================
+; Stylesheets
+; ========================================
+stylesheets[all][] = styles/theme.css
+
+; ========================================
+; Scripts
+; ========================================
+scripts[] = scripts/misc/ajax.js
+scripts[] = scripts/vendors.js
+scripts[] = scripts/theme.js
+
+; ========================================
+; Settings
+; ========================================
+
+; Region Wells
+; --------------
+settings[bootstrap_region_well-sidebar_first] = ''
+
+; Tooltips
+; --------------
+settings[bootstrap_tooltip_enabled] = 0
+
+; Anchors
+; --------------
+settings[bootstrap_anchors_fix] = 0
+settings[bootstrap_anchors_smooth_scrolling] = 0
+
+; Popover
+; --------------
+settings[bootstrap_popover_enabled] = 1
+
+; Breadcrumbs
+; --------------
+settings[bootstrap_breadcrumb] = 0
+settings[bootstrap_breadcrumb_home] = 1
+settings[bootstrap_breadcrumb_title] = 1
+
+; Advanced
+; --------------
+settings[bootstrap_cdn] = ""
+
+; Breakpoints
+; --------------
+breakpoints[wide] = only screen and (min-width: 992px)
+breakpoints[normal] = (min-width: 768px)
+breakpoints[medium] = (min-width: 480px)
+breakpoints[narrow] = (min-width: 320px)
+breakpoints[mobile] = (min-width: 0px)
+multipliers[wide][] = 2x
+multipliers[normal][] = 2x
+multipliers[medium][] = 2x
+multipliers[narrow][] = 2x
+multipliers[mobile][] = 2x

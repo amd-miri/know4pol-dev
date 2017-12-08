@@ -1,0 +1,88 @@
+<?php
+
+/**
+ * @file
+ * This file contains the know4pol_core feature install functions.
+ */
+
+/**
+ * Implements hook_enable().
+ */
+function know4pol_core_enable() {
+  drupal_set_message(t("The feature Knowledge4policy Core has been enabled."), 'status');
+}
+
+/**
+ * Implements hook_disable().
+ */
+function know4pol_core_disable() {
+  drupal_set_message(t("The feature Knowledge4policy Core has been disabled."), 'status');
+}
+
+/**
+ * Enable some contrib modules.
+ */
+function know4pol_core_install() {
+  module_enable(array('admin_views',
+    'apachesolr',
+    'apachesolr_search',
+    'apachesolr_attachments',
+    'apachesolr_multisitesearch',
+    'apachesolr_sort',
+    'better_exposed_filters',
+    'context_og',
+    'expanding_formatter',
+    'facetapi_bonus',
+    'feeds',
+    'feeds_ui',
+    'feeds_tamper',
+    'feeds_tamper_ui',
+    'feeds_et',
+    'globalredirect',
+    'match_redirect',
+    'migrate',
+    'migrate_ui',
+    'migrate_d2d',
+    'migrate_d2d_ui',
+    'migrate_extras',
+    'migrate_group_settings',
+    'multisite_og_button',
+    'nexteuropa_newsroom',
+    'nexteuropa_piwik',
+    'nexteuropa_varnish',
+    'node_revision_delete',
+    'og_menu',
+    'og_menu_default_links',
+    'og_vocab',
+    'redirect',
+    'views_rss',
+    'views_rss_core',
+    'views_rss_dc',
+    'metatag',
+    'metatag_context',
+    'metatag_facebook',
+    'metatag_google_plus',
+    'metatag_mobile',
+    'metatag_opengraph',
+    'metatag_twitter_cards',
+    'metatag_views',
+    'xmlsitemap',
+    'xmlsitemap_custom',
+    'xmlsitemap_engines',
+    'xmlsitemap_menu',
+    'xmlsitemap_node',
+    'xmlsitemap_taxonomy',
+    'xmlsitemap_user',
+  ), TRUE);
+}
+
+/**
+ * Enable hierarchical_select and feeds_ex modules.
+ */
+function know4pol_core_update_7001() {
+  module_enable(array(
+    'hierarchical_select',
+    'field_default_token',
+    'feeds_ex',
+  ), TRUE);
+}

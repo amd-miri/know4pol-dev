@@ -1,0 +1,11 @@
+name = OG Linkchecker
+description = Provides an aggregated linkchecker report for Organic Groups
+core = 7.x
+package = Organic groups
+dependencies[] = og
+dependencies[] = linkchecker
+
+; Information added by drush on 2012-10-16
+version = "7.x-1.x-dev"
+project = "og_linkchecker"
+datestamp = "1350410955"

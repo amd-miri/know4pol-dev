@@ -1,0 +1,11 @@
+name = NextEuropa Site Header
+description = The Site Header Feature
+core = 7.x
+package = NextEuropa Digital Transformation
+features[ctools][] = context:context:3
+features[context][] = ec_europa_site_header
+features[features_api][] = api:2
+php = 5.5
+features_exclude[dependencies][context] = context
+features_exclude[dependencies][ctools] = ctools
+multisite_version = 2.2

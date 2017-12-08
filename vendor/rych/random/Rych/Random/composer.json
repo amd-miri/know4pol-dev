@@ -1,0 +1,38 @@
+{
+    "name": "rych/random",
+    "type": "library",
+    "description": "Random data generator for PHP",
+    "keywords": ["cryptography", "random"],
+    "homepage": "https://github.com/rchouinard/rych-random",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Ryan Chouinard",
+            "email": "rchouinard@gmail.com",
+            "homepage": "https://www.ryanchouinard.com"
+        }
+    ],
+    "require": {
+        "php": ">=5.3.4"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "3.7.*",
+        "satooshi/php-coveralls": "dev-master",
+        "fabpot/php-cs-fixer": "0.4.*@dev"
+    },
+    "suggest": {
+        "ext-mcrypt": "*",
+        "ext-openssl": "*"
+    },
+    "autoload": {
+        "psr-0": {
+            "Rych\\Random": ""
+        }
+    },
+    "target-dir": "Rych/Random",
+    "extra": {
+        "branch-alias": {
+            "dev-master": "1.0-dev"
+        }
+    }
+}

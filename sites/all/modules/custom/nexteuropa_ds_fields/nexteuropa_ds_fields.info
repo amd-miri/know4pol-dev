@@ -1,0 +1,13 @@
+name = Nexteuropa Display Suite fields
+description  = "Generic Display Suite fields"
+package = "NextEuropa Digital Transformation"
+core = 7.x
+features[features_api][] = api:2
+features[ctools][] = ds:ds:1
+features[ds_fields][] = europa_content_type_label
+features[ds_fields][] = europa_collapse_button
+features[ds_fields][] = europa_user_fullname_first
+features[ds_fields][] = europa_user_fullname_last
+dependencies[] = ds
+php = 5.5
+multisite_version = 2.2

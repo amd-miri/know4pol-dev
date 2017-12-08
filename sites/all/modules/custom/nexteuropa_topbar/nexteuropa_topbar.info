@@ -1,0 +1,13 @@
+name = NextEuropa TopBar
+description = Topbar with site switcher and user menu (optional)
+core = 7.x
+package = NextEuropa Digital Transformation
+dependencies[] = nexteuropa_footer
+features[ctools][] = context:context:3
+features[context][] = ec_europa_topbar
+features[features_api][] = api:2
+php = 5.5
+features_exclude[dependencies][context] = context
+features_exclude[dependencies][ctools] = ctools
+features_exclude[dependencies][menu] = menu
+multisite_version = 2.2
