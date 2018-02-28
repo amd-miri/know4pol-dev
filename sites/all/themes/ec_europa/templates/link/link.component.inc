@@ -108,14 +108,13 @@ function ec_europa_atomium_definition_form_link($form, &$form_state) {
  * Implements hook_preprocess_HOOK().
  */
 function ec_europa_preprocess_link(&$variables, $hook) {
-  if ($variables['atomium']['attributes']['element']->contains('class', 'ecl-')) {
-    $variables['atomium']['attributes']['element']->append('class', 'ecl-link');
-  }
+  $variables['atomium']['attributes']['element']->append('class', 'ecl-link');
 
   // Add the class for the external links.
+  // @todo: This is not working as it should.
   if (_ec_europa_url_is_external($variables['path'])
-      && (!$variables['atomium']['attributes']['element']->exists('class', 'ecl-icon'))
-      && (!$variables['atomium']['attributes']['element']->exists('class', 'ecl-icon-social'))
+    && (!$variables['atomium']['attributes']['element']->exists('class', 'ecl-icon'))
+    && (!$variables['atomium']['attributes']['element']->exists('class', 'ecl-icon-social'))
   ) {
     $variables['atomium']['attributes']['element']->append('class', 'ecl-link--external');
   }
@@ -123,8 +122,6 @@ function ec_europa_preprocess_link(&$variables, $hook) {
   if (isset($variables['options']['attributes'])) {
     $variables['atomium']['attributes']['element']->merge($variables['options']['attributes']);
   }
-
-  $variables['atomium']['attributes']['element']->append('href', url($variables['path'], $variables['options']));
 
   // Add the span tag for the icon.
   /*
@@ -198,6 +195,13 @@ function ec_europa_preprocess_link__call(&$variables, $hook) {
     'ecl-button--call',
     'ecl-button--caret-right',
   ));
+}
+
+/**
+ * Implements hook_preprocess_hook().
+ */
+function ec_europa_preprocess_link__tags(&$variables, $hook) {
+  $variables['atomium']['attributes']['element']->append('class', 'ecl-tag__item');
 }
 
 /**

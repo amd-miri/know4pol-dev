@@ -1,0 +1,38 @@
+<?php
+
+/**
+ * @file
+ * Redirect UUID installation and schema hooks.
+ */
+
+/**
+ * Implements hook_schema_alter().
+ */
+function redirect_uuid_schema_alter(&$schema = array()) {
+  $field = uuid_schema_field_definition();
+  $schema['redirect']['fields']['uuid'] = $field;
+}
+
+/**
+ * Implements hook_install().
+ */
+function redirect_uuid_install() {
+  $field = uuid_schema_field_definition();
+  db_add_field('redirect', 'uuid', $field);
+  db_add_index('redirect', 'uuid', array('uuid'));
+}
+
+/**
+ * Implements hook_enable().
+ */
+function redirect_uuid_enable() {
+  uuid_sync_all();
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function redirect_uuid_uninstall() {
+  db_drop_field('redirect', 'uuid');
+  db_drop_index('redirect', 'uuid');
+}

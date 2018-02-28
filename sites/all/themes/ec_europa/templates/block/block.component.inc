@@ -6,6 +6,52 @@
  */
 
 /**
+ * Implements hook_atomium_definition_hook().
+ */
+function ec_europa_atomium_definition_block() {
+  return array(
+    'label' => 'Block',
+    'description' => 'Blocks.',
+    'dependencies' => array('block'),
+    'disable' => TRUE,
+  );
+}
+
+/**
+ * Implements hook_atomium_definition_form_hook().
+ */
+function ec_europa_atomium_definition_form_block($form, &$form_state) {
+  global $theme_key;
+
+  // List of blocks we want to preview. Format: [module]:[delta].
+  $block_whitelist = array(
+    'system:main-menu',
+    'system:user-menu',
+  );
+
+  module_load_include('inc', 'block', 'block.admin');
+  $blocks = block_admin_display_prepare_blocks($theme_key);
+
+  foreach ($blocks as $block) {
+    $block_id = $block['module'] . ':' . $block['delta'];
+
+    if (!in_array($block_id, $block_whitelist)) {
+      continue;
+    }
+
+    $form['blocks'][] = array(
+      '#type' => 'fieldset',
+      '#title' => sprintf('Block ([module]:[delta]) (%s)', $block_id),
+      '#collapsible' => TRUE,
+      '#collapsed' => TRUE,
+      'content' => _atomium_block_get_render_array($block['module'], $block['delta']),
+    );
+  }
+
+  return $form;
+}
+
+/**
  * Implements hook_preprocess_hook().
  */
 function ec_europa_preprocess_block(&$variables, $hook) {
@@ -53,8 +99,8 @@ function ec_europa_preprocess_block(&$variables, $hook) {
     global $language;
 
     // selectify.js is the library to convert between ul and select.
-    drupal_add_js(drupal_get_path('theme', 'ec_europa') . '/assets/js/selectify.js');
-    drupal_add_js(drupal_get_path('theme', 'ec_europa') . '/assets/js/components/lang-switcher.js');
+    drupal_add_js(drupal_get_path('theme', 'ec_europa') . '/assets/scripts/selectify.js');
+    drupal_add_js(drupal_get_path('theme', 'ec_europa') . '/assets/scripts/components/lang-switcher.js');
 
     // Initialize variables.
     $not_available = '';
@@ -96,7 +142,7 @@ function ec_europa_preprocess_block(&$variables, $hook) {
   // Site-level language switcher.
   if (isset($block->bid) && $block->bid === 'language_selector_site-language_selector_site') {
     // Add the js to make it function.
-    drupal_add_js(drupal_get_path('theme', 'ec_europa') . '/assets/js/components/lang-select-site.js');
+    drupal_add_js(drupal_get_path('theme', 'ec_europa') . '/assets/scripts/components/lang-select-site.js');
   }
 
   $variables['atomium']['attributes']['title']->append('class', 'block__title');
@@ -120,22 +166,21 @@ function ec_europa_preprocess_block(&$variables, $hook) {
           drupal_add_js(array('ec_europa' => array('exposedBlockId' => $variables['block_html_id'])), 'setting');
 
           // Adding filters.js file.
-          drupal_add_js(drupal_get_path('theme', 'ec_europa') . '/assets/js/components/filters.js');
+          drupal_add_js(drupal_get_path('theme', 'ec_europa') . '/assets/scripts/components/filters.js');
         }
       }
     }
-  }
-
-  if (isset($variables['elements']['#markup'])) {
-    // If "#markup" is set, that means it is the case of custom block
-    // with "body field" that can contain simple HTML tags without "ecl"
-    // classes.
-    // Then the namespace CSS class must be added.
-    $variables['atomium']['attributes']['content']->append('class', 'ecl-editor');
   }
 
   $variables['atomium']['attributes']['content']->append('class', 'block__content');
   $variables['atomium']['attributes']['wrapper']
     ->append('class', 'ecl-clearfix')
     ->append('id', $variables['block_html_id']);
+}
+
+/**
+ * Implements hook_preprocess_hook().
+ */
+function ec_europa_preprocess_block__content(&$variables, $hook) {
+  $variables['atomium']['attributes']['content']->append('class', 'ecl-editor');
 }

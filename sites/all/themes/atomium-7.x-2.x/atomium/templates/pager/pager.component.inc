@@ -103,7 +103,7 @@ function atomium_preprocess_pager(&$variables, $hook) {
     if ($i != $pager_max) {
       if ($i > 1) {
         $items['pager_ellipsis__' . $i] = array(
-          '#theme' => array('pager_ellipsis'),
+          '#theme' => _atomium_extend_theme_hook('pager_ellipsis', $variables['theme_hook_original']),
           '#attributes' => array(
             'class' => array(
               'pager-ellipsis',
@@ -140,7 +140,7 @@ function atomium_preprocess_pager(&$variables, $hook) {
 
       if ($i < $pager_max) {
         $items['pager_ellipsis__' . $i] = array(
-          '#theme' => array('pager_ellipsis'),
+          '#theme' => _atomium_extend_theme_hook('pager_ellipsis', $variables['theme_hook_original']),
           '#attributes' => array(
             'class' => array(
               'pager-ellipsis',
@@ -180,7 +180,10 @@ function atomium_preprocess_pager(&$variables, $hook) {
     }
 
     foreach ($items as $key => &$item) {
-      $item['#theme_wrappers'] = array('html_tag__item_list__' . $variables['theme_hook_original'] . '__' . $key);
+      $item['#theme_wrappers'] = _atomium_extend_with_suggestions(
+        array('html_tag'),
+        array('item_list', $variables['theme_hook_original'], $key)
+      );
       $item['#tag'] = 'li';
       if (isset($item['link'])) {
         $item['#attributes'] = $item['link']['#options']['attributes'];
@@ -192,7 +195,7 @@ function atomium_preprocess_pager(&$variables, $hook) {
 
     $variables[$hook] = array(
       $hook => array(
-        '#theme' => array('item_list'),
+        '#theme' => _atomium_extend_theme_hook('item_list', $variables['theme_hook_original']),
         '#items' => $items,
         '#attributes' => $variables['atomium']['attributes']['wrapper']->toArray(),
       ),
@@ -220,7 +223,7 @@ function _atomium_pager_item_to_link_helper($text = NULL, $pager = NULL, $elemen
 
   return array(
     'link' => array(
-      '#theme' => array('link'),
+      '#theme' => _atomium_extend_theme_hook('link', $variables['theme_hook_original']),
       '#text' => check_plain($text),
       '#path' => $_GET['q'],
       '#options' => $options,

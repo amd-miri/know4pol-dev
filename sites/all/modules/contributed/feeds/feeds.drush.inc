@@ -300,15 +300,8 @@ function drush_feeds_import($importer_id = NULL) {
   catch (FeedsNotExistingException $e) {
     $importer = feeds_importer_load($importer_id);
     if (!$importer) {
-      drush_set_error(dt("The importer '@importer' does not exist.", array(
+      drush_set_error(dt("The importer '@importer' does not exist or is not enabled.", array(
         '@importer' => $importer_id,
-      )));
-      return FALSE;
-    }
-    elseif (!$importer->isEnabled()) {
-      drush_set_error(dt("The importer '@importer' is not enabled. You can enable it with the command '@command'.", array(
-        '@importer' => $importer_id,
-        '@command' => 'drush feeds-enable ' . $importer_id,
       )));
       return FALSE;
     }
@@ -549,15 +542,8 @@ function drush_feeds_clear($importer_id = NULL) {
   catch (FeedsNotExistingException $e) {
     $importer = feeds_importer_load($importer_id);
     if (!$importer) {
-      drush_set_error(dt("The importer '@importer' does not exist.", array(
+      drush_set_error(dt("The importer '@importer' does not exist or is not enabled.", array(
         '@importer' => $importer_id,
-      )));
-      return FALSE;
-    }
-    elseif (!$importer->isEnabled()) {
-      drush_set_error(dt("The importer '@importer' is not enabled. You can enable it with the command '@command'.", array(
-        '@importer' => $importer_id,
-        '@command' => 'drush feeds-enable ' . $importer_id,
       )));
       return FALSE;
     }

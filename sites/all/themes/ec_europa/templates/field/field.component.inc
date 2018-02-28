@@ -10,6 +10,7 @@
  */
 function ec_europa_preprocess_field(&$variables, $hook) {
   $element = &$variables['element'];
+
   if (isset($element['#label'])) {
     $variables['label'] = $element['#label'];
   }
@@ -22,29 +23,20 @@ function ec_europa_preprocess_field(&$variables, $hook) {
       $element['after'] = l(t('Other social networks'), variable_get('dt_core_other_social_networks_link', 'http://europa.eu/contact/social-networks/index_en.htm'));
       break;
   }
-  if ($element['#field_type'] <> 'ds') {
-    // Initialize parameter.
-    $allow_attribute = TRUE;
-    // If it is not a tranlateable entityreference field we should continue.
-    if ($element['#field_type'] == "entityreference" && $element['#field_translatable'] == 0) {
-      $allow_attribute = FALSE;
-    }
-    if ($allow_attribute) {
-      // The default language code.
-      $content_langcode = $GLOBALS['language_content']->language;
-      // When the language is different from content.
+
+  if ('ds' != $element['#field_type']) {
+    if ('entityreference' == $element['#field_type'] && 0 == $element['#field_translatable']) {
       if (isset($element['#language'])
-        && $element['#language'] <> LANGUAGE_NONE
-        && $element['#language'] <> $content_langcode
+        && LANGUAGE_NONE != $element['#language']
+        && $GLOBALS['language_content']->language != $element['#language']
       ) {
         $variables['attributes']['lang'] = $element['#language'];
       }
     }
 
-    // In case of "Long text" or "Long text and summary" field, inject the
-    // namespace class in the item class.
+    // Inject a specific class when a field might use the WYSIWYG editor.
     if (in_array($element['#field_type'], array('text_with_summary', 'text_long'))) {
-      foreach ($variables['items'] as $delta => $item) {
+      foreach (array_keys($variables['items']) as $delta) {
         $variables['atomium']['attributes'][$delta]->append('class', 'ecl-editor');
       }
     }
@@ -54,20 +46,113 @@ function ec_europa_preprocess_field(&$variables, $hook) {
 /**
  * Implements hook_preprocess_hook().
  */
+function ec_europa_preprocess_field__taxonomy_term_reference__taxonomy_term_reference_link(&$variables, $hook) {
+  _ec_europa_preprocess_taxonomy_term_reference_link($variables, $hook);
+}
+
+/**
+ * Implements hook_preprocess_hook().
+ */
+function ec_europa_preprocess_field__taxonomy_term_reference__i18n_taxonomy_term_reference_link(&$variables, $hook) {
+  _ec_europa_preprocess_taxonomy_term_reference_link($variables, $hook);
+}
+
+/**
+ * Implements hook_preprocess_hook().
+ */
+function ec_europa_preprocess_field__taxonomy_term_reference__taxonomy_term_reference_plain(&$variables, $hook) {
+  _ec_europa_preprocess_taxonomy_term_reference_plain($variables, $hook);
+}
+
+/**
+ * Implements hook_preprocess_hook().
+ */
+function ec_europa_preprocess_field__taxonomy_term_reference__i18n_taxonomy_term_reference_plain(&$variables, $hook) {
+  _ec_europa_preprocess_taxonomy_term_reference_plain($variables, $hook);
+}
+
+/**
+ * Implements hook_preprocess_hook().
+ */
+function ec_europa_preprocess_field__entityreference__ne_tags(&$variables, $hook) {
+  _ec_europa_preprocess_ne_tags($variables, $hook);
+}
+
+/**
+ * Implements hook_preprocess_hook().
+ */
+function ec_europa_preprocess_field__link_field__ne_tags(&$variables, $hook) {
+  _ec_europa_preprocess_ne_tags($variables, $hook);
+}
+
+/**
+ * Implements hook_preprocess_hook().
+ */
+function ec_europa_preprocess_field__taxonomy_term_reference__ne_tags(&$variables, $hook) {
+  _ec_europa_preprocess_ne_tags($variables, $hook);
+}
+
+/**
+ * Helper function to theme ne_tags formatters.
+ *
+ * See nexteuropa_formatters_fields.
+ */
+function _ec_europa_preprocess_ne_tags(&$variables, $hook) {
+  $variables['tags'] = array(
+    '#theme' => _atomium_extend_theme_hook('tags', $variables['theme_hook_original']),
+    '#label' => $variables['label'],
+    '#items' => $variables['items'],
+  );
+}
+
+/**
+ * Helper function to theme taxonomy term link formatters.
+ */
+function _ec_europa_preprocess_taxonomy_term_reference_link(&$variables, $hook) {
+  $items = array();
+  foreach ($variables['items'] as $item) {
+    $items[] = array(
+      'href' => $item['#href'],
+      'value' => $item['#title'],
+    );
+  }
+  $variables['tags'] = array(
+    '#theme' => _atomium_extend_theme_hook('tags', $variables['theme_hook_original']),
+    '#label' => $variables['label'],
+    '#items' => $items,
+  );
+}
+
+/**
+ * Helper function to theme taxonomy term plain formatters.
+ */
+function _ec_europa_preprocess_taxonomy_term_reference_plain(&$variables, $hook) {
+  $variables['tags'] = array(
+    '#theme' => _atomium_extend_theme_hook('tags', array('facet', $variables['theme_hook_original'])),
+    '#label' => $variables['label'],
+    '#items' => array_map(function ($item) {
+      return array(
+        'href' => '',
+        'value' => $item['#markup'],
+      );
+    }, $variables['items']),
+  );
+}
+
+/**
+ * Implements hook_preprocess_hook().
+ */
 function ec_europa_preprocess_field__list_boolean__list_default__group_access__node__full__community(&$variables, $hook) {
   if ($object = $variables['element']['#object']) {
     $wrapper = entity_metadata_wrapper('node', $object);
 
-    $theme = 'labels__open';
-    if (0 == $wrapper->group_access->value()) {
-      $theme = 'labels__closed';
-    }
-
-    foreach ($variables['items'] as $delta => &$item) {
+    array_walk($variables['items'], function (&$item) use ($wrapper) {
       $item = array(
-        '#theme' => $theme,
         '#content' => $item['#markup'],
       );
-    }
+      // @todo: Should we compute the value from $wrapper for each items ?
+      $variant = (0 == $wrapper->group_access->value()) ? 'closed' : 'open';
+      $item['#theme'] = _atomium_extend_theme_hook('labels', $variant);
+    });
   }
 }

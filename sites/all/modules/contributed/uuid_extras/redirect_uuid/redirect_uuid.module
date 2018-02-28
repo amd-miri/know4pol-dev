@@ -1,0 +1,78 @@
+<?php
+
+/**
+ * @file
+ * Implement UUID/Entity hooks for integrating with deploy and other modules.
+ */
+
+module_load_include('inc', 'uuid', 'uuid');
+
+/**
+ * Implements hook_entity_info_alter().
+ */
+function redirect_uuid_entity_info_alter(&$entity_info) {
+  // Set the properties bellow for redirect entity so UUIDs get created on sync.
+  $entity_info['redirect']['uuid'] = TRUE;
+  $entity_info['redirect']['entity keys']['uuid'] = 'uuid';
+
+  // FIXME: these really should be included in redirect.module.
+  $entity_info['redirect']['creation callback'] = 'entity_metadata_create_object';
+  $entity_info['redirect']['save callback'] = 'redirect_save';
+  $entity_info['redirect']['deletion callback'] = 'redirect_delete';
+}
+
+/**
+ * Implements hook_entity_uuid_load().
+ */
+function redirect_uuid_entity_uuid_load(&$entities, $entity_type) {
+  if ($entity_type == 'redirect') {
+    foreach ($entities as &$entity) {
+      $m = array();
+      if (preg_match('#^node/(\d+)$#', $entity->redirect, $m)) {
+        $dummy_node = (object) array('nid' => $m[1]);
+        entity_property_id_to_uuid($dummy_node, 'node', 'nid');
+        $entity->redirect = "node/{$dummy_node->nid}";
+      }
+      if (preg_match('#^node/(\d+)$#', $entity->source, $m)) {
+        $dummy_node = (object) array('nid' => $m[1]);
+        entity_property_id_to_uuid($dummy_node, 'node', 'nid');
+        $entity->source = "node/{$dummy_node->nid}";
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_entity_uuid_presave().
+ */
+function redirect_uuid_entity_uuid_presave(&$entity, $entity_type) {
+  if ($entity_type == 'redirect') {
+    $pattern = '#^node/(' . UUID_PATTERN . ')$#';
+    $m = array();
+    if (preg_match($pattern, $entity->redirect, $m)) {
+      $dummy_node = (object) array('nid' => $m[1]);
+      entity_property_uuid_to_id($dummy_node, 'node', 'nid');
+      $entity->redirect = "node/{$dummy_node->nid}";
+    }
+    if (preg_match($pattern, $entity->source, $m)) {
+      $dummy_node = (object) array('nid' => $m[1]);
+      entity_property_uuid_to_id($dummy_node, 'node', 'nid');
+      $entity->source = "node/{$dummy_node->nid}";
+    }
+  }
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function redirect_uuid_form_redirect_edit_form_alter(&$form, &$form_state, $form_id) {
+  if (isset($form_state['build_info']['args'][0])) {
+    $redirect = $form_state['build_info']['args'][0];
+    if (is_object($redirect) && !empty($redirect->uuid)) {
+      $form['uuid'] = array(
+        '#type' => 'value',
+        '#value' => $redirect->uuid,
+      );
+    }
+  }
+}

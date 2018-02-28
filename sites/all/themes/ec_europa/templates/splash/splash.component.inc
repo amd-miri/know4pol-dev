@@ -6,6 +6,21 @@
  */
 
 /**
+ * Implements hook_atomium_theme_hook().
+ */
+function ec_europa_atomium_theme_splash() {
+  return array(
+    'splash' => array(
+      'template' => 'splash',
+      'variables' => array(
+        'path' => NULL,
+        'languages_list_array' => array(),
+      ),
+    ),
+  );
+}
+
+/**
  * Implements hook_atomium_definition_hook().
  */
 function ec_europa_atomium_definition_splash() {
@@ -27,7 +42,7 @@ function ec_europa_preprocess_splash(&$variables, $hook) {
   $variables['languages_list'] = array();
   foreach ($variables['languages_list_array'] as $language) {
     $variables['languages_list'][] = array(
-      '#theme' => array('link__' . $variables['theme_hook_original']),
+      '#theme' => _atomium_extend_theme_hook('link', $variables['theme_hook_original']),
       '#text' => $language->name,
       '#path' => $variables['path'],
       '#options' => array(
@@ -53,7 +68,7 @@ function ec_europa_preprocess_splash(&$variables, $hook) {
   );
 
   foreach ($variables['languages_list'] as $index => &$language) {
-    $language['#theme'] = array('html_tag__' . $variables['theme_hook_original']);
+    $language['#theme'] = _atomium_extend_theme_hook('html_tag', $variables['theme_hook_original']);
     $language['#tag'] = 'div';
     $language['#attributes'] = array(
       'class' => array(

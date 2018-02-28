@@ -272,7 +272,7 @@ $drupal_hash_salt = 'Vh7laVZctMMG38fO4SbsZ8emUIsa5bz0930MDOr1Q4E';
  * for you.
  */
 
-# $base_url = 'http://www.example.com';  // NO trailing slash!
+ $base_url = 'https://localhost/know4pol';  // NO trailing slash!
 
 /**
  * PHP settings:
@@ -538,7 +538,7 @@ $conf['404_fast_html'] = '<html xmlns="http://www.w3.org/1999/xhtml"><head><titl
 // What protocol should we consider in case it cannot be determined?
 $default_proto = 'https';
 // What hostname should we consider in case no HTTP_HOST is available?
-$default_host = 'ec.europa.eu';
+$default_host = 'localhost';
 // What base request URI do we expect (no trailing slash)?
 $default_uri = '/know4pol';
 
@@ -602,7 +602,7 @@ $conf['file_chmod_directory'] = 02775;
 // -------------------------------------------------------------------------------
 // ApacheSolr configuration
 // -------------------------------------------------------------------------------
-$conf['apachesolr_attachments_java']      = 'C:\Program Files (x86)\Java\jdk1.8.0_65\bin\java.exe';
+$conf['apachesolr_attachments_java']      = 'C:\Program Files\Java\jdk1.8.0_162\bin\java.exe';
 $conf['apachesolr_attachments_tika_path'] = 'C:\xampp\htdocs\know4pol\sites\all\modules\contributed\apachesolr_attachments';
 $conf['apachesolr_attachments_tika_jar']  = 'tika-app-1.1.jar';
 

@@ -1,0 +1,13 @@
+name = Redirect UUID
+description = Add UUID support to redirect module.
+core = 7.x
+
+dependencies[] = redirect
+dependencies[] = uuid
+
+; Information added by Drupal.org packaging script on 2016-08-08
+version = "7.x-1.0-alpha3"
+core = "7.x"
+project = "uuid_extras"
+datestamp = "1470664152"
+

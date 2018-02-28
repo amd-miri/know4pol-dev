@@ -1,0 +1,109 @@
+<?php
+/**
+ * Implement UUID hooks for integrating with Panels.
+ */
+
+/**
+ * Implements hook_entity_uuid_load().
+ */
+function panels_uuid_entity_uuid_load(&$entities, $entity_type) {
+  foreach ($entities as &$entity) {
+    if (!panels_uuid_is_panelized($entity, $entity_type)) {
+      return;
+    }
+
+    foreach ($entity->panelizer as &$view_mode) {
+      // Only update display if they have an id.
+      if (!$view_mode->did || $view_mode->display === "new") {
+        continue;
+      }
+
+      foreach ($view_mode->display->content as &$pane) {
+
+        // Get the UUID key for this entity.
+        $info = entity_get_info($pane->type);
+        if (!isset($info['entity keys']['uuid'])) {
+          return;
+        }
+
+        // Convert the entity ID to UUID and attach to the configuration.
+        $id = $pane->configuration[$info['entity keys']['id']];
+        $uuid = entity_get_uuid_by_id($pane->type, array($id));
+        if (!empty($uuid[$id])) {
+          $pane->configuration['uuid'] = $uuid[$id];
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_entity_uuid_presave().
+ */
+function panels_uuid_entity_uuid_presave(&$entity, $entity_type) {
+  if (!panels_uuid_is_panelized($entity, $entity_type)) {
+    return;
+  }
+
+  foreach ($entity->panelizer as &$view_mode) {
+    // Only update display if they have an id.
+    if ($view_mode->display->did === 'new') {
+      continue;
+    }
+
+    foreach ($view_mode->display->content as &$pane) {
+
+      // Get the UUID for this entity. If this doesn't exist or no UUID can
+      // be found on the entity return early.
+      $info = entity_get_info($pane->type);
+      if (!isset($info['entity keys']['uuid']) || !isset($pane->configuration['uuid'])) {
+        return;
+      }
+
+      $uuid = entity_get_id_by_uuid($pane->type, array($pane->configuration['uuid']));
+      if (!empty($uuid[$pane->configuration['uuid']])) {
+        $pane->configuration[$info['entity keys']['id']] = $uuid[$pane->configuration['uuid']];
+      }
+    }
+  }
+}
+
+/**
+ * Check whether this entity is panelized.
+ *
+ * @param object $entity
+ *   The entity object to check panelizer status for.
+ * @param string$entity_type
+ *   The entity type.
+ *
+ * @return boolean|PanelizerEntityInterface
+ *   Returns the panelizer plugin for the entity if it is panelized or FALSE
+ *   if it is not.
+ */
+function panels_uuid_is_panelized($entity, $entity_type) {
+  $static = & drupal_static(__FUNCTION__, array());
+
+  if (!isset($static[$entity_type])) {
+    $static[$entity_type] = array();
+  }
+
+  list($id, $vid, $bundle) = entity_extract_ids($entity_type, $entity);
+
+  if (!isset($static[$entity_type][$bundle])) {
+    if ($handler = panelizer_entity_plugin_get_handler($entity_type)) {
+      // Get all of the entity types that have uuid enables
+
+      if ($handler->is_panelized($bundle) && !empty($entity->panelizer)) {
+        $static[$entity_type][$bundle] = $handler;
+      }
+      else {
+        $static[$entity_type][$bundle] = FALSE;
+      }
+    }
+    else {
+      $static[$entity_type][$bundle] = FALSE;
+    }
+  }
+
+  return $static[$entity_type][$bundle];
+}

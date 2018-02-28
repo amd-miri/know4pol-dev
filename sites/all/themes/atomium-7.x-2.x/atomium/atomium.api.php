@@ -31,13 +31,13 @@ function hook_atomium_theme_hook(&$existing, $type, $theme, $path) {
 /**
  * Allows you to define a preview in the /atomium-overview page.
  *
- * If you components (hook_theme) has variables, you may define them
+ * If your components (hook_theme) has variables, you may define them
  * under the 'preview' key.
  *
  * It must live in: [path_to_theme]/templates/[hook]/[hook].component.inc.
  * 'disable': Set to TRUE to disable the preview.
  */
-function hook_atomium_definition_hook(&$existing, $type, $theme, $path) {
+function hook_atomium_definition_hook() {
   return array(
     'label' => 'My component name',
     'description' => 'My component description.',
@@ -57,7 +57,7 @@ function hook_atomium_definition_hook(&$existing, $type, $theme, $path) {
  */
 function hook_atomium_definition_form_hook($form, &$form_state) {
   $form['component'] = array(
-    '#theme' => 'username',
+    '#theme' => array('username'),
     '#account' => user_load(1),
   );
 

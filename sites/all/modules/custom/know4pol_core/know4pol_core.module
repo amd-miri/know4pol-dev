@@ -201,3 +201,177 @@ function know4pol_core_form_node_form_alter(&$form, &$form_state, $form_id) {
     drupal_get_path('module', 'know4pol_core') . '/js/js_confirm_pop_up.js',
   );
 }
+
+/**
+ * Implements hook_feeds_processor_targets_alter().
+ */
+function know4pol_core_feeds_processor_targets_alter(&$targets, $entity_type, $bundle_name) {
+  $targets['og_group_ref:label']['callback'] = '_know4pol_core_post_process_callback';
+}
+
+/**
+ * Custom Entity reference callback for "og_group_ref" field mapping.
+ *
+ * When the callback is invoked, $target contains the name of the field the
+ * user has decided to map to and $value contains the value of the feed item
+ * element the user has picked as a source.
+ *
+ * @param FeedsSource $source
+ *   A FeedsSource object.
+ * @param object $entity
+ *   The entity to map to.
+ * @param string $target
+ *   The target key on $entity to map to.
+ * @param array $value
+ *   The value to map. MUST be an array.
+ */
+function _know4pol_core_post_process_callback(FeedsSource $source, $entity, $target, array $value) {
+  // First we define if the entity to change is a term or a node.
+  if ($entity->feeds_item->entity_type == 'taxonomy_term') {
+    $entity_id_key = 'tid';
+  }
+  else {
+    $entity_id_key = 'nid';
+  }
+  // Then we get the status before processing the import.
+  $entity_unchanged = entity_load_unchanged($entity->feeds_item->entity_type, $entity->$entity_id_key);
+  // The customisation of the callback is only for the field "og_group_ref".
+  $existing_og_group_ref = $entity_unchanged->og_group_ref;
+  // Don't do anything if we weren't given any data.
+  if (empty($value)) {
+    return;
+  }
+  // Assume that the passed in value could really be any number of values.
+  if (is_array($value)) {
+    $values = $value;
+  }
+  else {
+    $values = array($value);
+  }
+  // Determine the field we are matching against.
+  if (strpos($target, ':') === FALSE) {
+    $match_key = 'guid';
+  }
+  else {
+    list($target, $match_key) = explode(':', $target, 2);
+  }
+  // Get some useful field information.
+  $info = field_info_field($target);
+  if ($match_key == 'label') {
+    $handler = entityreference_get_selection_handler($info);
+  }
+  // Set the language of the field depending on the mapping.
+  $language = LANGUAGE_NONE;
+  // Iterate over all values.
+  $iterator = 0;
+  $field = isset($entity->$target) ? $entity->$target : array();
+  foreach ($values as $value) {
+    // Only process if this value was set for this instance.
+    if ($value) {
+      switch ($match_key) {
+        case 'guid':
+        case 'url':
+          // Fetch the entity ID resulting from the mapping table look-up.
+          $entity_id = db_select('feeds_item', 'fi')
+            ->fields('fi', array('entity_id'))
+            ->condition($match_key, $value, '=')
+            ->execute()
+            ->fetchField();
+          break;
+
+        case 'etid':
+          $entity_id = $value;
+          break;
+
+        case 'label':
+          $options = $handler->getReferencableEntities($value, '=');
+          $options = reset($options);
+          $etids = array_keys($options);
+          // Use the first matching entity.
+          $entity_id = reset($etids);
+          break;
+      }
+      /*
+       * Only add a reference to an existing entity ID if there exists a
+       * mapping between it and the provided GUID.  In cases where no such
+       * mapping exists (yet), don't do anything here.  There may be a mapping
+       * defined later in the CSV file.  If so, and the user re-runs the import
+       * (as a second pass), we can add this reference then.  (The "Update
+       * existing nodes" option must be selected during the second pass.)
+       */
+      if ($entity_id) {
+        // Assign the target ID.
+        $field[$language][$iterator]['target_id'] = $entity_id;
+      }
+      else /* there is no $entity_id, no mapping */ {
+        /*
+         * Feeds stores a hash of every line imported from CSVs in order to
+         * make the import process more efficient by ignoring lines it's
+         * already seen.  We need to short-circuit this process in this case
+         * because users may want to re-import the same line as an update later
+         * when (and if) a map to a reference exists.  So in order to provide
+         * this opportunity later, we need to destroy the hash.
+         */
+        unset($entity->feeds_item->hash);
+        $source->log('entityreference', t('No existing entity found for entity @source_id entityreference to source entity @value', array('@source_id' => $entity->feeds_item->entity_id, '@value' => $value)));
+      }
+    }
+    // Break out of the loop if this field is single-valued.
+    if ($info['cardinality'] == 1) {
+      break;
+    }
+    $iterator++;
+  }
+  // If the "og_group_ref" field has an old value,
+  // then add the old and the new value.
+  // Otherwise just add the field to the entity definition.
+  if (!empty($existing_og_group_ref)) {
+    $entity->{$target} = drupal_array_merge_deep($existing_og_group_ref, $field);
+  }
+  else {
+    $entity->{$target} = $field;
+  }
+}
+
+/**
+ * Implements hook_feeds_presave().
+ */
+function know4pol_core_feeds_presave(FeedsSource $source, $entity, $item, $entity_id) {
+  // Check first if we have any topics from Newsroom.
+  if (!empty($entity->field_newsroom_topics[LANGUAGE_NONE])) {
+    foreach ($entity->field_newsroom_topics[LANGUAGE_NONE] as $value) {
+      $matched_term_in_tags = "";
+      $matched_term_in_knowledge_service_og = "";
+      // For each topic, first we load it,
+      // in order to get its category and name.
+      $entity_term = taxonomy_term_load($value['tid']);
+      // If the category is "Knowledge4Policy Keywords".
+      if ($entity_term->field_newsroom_category_domain[en][0]['value'] == "Knowledge4Policy Keywords") {
+        // Then we search its equivalent in "tags" vocabulary.
+        $matched_term_in_tags = taxonomy_get_term_by_name($entity_term->name, 'tags');
+        if (!empty($matched_term_in_tags)) {
+          $matched_term_in_tags = array_shift($matched_term_in_tags);
+          // Add the tag to the imported entity.
+          $entity->field_tags[LANGUAGE_NONE][]['tid'] = $matched_term_in_tags->tid;
+        }
+      }
+      // Else if the category is "Knowledge Service".
+      elseif ($entity_term->field_newsroom_category_domain[en][0]['value'] == "Knowledge Service") {
+        // Then we search in "knowledge_centre" content type.
+        // because it's a node reference.
+        $query = new EntityFieldQuery();
+        $matched_term_in_knowledge_service_og = $query->entityCondition('entity_type', 'node')
+          ->propertyCondition('type', 'knowledge_centre')
+          ->propertyCondition('title', $entity_term->name)
+          ->propertyCondition('status', 1)
+          ->range(0, 1)
+          ->execute();
+        if (!empty($matched_term_in_knowledge_service_og)) {
+          $matched_term_in_knowledge_service_og = array_shift($matched_term_in_knowledge_service_og['node']);
+          // Add the related OG group to the imported entity.
+          $entity->og_group_ref[LANGUAGE_NONE][]['target_id'] = $matched_term_in_knowledge_service_og->nid;
+        }
+      }
+    }
+  }
+}

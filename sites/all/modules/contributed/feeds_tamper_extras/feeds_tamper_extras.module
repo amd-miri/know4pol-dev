@@ -1,0 +1,43 @@
+<?php
+
+/**
+ * Feeds plugins
+ */
+function feeds_tamper_extras_ctools_plugin_directory($owner, $plugin_type) {
+  if ($owner == 'feeds_tamper' && $plugin_type == 'plugins') {
+    return 'plugins/';
+  }
+}
+
+/**
+ * Implements hook_hook_info().
+ */
+function feeds_tamper_extras_hook_info() {
+  return array(
+    'feeds_tamper_extras_importdir' => array('group' => 'feeds_tamper_extras'),
+    'feeds_tamper_extras_autodelete' => array('group' => 'feeds_tamper_extras'),
+    'feeds_tamper_extras_autocreate' => array('group' => 'feeds_tamper_extras'),
+  );
+}
+
+/**
+ * Implements hook_modules_enabled().
+ */
+function feeds_tamper_extras_modules_enabled($modules) {
+  if ($modules_defining_autoimport = module_implements('feeds_tamper_extras_importdir')) {
+    if ($enable_importers_in = array_intersect($modules, $modules_defining_autoimport)) { // modules defining autoimports that are getting enabled
+      module_invoke('feeds_tamper_extras', 'feeds_tamper_extras_autocreate', $enable_importers_in);
+    }
+  }
+}
+
+/**
+ * Implements hook_modules_disabled().
+ */
+function feeds_tamper_extras_modules_disabled($modules) {
+  if ($tracking = variable_get('feeds_tamper_extras_tracking')) {
+    if ($remove_importers_from = array_intersect($modules, array_keys(array_flip($tracking)))) {
+      module_invoke('feeds_tamper_extras', 'feeds_tamper_extras_autodelete', $remove_importers_from);
+    }
+  }
+}

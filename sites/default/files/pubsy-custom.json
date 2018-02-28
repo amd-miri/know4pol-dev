@@ -1,0 +1,122 @@
+{
+  "_API_version": "1",
+  "success": true,
+  "action": "9",
+  "date": "01/11/2017",
+  "results": 1,
+  "page_size": 1,
+  "page": 1,
+  "page_total": 1,
+  "result": [
+    {
+      "output": {
+	    "entity_id": 232296,
+		"entity_description": "JRC.B.5-Circular Economy and Industrial Leadership",
+		"directorate_id": 3582,
+		"directorate_name": "JRC.B",
+		"directorate_description": "JRC.B-Growth and Innovation (Seville)",
+	    "request_id": 108604,
+        "jrc_id": "JRC108604",
+        "accessioned_date": "02/11/2017",
+        "available_date": "25/10/2017",
+        "created_date": "23/10/2017",
+        "submit_date": "19/10/2017",
+        "year_of_publication": "2017",
+        "title": "Ecodesign and Energy Label for household washing machines and household washer-dryers",
+        "abstract": "European Commission launched in 2014 the revision of the ecodesign and energy-/resource label implementing measures for the product group 'household washing machine (WM) and household washer-dryer (WD)'. The revision study follows the Commission’s Methodology for the Evaluation of Energy related Products (MEErP) and includes sections related to the scope and definition market analysis, analysis of user behaviour and system aspects, analysis of technologies, environmental and economics, design options and policy analysis and scenarios. This research was based on available scientific information and data, uses a life-cycle thinking approach, and has engaged stakeholder experts in order to discuss key issues, and to the extent possible reach consensus on the proposals\nThe outcomes of this study provides policy makers with the evidence basis for assessing whether and how to revise the existing Regulations.\n",
+        "language": "ENG",
+        "identifier_citation": "Boyano Larriba, A., Cordella, M., Espinosa Martinez, M., Villanueva Krzyzaniak, A., Graulich, K., Rüdinauer, I., Alborzi, F., Hook, I. and Stamminger, R., Ecodesign and Energy Label for household washing machines and household washer-dryers, EUR 28809 EN, Publications Office of the European Union, Luxembourg, 2017, ISBN 978-92-79-74183-8, doi:10.2760/029939, JRC108604.",
+        "identifier_isbn": "978-92-79-74183-8",
+        "identifier_issn": "1831-9424",
+        "identifier_doi": "10.2760/029939",
+        "identifier_publisher": "Publications Office of the European Union",
+        "identifiers_uri": "http://publications.jrc.ec.europa.eu/repository/handle/JRC108604",
+        "identifiers_euro_or_opoce": "",
+		"publication_type_name": "Brochures / Leaflets",
+		"publication_type_guid": "3f27442a-0c8c-4553-a815-03ee1573cb84",
+        "files": [
+          {
+			"pubsy_file_id": 119095,
+            "file_filename": "lablab1.pdf",
+            "file_description": "This is lablab1 file.",
+			"file_size": 1594617,
+			"file_format": "application/pdf",
+            "file_url": "http://publications.jrc.ec.europa.eu/repository/bitstream/JRC108604/lablab1.pdf",
+			"file_thumbnail": "http://publications.jrc.ec.europa.eu/repository/bitstream/JRC108604/publication_108604_cover.jpg",
+			"file_main": true
+          },
+		  {
+			"pubsy_file_id": 119096,
+            "file_filename": "lablab2.pdf",
+            "file_description": "This is lablab2 file.",
+			"file_size": 1594617,
+			"file_format": "application/pdf",
+            "file_url": "http://publications.jrc.ec.europa.eu/repository/bitstream/JRC108604/lablab2.pdf",
+			"file_thumbnail": "http://publications.jrc.ec.europa.eu/repository/bitstream/JRC108604/publication_108604_cover2.jpg",
+			"file_main": false
+          }
+        ],
+		"authors": [
+			{
+				"author_order": 5,
+				"author": "STAMMINGER Rainer",
+				"staff_number": 0
+			},
+			{
+				"author_order": 10,
+				"author": "MIRI Ahmad",
+				"staff_number": 1
+			}
+		],
+        "directorate": [
+          {
+            "directorate_code": "3582",
+            "directorate_name": "JRC.B",
+            "directorate_description": "JRC.B-Growth and Innovation (Seville)"
+          }
+        ],
+        "science_areas": [
+          {
+            "science_area_code": "11",
+            "science_area_description": "Energy and transport"
+          },
+		  {
+            "science_area_code": "12",
+            "science_area_description": "Environment and climate change"
+          }
+        ],
+        "research_topics": [
+          {
+            "research_topic_code": "130",
+            "research_topic_description": "Sustainable production and consumption"
+          }
+        ],
+        "keywords": [],
+        "identities": [
+          {
+            "identity_code": "276",
+            "identity_description": "JRC-Sevilla"
+          }
+        ],
+        "apears_in_collections": [
+          {
+            "apears_in_collections_code": "3342",
+            "apears_in_collections_description": "Institute for Reference Materials and Measurements"
+          }
+        ],
+        "publication_category": [
+          {
+            "publication_category_code": "45",
+            "publication_category_description": "3.1 JRC Technical Reports"
+          }
+        ],
+        "publication_type": [
+          {
+            "publication_type_code": "3",
+            "publication_type_description": "Articles in books"
+          }
+        ]
+      }
+    }
+  ]
+}

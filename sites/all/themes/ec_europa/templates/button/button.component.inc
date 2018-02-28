@@ -25,11 +25,12 @@ function ec_europa_atomium_definition_form_button($form, &$form_state) {
     'Secondary' => 'secondary',
     'Call to action' => 'call',
     'Form' => 'submit',
+    'Tags' => 'tags',
   );
 
   foreach ($variants as $value => $variant) {
     $form['buttons'][] = array(
-      '#theme' => array('button__' . $variant),
+      '#theme' => _atomium_extend_theme_hook('button', $variant),
       '#button_type' => 'button',
       '#title' => $value,
       '#value' => $value,
@@ -44,5 +45,5 @@ function ec_europa_atomium_definition_form_button($form, &$form_state) {
  * Implements hook_preprocess_hook().
  */
 function ec_europa_preprocess_button(&$variables, $hook) {
-  $variables['atomium']['attributes']['element']['class'][] = 'ecl-button';
+  $variables['atomium']['attributes']['element']->append('class', 'ecl-button');
 }

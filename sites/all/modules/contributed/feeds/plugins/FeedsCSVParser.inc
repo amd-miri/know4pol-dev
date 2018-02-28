@@ -66,24 +66,16 @@ class FeedsCSVParser extends FeedsParser {
    *   or FALSE if the document was empty.
    */
   protected function parseHeader(ParserCSV $parser, ParserCSVIterator $iterator) {
-    try {
-      $parser->setLineLimit(1);
-      $rows = $parser->parse($iterator);
-      if (!count($rows)) {
-        return FALSE;
-      }
-      $header = array_shift($rows);
-      foreach ($header as $i => $title) {
-        $header[$i] = trim(drupal_strtolower($title));
-      }
-      return $header;
+    $parser->setLineLimit(1);
+    $rows = $parser->parse($iterator);
+    if (!count($rows)) {
+      return FALSE;
     }
-    catch (Exception $e) {
-      // Make sure that the file on the iterator gets properly closed when
-      // exceptions occur during parsing.
-      $iterator->releaseHandler();
-      throw $e;
+    $header = array_shift($rows);
+    foreach ($header as $i => $title) {
+      $header[$i] = trim(drupal_strtolower($title));
     }
+    return $header;
   }
 
   /**
@@ -100,18 +92,10 @@ class FeedsCSVParser extends FeedsParser {
    *   An array of rows of the CSV keyed by the column names previously set.
    */
   protected function parseItems(ParserCSV $parser, ParserCSVIterator $iterator, $start = 0, $limit = 0) {
-    try {
-      $parser->setLineLimit($limit);
-      $parser->setStartByte($start);
-      $rows = $parser->parse($iterator);
-      return $rows;
-    }
-    catch (Exception $e) {
-      // Make sure that the file on the iterator gets properly closed when
-      // exceptions occur during parsing.
-      $iterator->releaseHandler();
-      throw $e;
-    }
+    $parser->setLineLimit($limit);
+    $parser->setStartByte($start);
+    $rows = $parser->parse($iterator);
+    return $rows;
   }
 
   /**
@@ -161,10 +145,10 @@ class FeedsCSVParser extends FeedsParser {
       if (strpos($mapping['source'], ',') !== FALSE) {
         $sources[] = '"' . $mapping['source'] . '"';
       }
-      elseif (strlen(trim($mapping['source']))) {
+      else {
         $sources[] = $mapping['source'];
       }
-      if (!empty($mapping['unique']) && strlen(trim($mapping['source']))) {
+      if (!empty($mapping['unique'])) {
         $uniques[] = $mapping['source'];
       }
     }
@@ -226,7 +210,7 @@ class FeedsCSVParser extends FeedsParser {
       'delimiter' => ',',
       'encoding' => 'UTF-8',
       'no_headers' => 0,
-    ) + parent::configDefaults();
+    );
   }
 
   /**
@@ -309,10 +293,7 @@ class FeedsCSVParser extends FeedsParser {
         $col = '"' . str_replace('"', '""', $col) . '"';
       }
 
-      // Prevent columns without headers from being added to the template.
-      if (strlen(trim($col))) {
-        $columns[] = $col;
-      }
+      $columns[] = $col;
     }
 
     $template_file_details = $this->getTemplateFileDetails($this->config);

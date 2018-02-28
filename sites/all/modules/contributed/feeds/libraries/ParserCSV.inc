@@ -29,16 +29,6 @@ class ParserCSVIterator implements Iterator {
     }
   }
 
-  /**
-   * Closes the current file.
-   */
-  public function releaseHandler() {
-    if ($this->handle) {
-      fclose($this->handle);
-      $this->handle = NULL;
-    }
-  }
-
   public function rewind($pos = 0) {
     if ($this->handle) {
       fseek($this->handle, $pos);

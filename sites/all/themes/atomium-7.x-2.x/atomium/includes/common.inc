@@ -19,9 +19,9 @@
 function atomium_include($theme, $path) {
   static $themes = array();
 
-  if (!isset($themes[$theme])) {
-    $themes[$theme] = drupal_get_path('theme', $theme);
-  }
+  $themes += array(
+    $theme => drupal_get_path('theme', $theme),
+  );
 
   if ($themes[$theme] && ($file = DRUPAL_ROOT . '/' . $themes[$theme] . '/' . $path) && file_exists($file)) {
     if (is_dir($file)) {
@@ -56,9 +56,7 @@ function atomium_include($theme, $path) {
 function _atomium_get_base_themes($theme_key = NULL, $include_theme_key = FALSE) {
   static $themes;
 
-  if (!isset($theme_key)) {
-    $theme_key = $GLOBALS['theme_key'];
-  }
+  $theme_key = ($theme_key) ?: $GLOBALS['theme_key'];
 
   if (!isset($themes[$theme_key])) {
     $themes[$theme_key] = array_unique(array_filter((array) atomium_get_theme_info($theme_key, 'base theme')));
@@ -176,131 +174,31 @@ function &_atomium_get_attributes(array &$element, $property = 'attributes') {
     isset($element['#pre_render']) ||
     isset($element['#markup']) ||
     isset($element['#theme_wrappers']) ||
-    isset($element["#$property"])
+    isset($element['#' . $property])
   ) {
-    if (!isset($element["#$property"])) {
-      $element["#$property"] = array();
-    }
-    return $element["#$property"];
+    $element += array(
+      '#' . $property => array(),
+    );
+
+    return $element['#' . $property];
   }
   // Treat $element as if it were a [pre]process function $variables parameter
   // and look for a renderable "element".
   elseif (isset($element['element'])) {
-    if (!isset($element['element']["#$property"])) {
-      $element['element']["#$property"] = array();
-    }
-    return $element['element']["#$property"];
+    $element['element'] += array(
+      '#' . $property => array(),
+    );
+
+    return $element['element']['#' . $property];
   }
 
   // If all else fails, create (if needed) a default "attributes" array. This
   // will, at the very least, either work or cause an error that can be tracked.
-  if (!isset($element[$property])) {
-    $element[$property] = array();
-  }
+  $element += array(
+    $property => array(),
+  );
 
   return $element[$property];
-}
-
-/**
- * Copy of the drupal_attributes function.
- *
- * The only difference is that if a key is a numeric, it will only display the
- * value. Ex: 0="data-closable" will be displayed: data-closable.
- *
- * @param array $attributes
- *   The attributes array.
- * @param string $name
- *   The name of the key holding the attributes.
- * @param string $hook
- *   The hook being processed.
- *
- * @return string
- *   The attributes in a single string, cleaned.
- */
-function atomium_drupal_attributes(array $attributes = array(), $name = NULL, $hook = NULL) {
-  // Remove empty arrays and empty strings.
-  $attributes = array_filter($attributes, function ($value) {
-    if (!is_array($value)) {
-      return (drupal_strlen($value) != 0);
-    }
-    return $value;
-  });
-
-  // If empty, just return an empty string.
-  if (empty($attributes)) {
-    return '';
-  }
-
-  $attributes = _atomium_clean_attributes($attributes, $name, $hook);
-  return $attributes ? ' ' . implode(' ', $attributes) : '';
-}
-
-/**
- * Helper function to handle attributes cleaning.
- *
- * @param array $attributes
- *   An array of attributes.
- * @param string $name
- *   The name of the key holding the attributes.
- * @param string $hook
- *   The hook being processed.
- *
- * @return array
- *   The attributes cleaned.
- */
-function _atomium_clean_attributes(array $attributes = array(), $name = NULL, $hook = NULL) {
-  foreach ($attributes as $attribute => &$raw_data) {
-    $data = array();
-
-    // Flatten the array.
-    foreach (new RecursiveIteratorIterator(new RecursiveArrayIterator(array($raw_data))) as $v) {
-      $data[$v] = $v;
-    }
-
-    // Remove empty strings.
-    $data = array_filter($data,
-      function ($item) {
-        return drupal_strlen($item) != 0;
-      }
-    );
-
-    // Cleanup specific attributes.
-    $data = array_map(function ($item) use ($attribute) {
-      if ('placeholder' === $attribute) {
-        $item = strip_tags($item);
-      }
-
-      /*
-       * @todo: Disabled for now, it's causing issue in
-       * @todo: admin/structure/views/settings.
-       *
-       * if ('id' === $attribute) {
-       *   $item = drupal_html_id($item);.
-       * }
-       */
-
-      return trim(check_plain($item));
-    }, $data);
-
-    // By default, sort the value of the class attribute.
-    if ('class' === $attribute) {
-      asort($data);
-    }
-
-    $data = implode(' ', $data);
-
-    // If the attribute is numeric, just display the value.
-    // Ex: 0="data-closable" will be displayed: data-closable.
-    if (!is_numeric($attribute)) {
-      $data = sprintf('%s="%s"', $attribute, $data);
-    }
-
-    $raw_data = $data;
-  }
-
-  // Sort the attributes.
-  asort($attributes);
-  return $attributes;
 }
 
 /**
@@ -392,7 +290,7 @@ function atomium_get_component_definitions() {
           }
           if (!empty($elements)) {
             $definition['preview'] = array(
-              '#theme' => 'item_list',
+              '#theme' => _atomium_extend_theme_hook('item_list', array('preview', $component)),
               '#items' => $elements,
             );
           }
@@ -416,7 +314,7 @@ function atomium_get_component_definitions() {
         if (!empty($errors)) {
           unset($definitions[$component]['form']);
           $definitions[$component]['preview'] = array(
-            '#theme' => 'item_list',
+            '#theme' => _atomium_extend_theme_hook('item_list', array('preview', $component)),
             '#items' => $errors[$component],
           );
         }
@@ -496,13 +394,14 @@ function atomium_menu_get_active_breadcrumb() {
 
     foreach ($active_trail as $parent) {
       $breadcrumb[] = array(
-        '#theme' => array('link'),
+        '#theme' => _atomium_extend_theme_hook('link', 'breadcrumb'),
         '#text' => $parent['title'],
         '#path' => $parent['href'],
         '#options' => $parent['localized_options'],
       );
     }
   }
+
   return $breadcrumb;
 }
 
@@ -520,7 +419,7 @@ function atomium_menu_get_active_breadcrumb() {
  *   The callback function.
  */
 function atomium_recursive_foreach(array &$variables, callable $callback) {
-  $variables['#processed'] = TRUE;
+  $variables['#atomium_recursive_processed'] = TRUE;
 
   // By default set the recursive to FALSE.
   $variables += array(
@@ -528,7 +427,7 @@ function atomium_recursive_foreach(array &$variables, callable $callback) {
   );
 
   foreach ($variables as $key => &$value) {
-    if (is_array($value) && !isset($value['#processed'])) {
+    if (is_array($value) && !isset($value['#atomium_recursive_processed'])) {
 
       // If no recursive is set, take the value by default.
       $value += array(
@@ -542,9 +441,11 @@ function atomium_recursive_foreach(array &$variables, callable $callback) {
       // Remove the key to avoid polluting the array with unwanted values.
       unset($value['#atomium_recursive']);
     }
+
     call_user_func_array($callback, array($key, &$value, &$variables));
   }
-  unset($variables['#processed']);
+
+  unset($variables['#atomium_recursive_processed']);
 }
 
 /**
@@ -611,4 +512,245 @@ function _atomium_preprocess_process_theme_suggestion($phase, array &$variables,
       }
     }
   }
+}
+
+/**
+ * Custom helper function.
+ *
+ * This helper updates the render array of a block so block preprocess are
+ * correctly processed.
+ *
+ * @param array $block_array
+ *   The original block render array.
+ * @param string|null $region
+ *   The region where the block is placed.
+ * @param int $block_index_in_region
+ *   The position of the block in the region, if any.
+ * @param int $total_blocks_in_region
+ *   The total number of blocks in the region.
+ */
+function _atomium_update_block_render_array(array &$block_array, $region = NULL, $block_index_in_region = 0, $total_blocks_in_region = 0) {
+  $block_array['#block']->atomium['block_index_in_region'] = $block_index_in_region;
+  $block_array['#block']->atomium['total_blocks_in_regions'] = $total_blocks_in_region;
+  if (isset($block_array['#theme_wrappers'])) {
+    $block_array['#theme_wrappers'] = _atomium_extend_with_suggestions(
+      $block_array['#theme_wrappers'],
+      array(
+        is_string($region) ? $region : NULL,
+        $block_array['#block']->module,
+        $block_array['#block']->delta,
+      )
+    );
+   }
+}
+
+/**
+ * Get the render array of a block.
+ *
+ * @param string $module
+ *   The module.
+ * @param string $delta
+ *   The module delta.
+ * @param string|null $region
+ *   The region where the block is placed.
+ * @param int $block_index_in_region
+ *   The position of the block in the region, if any.
+ * @param int $total_blocks_in_region
+ *   The total number of blocks in the region.
+ *
+ * @return array
+ *   The block render array.
+ */
+function _atomium_block_get_render_array($module, $delta, $region = NULL, $block_index_in_region = 0, $total_blocks_in_region = 0) {
+  $block = block_load($module, $delta);
+
+  // If not block has been loaded, return empty array.
+  if (!isset($block->status)) {
+    return array();
+  }
+
+  $block_render_array = _block_get_renderable_array(_block_render_blocks(array($block)));
+
+  $block_array = array();
+  if (isset($block_render_array[$module . '_' . $delta])) {
+    $block_array = $block_render_array[$module . '_' . $delta];
+    _atomium_update_block_render_array($block_array);
+  }
+
+  return $block_array;
+}
+
+/**
+ * Extends strings with an array of suggestions.
+ *
+ * @param array $items
+ *   The strings to extend.
+ * @param array $suggestions
+ *   The suggestions to add.
+ *
+ * @example
+ *   $items = array('container', 'block');
+ *   $suggestions = array('foo', 'bar');
+ *
+ *   The result will be: array('container__foo__bar', 'block__foo__bar')
+ *
+ *   Quick note about the drupal_strtolower() call:
+ *   We must ensure lowercase values because get_defined_functions()
+ *   in drupal_group_functions_by_prefix() returns functions in lower case.
+ *
+ * @see http://php.net/manual/en/function.get-defined-functions.php
+ *
+ * @return array
+ *   The extended strings.
+ */
+function _atomium_extend_with_suggestions(array $items = array(''), array $suggestions = array()) {
+  return array_map(function ($base_hook) use ($suggestions) {
+    if ($hook = _atomium_extend_theme_hook($base_hook, $suggestions)) {
+      return $hook[0];
+    }
+  }, $items);
+}
+
+/**
+ * Extend a theme hook with suggestions.
+ *
+ * @param string|null $base
+ *   The base hook.
+ * @param string|array $suggestions
+ *   The suggestions.
+ *
+ * @return array|false
+ *   An array containing the theme hook extended,
+ *   FALSE if the base hook is null.
+ */
+function _atomium_extend_theme_hook($base = NULL, $suggestions = array()) {
+  if (empty($base) || !is_string($base)) {
+    return FALSE;
+  }
+
+  $suggestions = (array) $suggestions;
+  array_unshift($suggestions, $base);
+
+  return array(
+    str_replace(
+      '-',
+      '_',
+      drupal_strtolower(
+        implode(
+          '__',
+          array_filter(
+            $suggestions
+          )
+        )
+      )
+    ),
+  );
+}
+
+/**
+ * Flatten an array.
+ *
+ * If input array is:
+ *
+ * $input = array(
+ *   'parent1' => 'valueA'
+ *   'parent2' => array(
+ *     'subparent2' => 'valueB',
+ *   'parent3' => array(
+ *     'subparent3' => array(
+ *       'valueC1',
+ *       'valueC2',
+ *       'valueC3',
+ *       'valueC4',
+ *     )
+ *   )
+ * );
+ *
+ * The output array $storage will be:
+ *
+ * array(
+ *   'parent1' => 'valueA',
+ *   'parent2.subparent2' => 'valueB',
+ *   'parent3.subparent3' => array(
+ *       'valueC1',
+ *       'valueC2',
+ *       'valueC3',
+ *       'valueC4',
+ *   ),
+ * );
+ *
+ * @param array $array
+ *   The input array.
+ * @param array $storage
+ *   The output array.
+ * @param string $parentKey
+ *   The parent key where to start from.
+ */
+function _atomium_array_flatten(array $array, array &$storage, $parentKey = '') {
+  foreach ($array as $key => $value) {
+    $itemKey = $parentKey;
+
+    if (!is_numeric($key)) {
+      $itemKey .= (($parentKey) ? '.' : '') . $key;
+    }
+
+    if (is_array($value)) {
+      _atomium_array_flatten($value, $storage, $itemKey);
+    }
+    else {
+      if (is_numeric($key)) {
+        $storage += array($itemKey => array());
+        $storage[$itemKey][] = $value;
+      }
+      else {
+        $storage[$itemKey] = $value;
+      }
+    }
+  }
+}
+
+/**
+ * Get settings from the current theme info file.
+ *
+ * @param string $setting_keys
+ *   The settings to get, flattened (concatenated with ".")
+ * @param bool $base_themes
+ *   TRUE to get the value in the base_themes
+ *   if the settings is not found in current theme,
+ *   FALSE otherwise.
+ * @param array $value_callbacks
+ *   The list of callbacks to apply to retrieved values.
+ *
+ * @return array
+ *   The settings as an array.
+ */
+function atomium_get_settings($setting_keys, $base_themes = TRUE, array $value_callbacks = array('trim')) {
+  $theme_key = $GLOBALS['theme_key'];
+
+  $settings = array();
+
+  if ($theme_settings = atomium_get_theme_info($theme_key, 'settings', $base_themes)) {
+    _atomium_array_flatten(
+      $theme_settings,
+      $settings
+    );
+  }
+
+  $setting_value = array();
+
+  if (isset($settings[$setting_keys])) {
+    if (is_string($settings[$setting_keys])) {
+      $setting_value = explode(',', $settings[$setting_keys]);
+    }
+
+    if (is_array($settings[$setting_keys])) {
+      $setting_value = $settings[$setting_keys];
+    }
+
+    foreach ($value_callbacks as $value_callback) {
+      $setting_value = array_map($value_callback, $setting_value);
+    }
+  }
+
+  return array_values(array_filter($setting_value));
 }

@@ -6,34 +6,34 @@
  */
 
 /**
- * Implements hook_atomium_theme_hook().
- */
-function atomium_atomium_theme_block() {
-  return array(
-    'block' => array(
-      'render element' => 'elements',
-      'template' => 'block',
-    ),
-  );
-}
-
-/**
  * Implements hook_preprocess_hook().
  */
 function atomium_preprocess_block(&$variables, $hook) {
-  // Add BEM style classes to the block.
-  $variables['atomium']['attributes']['wrapper']->append('class', 'hook__block__' . $variables['block']->module . '__' . $variables['block']->delta);
-
-  $variables['classes_array'] = array_values(array_diff($variables['classes_array'], array('block')));
   $variables['classes_array'] = preg_grep('/^block-/', $variables['classes_array'], PREG_GREP_INVERT);
   $variables['classes_array'][] = $variables['block_html_id'];
   $variables['classes_array'][] = $variables['block_zebra'];
 
-  if (isset($variables['block']->order) && !empty($variables['block']->order)) {
-    $variables['classes_array'][] = 'order-' . $variables['block']->order;
-  }
   if (isset($variables['block']->classes) && is_array($variables['block']->classes)) {
     $variables['classes_array'] = array_merge($variables['classes_array'], (array) $variables['block']->classes);
+  }
+
+  if (isset($variables['block']->atomium)) {
+    if (isset($variables['block']->atomium['total_blocks_in_regions'])) {
+      if (isset($variables['block']->atomium['block_index_in_region'])) {
+        $total = $variables['block']->atomium['total_blocks_in_regions'];
+        $index = $variables['block']->atomium['block_index_in_region'];
+
+        if (0 == $index) {
+          $variables['atomium']['attributes']['wrapper']->append('class', 'first');
+        }
+
+        if ($total == $index) {
+          $variables['atomium']['attributes']['wrapper']->append('class', 'last');
+        }
+
+        $variables['atomium']['attributes']['wrapper']->append('class', 'weight-' . $index);
+      }
+    }
   }
 
   if (
@@ -47,6 +47,8 @@ function atomium_preprocess_block(&$variables, $hook) {
   }
 
   $variables['atomium']['attributes']['wrapper']->append('class', $variables['classes_array']);
+  $variables['atomium']['attributes']['wrapper']->remove('class', atomium_get_settings('preprocess.block.classes_to_remove', TRUE));
+
   $variables['atomium']['attributes']['wrapper']->append('id', $variables['block_html_id']);
 
   // Add Aria Roles via attributes.
@@ -122,11 +124,6 @@ function atomium_preprocess_block(&$variables, $hook) {
 
   $variables['title']['#markup'] = '';
   if ($variables['block']->subject) {
-    $variables['title'] = array(
-      '#markup' => $variables['block']->subject,
-      '#theme_wrappers' => array('html_tag__' . $variables['theme_hook_original'] . '__h2'),
-      '#tag' => 'h2',
-      '#attributes' => $variables['title_attributes_array'],
-    );
+    $variables['title']['#markup'] = $variables['block']->subject;
   }
 }

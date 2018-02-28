@@ -1,0 +1,181 @@
+<?php
+
+/**
+ * @file Unit tests for Feeds Tamper Conditional module.
+ */
+
+class FeedsTamperConditionalUnitTests extends FeedsTamperUnitTestCase {
+
+	protected $plugin_id = 'feeds_tamper_conditional';
+
+	// Initialise the callback arguments.
+	protected $result;
+	protected $item_key = 0;
+	protected $settings;
+
+	public static function getInfo() {
+		return array(
+			'name' => 'Feeds Tamper Conditional',
+			'description' => 'Unit tests for "Conditional" plugin',
+			'group' => 'Feeds Tamper Conditional',
+		);
+	}
+
+	public function test() {
+
+	  $this->result = new stdClass();
+
+		// Test equals operator.
+		$this->executeConditional('filemakerfield:1', 'filemakerfield:a', 'Yes', 'Yes', 'equals', "Test 'equals' operator. Item retained: 'Yes' equals 'Yes'", FALSE);
+		$this->executeConditional('filemakerfield:2', 'filemakerfield:b', 'No', 'Yes', 'equals', "Test 'equals' operator. Item removed. 'No' does not equal 'Yes'", TRUE);
+
+		// Test the 'not equals' operator.
+		$this->executeConditional('filemakerfield:3', 'filemakerfield:c', 'No', 'Yes', 'not_equals', "Test 'not_equals' operator. Item retained: 'No' not_equals 'Yes'", FALSE);
+		$this->executeConditional('filemakerfield:4', 'filemakerfield:d', 'Yes', 'Yes', 'not_equals', "Test 'not_equals' operator. Item removed. 'Yes' equals 'Yes'", TRUE);
+
+		// Test the 'greater' operator.
+		$this->executeConditional('filemakerfield:5', 'filemakerfield:e', '6', '5', 'greater', "Test 'greater' operator. Item retained: '6' greater than '5'", FALSE);
+		$this->executeConditional('filemakerfield:6', 'filemakerfield:f', '4', '5', 'greater', "Test 'greater' operator. Item removed. '4' not greater '5'", TRUE);
+
+		// Test the 'greater_equal' operator.
+		$this->executeConditional('filemakerfield:7', 'filemakerfield:g', '5', '5', 'greater_equal', "Test 'greater_equal' operator. Item retained: '5' greater_equal '5'", FALSE);
+		$this->executeConditional('filemakerfield:8', 'filemakerfield:h', '4', '5', 'greater_equal', "Test 'greater_equal' operator. Item removed. '4' not greater_equal '5'", TRUE);
+
+		// Test the 'less' operator.
+		$this->executeConditional('filemakerfield:9', 'filemakerfield:i', '4', '5', 'less', "Test 'less' operator. Item retained: '4' less than '5'", FALSE);
+		$this->executeConditional('filemakerfield:10', 'filemakerfield:j', '6', '5', 'less', "Test 'less' operator. Item removed. '6' not less than '5'", TRUE);
+
+		// Test the 'less_equal' operator.
+		$this->executeConditional('filemakerfield:11', 'filemakerfield:k', '5', '5', 'less_equal', "Test 'less_equal' operator. Item retained: '5' less_equal '5'", FALSE);
+		$this->executeConditional('filemakerfield:12', 'filemakerfield:l', '6', '5', 'less_equal', "Test 'less_equal' operator. Item removed. '6' not less_equal '5'", TRUE);
+
+		// Test contains operator.
+		$this->executeConditional('filemakerfield:13', 'filemakerfield:m', 'Yes', 'es', 'contains', "Test 'contains' operator. Item retained. 'Yes' contains 'es'", FALSE);
+		$this->executeConditional('filemakerfield:14', 'filemakerfield:n', 'Yes', 'YES', 'contains', "Test 'contains' operator. Item retained. 'Yes' contains 'YES'", FALSE);
+    $this->executeConditional('filemakerfield:15', 'filemakerfield:o', 'Yes', 'no', 'contains', "Test 'contains' operator. Item removed. 'Yes' does not contain 'no'", TRUE);
+
+		// Test not_contains operator.
+		$this->executeConditional('filemakerfield:16', 'filemakerfield:p', 'Yes', 'no', 'not_contains', "Test 'not_contains' operator. Item retained. 'Yes' not_contains 'no'", FALSE);
+		$this->executeConditional('filemakerfield:17', 'filemakerfield:q', 'Yes', 'YES', 'not_contains', "Test 'not_contains' operator. Item removed. 'Yes' contains 'YES'", TRUE);
+
+		// Test empty operator.
+		$this->executeConditional('filemakerfield:18', 'filemakerfield:r', [], NULL, 'empty', "Test 'empty' operator. Item retained. Value is empty.", FALSE);
+		$this->executeConditional('filemakerfield:19', 'filemakerfield:s', ['a'], NULL, 'empty', "Test 'empty' operator. Item removed. Value not empty.", TRUE);
+
+		// Test not empty.
+    $this->executeConditional('filemakerfield:20', 'filemakerfield:t', ['not empty'], NULL, 'empty', "Test 'not empty' operator. Item retained. Value is array with one value.", FALSE, TRUE);
+		$this->executeConditional('filemakerfield:21', 'filemakerfield:u', [], NULL, 'empty', "Test 'not empty' operator. Item removed. Value is array with no values.", TRUE, TRUE);
+
+		// Test set operator.
+		$this->executeConditional('filemakerfield:22', 'filemakerfield:v', 'a', NULL, 'set', "Test 'set' operator. Item retained. Value is set.", FALSE);
+		$this->executeConditional('filemakerfield:23', 'filemakerfield:w', $j, NULL, 'set', "Test 'set' operator. Item removed. Value not set.", TRUE);
+
+		// Test 'not set'.
+    $this->executeConditional('filemakerfield:24', 'filemakerfield:x', $j, NULL, 'set', "Test 'not set' operator. Item retained. Value is undefined variable.", FALSE, TRUE);
+		$this->executeConditional('filemakerfield:25', 'filemakerfield:y', 'a', NULL, 'set', "Test 'not set' operator. Item removed. Value is a set variable.", TRUE, TRUE);
+
+		// Test null operator.
+    $this->executeConditional('filemakerfield:26', 'filemakerfield:z', null, NULL, 'null', "Test 'null' operator. Item retained. Value is string.", FALSE);
+		$this->executeConditional('filemakerfield:27', 'filemakerfield:aa', 'a', NULL, 'null', "Test 'null' operator. Item removed. Value is null.", TRUE);
+
+    // Test not null operator.
+    $this->executeConditional('filemakerfield:28', 'filemakerfield:bb', 'a', NULL, 'null', "Test 'not null' operator. Item retained. Value is not null.", FALSE, TRUE);
+		$this->executeConditional('filemakerfield:29', 'filemakerfield:cc', null, NULL, 'null', "Test 'not null' operator. Item removed. Value is null.", TRUE, TRUE);
+
+		// Test array operator.
+		$this->executeConditional('filemakerfield:30', 'filemakerfield:dd', ['a'], NULL, 'array', "Test 'array' operator. Item retained. Value is array.", FALSE);
+		$this->executeConditional('filemakerfield:31', 'filemakerfield:ee', 'a', NULL, 'array', "Test 'array' operator. Item removed. Value is string.", TRUE);
+
+		// Test 'not array' operator.
+		$this->executeConditional('filemakerfield:32', 'filemakerfield:ff', 'a', NULL, 'array', "Test 'not array' operator. Item retained. Value is array.", FALSE, TRUE);
+		$this->executeConditional('filemakerfield:33', 'filemakerfield:gg', ['a'], NULL, 'array', "Test 'not array' operator. Item removed. Value is string.", TRUE, TRUE);
+
+		// Test bool operator.
+		$this->executeConditional('filemakerfield:34', 'filemakerfield:hh', TRUE, NULL, 'bool', "Test 'bool' operator. Item retained. Value is TRUE.", FALSE);
+		$this->executeConditional('filemakerfield:35', 'filemakerfield:ii', 'a', NULL, 'bool', "Test 'bool' operator. Item removed. Value is string.", TRUE);
+
+		// Test not bool operator.
+		$this->executeConditional('filemakerfield:36', 'filemakerfield:jj', 'a', NULL, 'bool', "Test 'not bool' operator. Item retained. Value is string.", FALSE, TRUE);
+		$this->executeConditional('filemakerfield:37', 'filemakerfield:kk', TRUE, NULL, 'bool', "Test 'not bool' operator. Item removed. Value is TRUE.", TRUE, TRUE);
+
+		// Test int operator.
+		$this->executeConditional('filemakerfield:38', 'filemakerfield:ll', 1, NULL, 'int', "Test 'int' operator. Item retained. Value is int.", FALSE);
+		$this->executeConditional('filemakerfield:39', 'filemakerfield:mm', '1', NULL, 'int', "Test 'int' operator. Item removed. Value is string.", TRUE);
+
+		// Test not int operator.
+		$this->executeConditional('filemakerfield:40', 'filemakerfield:nn', '1', NULL, 'int', "Test 'not int' operator. Item retained. Value is string.", FALSE, TRUE);
+		$this->executeConditional('filemakerfield:41', 'filemakerfield:oo', 1, NULL, 'int', "Test 'not int' operator. Item removed. Value is int.", TRUE, TRUE);
+
+		// Test float operator.
+    $this->executeConditional('filemakerfield:42', 'filemakerfield:pp', 1.0, NULL, 'float', "Test 'float' operator. Item retained. Value is 1.0.", FALSE);
+		$this->executeConditional('filemakerfield:43', 'filemakerfield:qq', '1', NULL, 'float', "Test 'float' operator. Item removed. Value is string.", TRUE);
+
+		// Test not float operator.
+    $this->executeConditional('filemakerfield:44', 'filemakerfield:rr', '1', NULL, 'float', "Test 'not float' operator. Item retained. Value is string.", FALSE, TRUE);
+		$this->executeConditional('filemakerfield:45', 'filemakerfield:ss', 1.0, NULL, 'float', "Test 'not float' operator. Item removed. Value is 1.0.", TRUE, TRUE);
+
+		// Test numeric operator.
+		$this->executeConditional('filemakerfield:42', 'filemakerfield:pp', '1', NULL, 'numeric', "Test 'numeric' operator. Item retained. Value is '1'.", FALSE);
+		$this->executeConditional('filemakerfield:43', 'filemakerfield:qq', 'a', NULL, 'numeric', "Test 'numeric' operator. Item removed. Value is 'a'.", TRUE);
+
+		// Test not numeric operator.
+		$this->executeConditional('filemakerfield:44', 'filemakerfield:rr', 'a', NULL, 'numeric', "Test 'not numeric' operator. Item retained. Value is 'a'.", FALSE, TRUE);
+		$this->executeConditional('filemakerfield:45', 'filemakerfield:ss', '1', NULL, 'numeric', "Test 'not numeric' operator. Item removed. Value is '1'.", TRUE, TRUE);
+
+		// Test string operator.
+    $this->executeConditional('filemakerfield:46', 'filemakerfield:tt', 'a', NULL, 'string', "Test 'string' operator. Item retained. Value is 'a'.", FALSE);
+		$this->executeConditional('filemakerfield:47', 'filemakerfield:uu', 1, NULL, 'string', "Test 'string' operator. Item removed. Value is 1.", TRUE);
+
+		// Test not string operator.
+    $this->executeConditional('filemakerfield:48', 'filemakerfield:vv', 1, NULL, 'string', "Test 'string' operator. Item retained. Value is 'a'.", FALSE, TRUE);
+		$this->executeConditional('filemakerfield:49', 'filemakerfield:ww', 'a', NULL, 'string', "Test 'string' operator. Item removed. Value is 1.", TRUE, TRUE);
+
+		// Test begins operator.
+    $this->executeConditional('filemakerfield:50', 'filemakerfield:xx', 'Yes', 'ye', 'begins', "Test 'begins' operator. Item retained. Value 'Yes' begins with 'ye'.", FALSE);
+		$this->executeConditional('filemakerfield:51', 'filemakerfield:yy', 'Yes', 'es', 'begins', "Test 'begins' operator. Item removed. Value 'Yes' doesn't begin with 'es'", TRUE);
+
+		// Test not begins operator.
+    $this->executeConditional('filemakerfield:52', 'filemakerfield:zz', 'Yes', 'es', 'begins', "Test 'not begins' operator. Item retained. Value 'Yes' does not begin with 'es'.", FALSE, TRUE);
+		$this->executeConditional('filemakerfield:53', 'filemakerfield:ab', 'Yes', 'ye', 'begins', "Test 'not begins' operator. Item removed. Value 'Yes' does begin with 'ye'", TRUE, TRUE);
+
+		// Test ends operator.
+    $this->executeConditional('filemakerfield:54', 'filemakerfield:ac', 'Yes', 'es', 'ends', "Test 'ends' operator. Item retained. Value 'Yes' ends with 'es'.", FALSE);
+		$this->executeConditional('filemakerfield:55', 'filemakerfield:ad', 'Yes', 'ye', 'ends', "Test 'ends' operator. Item removed. Value 'Yes' doesn't end with 'ye'", TRUE);
+
+		// Test not ends operator.
+    $this->executeConditional('filemakerfield:56', 'filemakerfield:ae', 'Yes', 'ye', 'ends', "Test 'not ends' operator. Item retained. Value 'Yes' does not end with 'ye'.", FALSE, TRUE);
+		$this->executeConditional('filemakerfield:57', 'filemakerfield:af', 'Yes', 'es', 'ends', "Test 'not ends' operator. Item removed. Value 'Yes' does end with 'es'", TRUE, TRUE);
+	}
+
+	function executeConditional($field_name, $compare_field_name, $compare_field_value, $value_to_compare, $operator, $pass_message, $expect_remove = TRUE, $negate = FALSE) {
+	  $this->result->items[$this->item_key][$field_name] = 'FirstName';
+    $this->result->items[$this->item_key][$compare_field_name] = $compare_field_value;
+
+	  $this->settings['value'] = $value_to_compare;
+    $this->settings['operator'] = $operator;
+    $this->settings['conditional_field'] = $compare_field_name;
+    $this->settings['negate'] = $negate;
+/*
+    // Debug.
+    $this->pass('$this->result: ' . var_export($this->result, TRUE));
+    $this->pass('$this->item_key: ' . var_export($this->item_key, TRUE));
+    $this->pass('$field_name: ' . var_export($field_name, TRUE));
+    $this->pass('$compare_field_value: ' . var_export($compare_field_value, TRUE));
+    $this->pass('$this->settings: ' . var_export($this->settings, TRUE));
+*/
+    // Run the conditional through the main feeds_tamper_conditional_callback() function.
+    $this->callback($this->result, $this->item_key, $field_name, $compare_field_value, $this->settings);
+
+    if($expect_remove) {
+      $is_pass = !isset($this->result->items[$this->item_key][$field_name]);
+    }
+    else {
+      // Expect value will be retained.
+      $is_pass = isset($this->result->items[$this->item_key][$field_name]);
+    }
+
+    $this->assertTrue($is_pass, $pass_message);
+
+    $this->item_key++;
+	}
+}

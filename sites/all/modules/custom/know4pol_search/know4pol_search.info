@@ -1,0 +1,4 @@
+name = Know4pol Search
+description = Know4pol Search custom block
+core = 7.x
+package = Know4pol

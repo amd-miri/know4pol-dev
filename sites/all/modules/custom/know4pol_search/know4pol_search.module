@@ -1,0 +1,66 @@
+<?php
+
+function know4pol_search_form($form, $form_state) {
+
+  $form['keyword'] = array(
+    '#type' => 'textfield',
+  );
+
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => 'Search',
+
+  );
+
+  $options = array(
+    'all' => 'All',
+    'dataset' => 'Dataset',
+    'publication' => 'Document',
+    'visualisation' => 'Visualisation',
+    'glossary_item' => 'Term',
+  );
+
+  $default = 'all';
+
+  $form['type'] = array(
+    '#type' => 'radios',
+    '#weight' => '100',
+    '#options' => $options,
+    '#default_value' => 'all',
+    '#attributes' => array('class' => array('container-inline')),
+  );
+
+  return $form;
+
+}
+
+function know4pol_search_form_submit(&$form, &$form_state){
+
+  if ($form_state['values']['type'] != 'all') {
+    $form_state['redirect'] = 'search/site/_en?f%5B0%5D=bundle%3A'.$form_state['values']['type'].'/'.$form_state['values']['keyword'];
+  } else {
+    $form_state['redirect'] = 'search/site/'.$form_state['values']['keyword'];
+  }
+}
+
+function know4pol_search_block_info() {
+  $blocks['know4pol_search'] = array(
+    'info' => t('Know4pol search'),
+    'cache' => DRUPAL_NO_CACHE,
+  );
+
+  return $blocks;
+}
+
+function know4pol_search_block_view($delta = '') {
+  $block = array();
+
+  switch ($delta) {
+    case 'know4pol_search':
+      $block['subject'] = '';
+      $block['content'] = drupal_render(drupal_get_form('know4pol_search_form'));
+      break;
+  }
+  return $block;
+}
+?>

@@ -18,6 +18,11 @@ function atomium_atomium_theme_item_list() {
         'type' => 'ul',
         'attributes' => array(),
         'wrapper' => TRUE,
+        'wrapper_attributes' => array(
+          'class' => array(
+            'item-list',
+          ),
+        ),
       ),
     ),
   );
@@ -46,7 +51,7 @@ function atomium_preprocess_item_list(&$variables, $hook) {
         $item += array('class' => array());
         $variables['atomium']['attributes'][$key]->append('class', $item['class']);
         $variables['items'][$key] = array(
-          '#theme' => 'html_tag__' . $variables['theme_hook_original'],
+          '#theme' => _atomium_extend_theme_hook('html_tag', $variables['theme_hook_original']),
           '#tag' => 'li',
           '#atomium' => array(
             'attributes' => array(
@@ -59,7 +64,7 @@ function atomium_preprocess_item_list(&$variables, $hook) {
 
       if (is_string($item)) {
         $variables['items'][$key] = array(
-          '#theme' => 'html_tag__' . $variables['theme_hook_original'],
+          '#theme' => _atomium_extend_theme_hook('html_tag', $variables['theme_hook_original']),
           '#tag' => 'li',
           '#atomium' => array(
             'attributes' => array(
@@ -76,5 +81,5 @@ function atomium_preprocess_item_list(&$variables, $hook) {
 
   // @Todo: Remove this, it shouldn't be used anymore but it's too early now.
   $variables['atomium']['attributes']['list']->merge($variables['attributes']);
-  $variables['atomium']['attributes']['wrapper']->append('class', 'item-list');
+  $variables['atomium']['attributes']['wrapper']->merge($variables['wrapper_attributes']);
 }
