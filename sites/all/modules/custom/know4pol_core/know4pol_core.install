@@ -126,3 +126,12 @@ function know4pol_core_update_7004() {
     'date_facets',
   ), TRUE);
 }
+
+/**
+ * Enable views_autocomplete_filters modules.
+ */
+function know4pol_core_update_7006() {
+  module_enable(array(
+    'views_autocomplete_filters',
+  ), TRUE);
+}

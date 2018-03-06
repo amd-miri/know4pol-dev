@@ -337,6 +337,12 @@ function _know4pol_core_post_process_callback(FeedsSource $source, $entity, $tar
  * Implements hook_feeds_presave().
  */
 function know4pol_core_feeds_presave(FeedsSource $source, $entity, $item, $entity_id) {
+  // For all imports, if the content is imported as published,
+  // then we set the moderation to published as well.
+  // This is not handled by Workbench_moderation module.
+  if ($entity->status == "1") {
+    $entity->workbench_moderation_state_new = workbench_moderation_state_published();
+  }
   // Check first if we have any topics from Newsroom.
   if (!empty($entity->field_newsroom_topics[LANGUAGE_NONE])) {
     foreach ($entity->field_newsroom_topics[LANGUAGE_NONE] as $value) {
@@ -374,4 +380,93 @@ function know4pol_core_feeds_presave(FeedsSource $source, $entity, $item, $entit
       }
     }
   }
+}
+
+/**
+ * Implements hook_block_info().
+ */
+function know4pol_core_block_info() {
+  $blocks = array();
+  $blocks['apachesolr_freetext_search_block'] = array(
+    'info' => t('Apache Solr Search Block'),
+    'cache' => DRUPAL_NO_CACHE,
+  );
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function know4pol_core_block_view($delta = '') {
+  $block = array();
+  switch ($delta) {
+    case 'apachesolr_freetext_search_block':
+      if (arg(0) == 'search' && arg(1) == 'site') {
+        $keys = urldecode(arg(2));
+      }
+      else {
+        $keys = urldecode(arg(1));
+      }
+      $block_content = drupal_get_form('_know4pol_core_freetext_search_form', $keys);
+      $block['content'] = drupal_render($block_content);
+      break;
+  }
+  return $block;
+}
+
+/**
+ * The free text search form for ApacheSolr pages.
+ *
+ * @param object $keys
+ *   The search words/keys.
+ */
+function _know4pol_core_freetext_search_form($form, &$form_state, $keys = '') {
+  $form = array();
+  $form['#id'] = 'search-form';
+  $form['#attributes']['class'][] = 'search-form';
+
+  $form['basic'] = array(
+    '#type' => 'container',
+    '#attributes' => array('class' => array('container-inline')),
+  );
+
+  $form['basic']['keys'] = array(
+    '#type' => 'textfield',
+    '#default_value' => $keys,
+    '#size' => 20,
+    '#maxlength' => 255,
+    '#attributes' => array('placeholder' => array('Search on ' . drupal_get_title())),
+  );
+
+  $form['basic']['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Search'),
+  );
+
+  return $form;
+}
+
+/**
+ * The submit function for the free text search form for ApacheSolr pages.
+ */
+function _know4pol_core_freetext_search_form_submit(&$form, &$form_state) {
+  // Should get the URL from the defined search pages.
+  if (arg(0) == 'search' && arg(1) == 'site') {
+    $redirect = 'search/site';
+  }
+  else {
+    $redirect = arg(0);
+  }
+  $redirect_value = rawurlencode($form_state['values']['keys']);
+  if (drupal_strlen($form_state['values']['keys'])) {
+    $redirect .= '/' . $redirect_value;
+  }
+
+  $get = drupal_get_query_parameters();
+  if (!empty($get)) {
+    unset($get['q']);
+    // Reset to first page.
+    unset($get['page']);
+  }
+  $form_state['redirect'] = array($redirect, array('query' => $get));
 }
