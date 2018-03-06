@@ -13,7 +13,7 @@ class Attributes implements \ArrayAccess, \IteratorAggregate {
    *
    * @var array
    */
-  protected $storage = array();
+  private $storage = array();
 
   /**
    * {@inheritdoc}
@@ -52,18 +52,18 @@ class Attributes implements \ArrayAccess, \IteratorAggregate {
    * {@inheritdoc}
    */
   public function &offsetGet($name) {
-    $this->storage += array($name => array());
+    $return = $this->setStorage(
+      $this->getStorage() + array($name => array())
+    )->toArray();
 
-    $value = array_values($this->storage[$name]);
-
-    return $value;
+    return $return[$name];
   }
 
   /**
    * {@inheritdoc}
    */
   public function offsetSet($name, $value = FALSE) {
-    $this->storage += array($name => array());
+    $storage = $this->getStorage() + array($name => array());
 
     if (is_bool($value)) {
       $data = $value;
@@ -77,25 +77,33 @@ class Attributes implements \ArrayAccess, \IteratorAggregate {
         $data = array_merge($data, explode(' ', $item));
       }
 
-      $data = array_values(array_filter($data));
+      $data = array_values(array_filter($data, 'strlen'));
       $data = array_combine($data, $data);
     }
 
-    $this->storage[$name] = $data;
+    $storage[$name] = $data;
+
+    $this->setStorage($storage);
   }
 
   /**
    * {@inheritdoc}
    */
   public function offsetUnset($name) {
-    unset($this->storage[$name]);
+    $storage = $this->getStorage();
+
+    unset($storage[$name]);
+
+    $this->setStorage($storage);
   }
 
   /**
    * {@inheritdoc}
    */
   public function offsetExists($name) {
-    return isset($this->storage[$name]);
+    $storage = $this->toArray();
+
+    return isset($storage[$name]);
   }
 
   /**
@@ -115,31 +123,6 @@ class Attributes implements \ArrayAccess, \IteratorAggregate {
   }
 
   /**
-   * Removes an attribute from an Attribute object.
-   *
-   * @param string|array ...
-   *   Attributes to remove from the attribute array.
-   *
-   * @return $this
-   */
-  public function removeAttribute() {
-    $args = func_get_args();
-    foreach ($args as $arg) {
-      // Support arrays or multiple arguments.
-      if (is_array($arg)) {
-        foreach ($arg as $value) {
-          unset($this->storage[$value]);
-        }
-      }
-      else {
-        unset($this->storage[$arg]);
-      }
-    }
-
-    return $this;
-  }
-
-  /**
    * Append a value into an attribute.
    *
    * @param string $key
@@ -150,14 +133,14 @@ class Attributes implements \ArrayAccess, \IteratorAggregate {
    * @return $this
    */
   public function append($key, $value = FALSE) {
-    $attributes = $this->storage;
+    $attributes = $this->getStorage();
 
     if (is_bool($value)) {
       $attributes[$key] = $value;
       $this->storage = $attributes;
     }
 
-    if (empty($value) || empty($key) || is_bool($value)) {
+    if (empty($key) || is_bool($value)) {
       return $this;
     }
 
@@ -170,11 +153,9 @@ class Attributes implements \ArrayAccess, \IteratorAggregate {
       $data = array_merge($data, explode(' ', $item));
     }
 
-    $attributes[$key] = array_merge((array) $attributes[$key], array_values(array_filter($data)));
+    $attributes[$key] = array_unique(array_merge((array) $attributes[$key], array_values(array_filter($data, 'strlen'))));
 
-    $this->storage = $attributes;
-
-    return $this;
+    return $this->setStorage($attributes);
   }
 
   /**
@@ -188,7 +169,7 @@ class Attributes implements \ArrayAccess, \IteratorAggregate {
    * @return $this
    */
   public function remove($key, $value = FALSE) {
-    $attributes = $this->storage;
+    $attributes = $this->getStorage();
 
     if (!isset($attributes[$key])) {
       return $this;
@@ -205,9 +186,21 @@ class Attributes implements \ArrayAccess, \IteratorAggregate {
       $attributes[$key] = array_values(array_diff($attributes[$key], $value));
     }
 
-    $this->storage = $attributes;
+    return $this->setStorage($attributes);
+  }
 
-    return $this;
+  /**
+   * Delete an attribute.
+   *
+   * @param string|array $name
+   *   The name of the attribute key to delete.
+   *
+   * @deprecated
+   *
+   * @return $this
+   */
+  public function removeAttribute($name = array()) {
+    return $this->delete($name);
   }
 
   /**
@@ -270,20 +263,18 @@ class Attributes implements \ArrayAccess, \IteratorAggregate {
       );
     }
 
-    $this->storage = $attributes;
-
-    return $this;
+    return $this->setStorage($attributes);
   }
 
   /**
    * Merge attributes.
    *
-   * @param mixed $data
+   * @param array $data
    *   The data to merge.
    *
    * @return $this
    */
-  public function merge($data = NULL) {
+  public function merge(array $data = array()) {
     if ($data instanceof Attributes) {
       $data = $data->toArray();
     }
@@ -293,7 +284,9 @@ class Attributes implements \ArrayAccess, \IteratorAggregate {
       return $this;
     }
 
-    $this->storage = drupal_array_merge_deep($this->storage, $data);
+    foreach ($data as $key => $value) {
+      $this->append($key, $value);
+    }
 
     return $this;
   }
@@ -303,24 +296,24 @@ class Attributes implements \ArrayAccess, \IteratorAggregate {
    *
    * @param string $key
    *   Attribute name.
-   * @param string $value
+   * @param string|bool $value
    *   Attribute value.
    *
    * @return bool
    *   Whereas an attribute exists.
    */
-  public function exists($key, $value) {
-    if (!isset($this->storage[$key])) {
+  public function exists($key, $value = FALSE) {
+    $storage = $this->getStorage();
+
+    if (!isset($storage[$key])) {
       return FALSE;
     }
 
-    foreach ($this->storage[$key] as $item) {
-      if ($value === $item) {
-        return TRUE;
-      }
-    }
-
-    return FALSE;
+    return $storage[$key] !== array_filter(
+      $storage[$key],
+      function ($item) use ($value) {
+        return $item !== $value;
+      });
   }
 
   /**
@@ -328,29 +321,31 @@ class Attributes implements \ArrayAccess, \IteratorAggregate {
    *
    * @param string $key
    *   Attribute name.
-   * @param string $value
+   * @param string|bool $value
    *   Attribute value.
    *
    * @return bool
    *   Whereas an attribute contains a value.
    */
-  public function contains($key, $value) {
-    if (!isset($this->storage[$key])) {
+  public function contains($key, $value = FALSE) {
+    $storage = $this->getStorage();
+
+    if (!isset($storage[$key])) {
       return FALSE;
     }
 
-    if (empty($this->storage[$key])) {
+    if (empty($storage[$key])) {
       return FALSE;
     }
 
-    $candidates = $this->storage[$key];
+    $candidates = $storage[$key];
 
     if (!is_array($candidates)) {
       $candidates = array($candidates);
     }
 
     foreach ($candidates as $item) {
-      if (stripos($item, $value) !== FALSE) {
+      if (FALSE !== stripos($item, $value)) {
         return TRUE;
       }
     }
@@ -415,24 +410,16 @@ class Attributes implements \ArrayAccess, \IteratorAggregate {
    *   An associative array of attributes.
    */
   public function toArray() {
-    $return = array();
-
-    foreach ($this->getStorage() as $name => $value) {
-      $return[$name] = array_filter(array_values((array) $value));
-    }
-
-    return $return;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function getIterator() {
-    return new \ArrayIterator($this->getStorage());
+    return array_map(function ($value) {
+      return array_filter((array) $value);
+    }, $this->getStorage());
   }
 
   /**
    * Returns the whole array.
+   *
+   * @return array
+   *   The storage.
    */
   public function getStorage() {
     // Flatten the array.
@@ -442,7 +429,7 @@ class Attributes implements \ArrayAccess, \IteratorAggregate {
         $value_iterator = new \RecursiveIteratorIterator(
           new \RecursiveArrayIterator((array) $member)
         );
-        $member = iterator_to_array($value_iterator);
+        $member = array_values(array_unique(iterator_to_array($value_iterator)));
       }
     });
 
@@ -450,13 +437,24 @@ class Attributes implements \ArrayAccess, \IteratorAggregate {
   }
 
   /**
-   * Returns a representation of the object for use in JSON serialization.
+   * Set the storage array.
    *
-   * @return string
-   *   The safe string content.
+   * @param array $storage
+   *   The storage.
+   *
+   * @return $this
    */
-  public function jsonSerialize() {
-    return (string) $this;
+  public function setStorage(array $storage = array()) {
+    $this->storage = $storage;
+
+    return $this;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getIterator() {
+    return new \ArrayIterator($this->toArray());
   }
 
 }
