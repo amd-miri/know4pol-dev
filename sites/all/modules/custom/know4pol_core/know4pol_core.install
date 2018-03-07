@@ -130,7 +130,7 @@ function know4pol_core_update_7004() {
 /**
  * Enable views_autocomplete_filters modules.
  */
-function know4pol_core_update_7006() {
+function know4pol_core_update_7005() {
   module_enable(array(
     'views_autocomplete_filters',
   ), TRUE);

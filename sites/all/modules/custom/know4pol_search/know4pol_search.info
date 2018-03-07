@@ -6,4 +6,5 @@ php = 5.2.4
 features[features_api][] = api:2
 features_exclude[dependencies][ctools] = ctools
 dependencies[] = context
+stylesheets[all][] = know4pol_search.css
 multisite_version = 2.4
