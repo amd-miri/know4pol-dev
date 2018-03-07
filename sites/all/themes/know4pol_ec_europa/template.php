@@ -19,9 +19,9 @@ function know4pol_ec_europa_menu_link(array $variables) {
   if (preg_match('@^node/(\d+)$@', $element['#href'], $matches)) {
     $node = node_load((int) $matches[1]);
     if ($node && $node->status == NODE_NOT_PUBLISHED) {
-      // There appear to be some inconsistency
-      // sometimes the classes come through
-      // as an array and sometimes as a string.
+      // There appear to be some inconsistency.
+      // Sometimes the classes come through
+      // As an array and sometimes as a string.
       if (empty($element['#localized_options']['attributes']['class'])) {
         $element['#localized_options']['attributes']['class'] = array();
       }
@@ -49,6 +49,30 @@ function know4pol_ec_europa_preprocess_node(&$variables, $hook) {
 }
 
 /**
+ * Implements template_preprocess_field().
+ */
+function know4pol_ec_europa_preprocess_field(&$variables) {
+  // Handle apache solR preproces in a different function.
+  if ($variables['element']['#view_mode'] == 'apachesolr_page') {
+    // _know4pol_ec_europa_preprocess_field__apache_solr_mode($variables);
+	// Add template suggestions for field in the apache solr viewmode
+    $variables['theme_hook_suggestions'][] = 'field__' . $variables['element']['#view_mode'];
+    $variables['theme_hook_suggestions'][] = 'field__' .
+      $variables['element']['#field_name'] . '__' .
+      $variables['element']['#view_mode'];
+  }
+  // Heading of search result.
+  switch ($variables['element']['#field_name']) {
+    case 'node_type_name':
+    case 'field_pub_dc_date_created':
+      $variables['theme_hook_suggestions'][] = 'field__' . $variables['element']['#view_mode'] .
+	    '__meta_headers';
+	  break;
+  }
+}
+
+
+/**
  * Preprocess node_file.
  *
  * Analyse legacy link content
@@ -57,7 +81,7 @@ function know4pol_ec_europa_preprocess_node(&$variables, $hook) {
  * @param array $variables
  *   Variables from the original hook.
  */
-function _know4pol_ec_europa_preprocess_node_file(&$variables) {
+function _know4pol_ec_europa_preprocess_node_file(array &$variables) {
   $node = $variables['elements']['#node'];
   // Is file a link or a file ?
   $node->file_link = _know4pol_ec_europa_preprocess_node_file__field_file($node);
@@ -90,8 +114,8 @@ function _know4pol_ec_europa_preprocess_node_file(&$variables) {
  * @return array
  *   Parameters of the file (link and infos).
  */
-function _know4pol_ec_europa_preprocess_node_file__field_file($node) {
-  // Build link for ECL download
+function _know4pol_ec_europa_preprocess_node_file__field_file(node $node) {
+  // Build link for ECL download.
   // If file is external.
   if (count($node->field_is_legacy_link) && $node->field_is_legacy_link[LANGUAGE_NONE][0]['value']) {
     $link = $node->field_legacy_link[LANGUAGE_NONE][0][url];
@@ -119,8 +143,7 @@ function _know4pol_ec_europa_preprocess_node_file__field_file($node) {
  * @param array $variables
  *   Variables from the original hook.
  */
-function _know4pol_ec_europa_preprocess_field__field_vis_data_url__visualisation(&$variables) {
-
+function _know4pol_ec_europa_preprocess_field__field_vis_data_url__visualisation(array &$variables) {
   $el = &$variables['items'][0]['#element'];
   $el['v_type'] = $variables['element']['#object']->field_vis_type[LANGUAGE_NONE][0]['value'];
 

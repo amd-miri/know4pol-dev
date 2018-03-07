@@ -1,0 +1,17 @@
+<?php 
+function MYTHEME_theme_suggestions_field_alter(&$suggestions, $variables) {
+  $suggestions[] = 'field__' . 
+    $variables['element']['#field_name'] . '__' . 
+    $variables['element']['#view_mode'];
+}
+
+function MYTHEME_preprocess_page(&$vars, $hook) {   
+   //Add suggestions for pages based on Node
+   if(arg(1) == 2) {  //For node 2
+    $vars['theme_hook_suggestions'][] =  'page__test_page';
+   } 
+}
+
+
+?>
+

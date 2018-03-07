@@ -131,7 +131,6 @@
         </div>
       <?php endif; ?>
       <a id="main-content" tabindex="-1"></a>
-      <h1 class="ecl-heading ecl-heading--h1"><?php print render($title); ?></h1>
 
       <!-- Generic sections -->
       <div class="ecl-row">
