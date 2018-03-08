@@ -37,6 +37,18 @@ function know4pol_ec_europa_menu_link(array $variables) {
 }
 
 /**
+ * Implements hook_preprocess_hook().
+ */
+function know4pol_ec_europa_preprocess_block__content(&$variables, $hook) {
+  // Add template suggestion for search pages.
+  if (isset($variables['elements']['search_results'])) {
+    $variables['theme_hook_suggestions'][] = 'block__search_results';
+  }
+  // Remove unnecessary ".ecl-editor" class.
+  $variables['atomium']['attributes']['content']['class'] = array();
+}
+
+/**
  * Implements template_preprocess_node().
  */
 function know4pol_ec_europa_preprocess_node(&$variables, $hook) {
@@ -55,22 +67,23 @@ function know4pol_ec_europa_preprocess_field(&$variables) {
   // Handle apache solR preproces in a different function.
   if ($variables['element']['#view_mode'] == 'apachesolr_page') {
     // _know4pol_ec_europa_preprocess_field__apache_solr_mode($variables);
-	// Add template suggestions for field in the apache solr viewmode
+    // Add template suggestions for field in the apache solr viewmode.
     $variables['theme_hook_suggestions'][] = 'field__' . $variables['element']['#view_mode'];
     $variables['theme_hook_suggestions'][] = 'field__' .
       $variables['element']['#field_name'] . '__' .
       $variables['element']['#view_mode'];
-  }
-  // Heading of search result.
-  switch ($variables['element']['#field_name']) {
-    case 'node_type_name':
-    case 'field_pub_dc_date_created':
-      $variables['theme_hook_suggestions'][] = 'field__' . $variables['element']['#view_mode'] .
-	    '__meta_headers';
-	  break;
+
+    // Heading of search result.
+    switch ($variables['element']['#field_name']) {
+      case 'node_type_name':
+      case 'field_pub_dc_date_created':
+      case 'changed_date':
+        $variables['theme_hook_suggestions'][] = 'field__' . $variables['element']['#view_mode'] .
+          '__meta_headers';
+        break;
+    }
   }
 }
-
 
 /**
  * Preprocess node_file.
