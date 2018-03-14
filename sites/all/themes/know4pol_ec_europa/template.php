@@ -175,7 +175,7 @@ function _know4pol_ec_europa_preprocess_node_file__field_file(array $field_is_le
   }
 
   $info = implode(' - ', $info);
-  $info = (strlen($info)) ? '(' . $info . ')' : NULL;
+  $info = (drupal_strlen($info)) ? '(' . $info . ')' : NULL;
 
   return array('link' => $link, 'info' => $info);
 }
