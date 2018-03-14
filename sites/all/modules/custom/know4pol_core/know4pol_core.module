@@ -435,7 +435,6 @@ function _know4pol_core_freetext_search_form($form, &$form_state, $keys = '') {
     '#default_value' => $keys,
     '#size' => 20,
     '#maxlength' => 255,
-    '#attributes' => array('placeholder' => array('Search on ' . drupal_get_title())),
   );
 
   $form['basic']['submit'] = array(

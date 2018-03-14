@@ -75,6 +75,7 @@ multipliers[mobile][] = 2x
 ; --------------
 ; Necessary module CSS.
 
+stylesheets[all][] = assets/styles/know4pol.css
 exclude[css][] = 'modules/aggregator/aggregator.css'
 exclude[css][] = 'modules/book/book.css'
 exclude[css][] = 'modules/block/block.css'

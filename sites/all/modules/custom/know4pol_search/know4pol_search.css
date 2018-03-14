@@ -1,0 +1,10 @@
+
+#know4pol-search-form {
+  margin: 0 20px;
+  padding: 10px;
+  background-color: #ebebeb;
+}
+
+#know4pol-search-form .ecl-radio-group {
+  clear: both;
+}
