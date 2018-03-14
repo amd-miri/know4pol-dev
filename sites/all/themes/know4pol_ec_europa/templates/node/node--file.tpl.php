@@ -13,10 +13,14 @@
       <div class=" ecl-col ecl-col-md-8">
         <span class="ecl-icon <?php print $variables['elements']['#node']->file_type_css; ?> ecl-file__icon"></span>
         <div class="ecl-file__metadata">
-          <div class="ecl-file__title"><?php print $variables['elements']['#node']->title; ?></div>
+          <div class="ecl-file__title"><?php print check_plain($variables['elements']['#node']->title); ?></div>
           <div class="ecl-file__info">
-            <span class="ecl-file__language"><?php print $variables['elements']['language']->title; ?></span>
-            <?php if($variables['elements']['#node']->file_link['info']): print $variables['elements']['#node']->file_link['info']; ?>
+            <span class="ecl-file__language"><?php print filter_xss($variables['elements']['language']['#markup']); ?></span>
+            <?php
+              if($variables['elements']['#node']->file_link['info']) {
+                print $variables['elements']['#node']->file_link['info'];
+              }
+            ?>
           </div>
         </div>
       </div>
@@ -46,7 +50,7 @@
         <?php foreach($variables['translations']->data as $f): ?>
         <li class="ecl-file__translations-item">
           <div class="ecl-file__translations-metadata">
-            <span class="ecl-file__translations-title"><?php print $f->title ?></span>
+            <span class="ecl-file__translations-title"><?php print check_plain($f->title) ?></span>
             <?php if($f->file_link['info']): ?>
               <div class="ecl-file__translations-info"><?php print $f->file_link['info']; ?></div>
             <?php endif; ?>

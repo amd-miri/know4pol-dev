@@ -1,3 +1,21 @@
 .ecl-list li.view-mode-apachesolr_page:last-child hr {
   display: none;
 }
+
+.region-sidebar-first .block-facetapi {
+  margin-top: 1.66rem;
+}
+
+.region-sidebar-first .block-facetapi ul.facetapi-facetapi-checkbox-links {
+  margin-top: 1rem;
+  list-style-type: none;
+}
+
+.region-sidebar-first .ecl-form .form-item-facets.ecl-u-mt-m {
+  margin-top: 1rem;
+}
+
+ul li.leaf {
+  list-style-type: none;
+  list-style-image: none;
+}

@@ -6,14 +6,14 @@
  */
 ?>
 
-<div<?php print $atomium['attributes']['wrapper']; ?>>
+<div<?php print $atomium['attributes']['wrapper']; ?> style="width:100%">
   <div class="ecl-field__label"><?php print $label ?></div>
   <div class="ecl-field__body">
     <?php foreach ($items as $delta => $item): ?>
       <div<?php print $atomium['attributes'][$delta]; ?>>
       <?php if ($item['#element']['v_type'] == "Tableau"): ?>
-        <div class='tableauPlaceholder' style='width: 100%; height: 724px;'>
-          <object class='tableauViz' width='100%' height='724' style='display:none;'>
+        <div class='tableauPlaceholder' style='width: 100%; height: 1024px;'>
+          <object class='tableauViz' width='100%' height='1024' style='display:none;'>
             <param name='host_url' value='<?php print $item['#element']['thost']; ?>' /> 
             <param name='site_root' value='<?php print $item['#element']['troot']; ?>' />
             <param name='name' value='<?php print $item['#element']['tname']; ?>' />
