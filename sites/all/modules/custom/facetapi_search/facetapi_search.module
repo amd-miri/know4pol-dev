@@ -1,0 +1,59 @@
+<?php
+/**
+ * @file
+ * Code for Facet Api Search module.
+ */
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function facetapi_search_form_facetapi_facet_display_form_alter(&$form, &$form_state) {
+  // Captures variables and settings for code readability.
+  $adapter = $form['#facetapi']['adapter'];
+  $facet = $form['#facetapi']['facet'];
+  $global_settings = $adapter->getFacet($facet)->getSettings();
+
+  $form['global']['facet_search'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Enable contextual facets search.'),
+    '#description' => t('Allows users to search for facets within the facet block.'),
+    '#prefix' => '<div class="facetapi-global-setting">',
+    '#suffix' => '</div>',
+    '#default_value' => isset($global_settings->settings['facet_search']) ? $global_settings->settings['facet_search'] : 0,
+  );
+}
+
+/**
+ * Implements hook_block_view_alter().
+ */
+function facetapi_search_block_view_alter(&$data, $block) {
+  if ($block->module != 'facetapi' || empty($data['content']['#adapter']) || empty($data['content']['#facet'])) {
+    return;
+  }
+
+  $adapter = $data['content']['#adapter'];
+  $facet = $data['content']['#facet'];
+  $global_settings = $adapter->getFacet($facet)->getSettings();
+
+  if (!empty($global_settings->settings['facet_search'])) {
+    $include_path = drupal_get_path('module', 'facetapi_search');
+
+    $data['content']['facet_search'] = array(
+      '#type' => 'textfield',
+      '#attributes' => array(
+        'id' => 'facet-' . (str_replace(':', '', str_replace('_', '-', $facet['name']))),
+        'placeholder' => t('Search...'),
+        'class' => array('facet-search-input'),
+      ),
+      '#weight' => -10,
+      '#attached' => array(
+        'js' => array(
+          $include_path . '/js/facetapi_search.js',
+        ),
+        'css' => array(
+          $include_path . '/css/facetapi_search.css',
+        ),
+      ),
+    );
+  }
+}
