@@ -34,19 +34,6 @@ class NexteuropaNewsroomAgendaItem {
   }
 
   /**
-   * Adds item to items array.
-   *
-   * @param object $value
-   *   DB result value.
-   */
-  public function addItem($value) {
-    $node = node_load($value->nid);
-    $value->title = $node->title;
-    $value->url = NexteuropaNewsroomHelper::getNodeMainUrl($node);
-    $this->items[] = $value;
-  }
-
-  /**
    * Gets agenda date.
    *
    * @return Datetime
@@ -64,6 +51,32 @@ class NexteuropaNewsroomAgendaItem {
    */
   public function setDate($value) {
     $this->date = $value;
+  }
+
+  /**
+   * Adds item to items array.
+   *
+   * @param object $value
+   *   DB result value.
+   */
+  public function addItem($value) {
+    $node = node_load($value->nid);
+    $value->title = $node->title;
+    $value->related_items = NexteuropaNewsroomRelatedItemHelper::getRelatedItems($value->nid);
+    $value->url = NexteuropaNewsroomHelper::getNodeMainUrl($node);
+    $value->prepared_start_date = $value->start_date_obj->format(NexteuropaNewsroomAgenda::OUTPUT_DATE_FORMAT);
+    $value->prepared_end_date = $value->end_date_obj->format(NexteuropaNewsroomAgenda::OUTPUT_DATE_FORMAT);
+    $this->items[] = $value;
+  }
+
+  /**
+   * Checks if agenda items is empty.
+   *
+   * @return bool
+   *   Is empty.
+   */
+  public function isEmpty() {
+    return empty($this->getItems());
   }
 
 }

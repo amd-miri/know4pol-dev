@@ -57,7 +57,7 @@ abstract class NexteuropaNewsroomBlockBase {
    * Sets the latest agenda date.
    *
    * @param object $value
-   *   Latest date for the current agenda.
+   *    Latest date for the current agenda.
    */
   public function setLatestDate($value) {
     $this->lastestDate = $value;

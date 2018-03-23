@@ -183,7 +183,7 @@ function nexteuropa_newsroom_newsletter_subscription_form($form, &$form_state) {
   $form['#token'] = FALSE;
   $form['#action'] = NexteuropaNewsroomHelper::getNewsroomUrl('subscription-quick-generic.cfm');
   $form['intro'] = [
-    '#markup' => '<p>' . t('Subscribe to :name', [':name' => $args['name']]) . ' - <a href="' . NexteuropaNewsroomHelper::getNewsroomUrl('newsletter-specific-archive.cfm?serviceId=' . $args['tid']) . '">' . t('See previous issues') . '</a></div>',
+    '#markup' => '<div class="newsroom-newsletter-subscription-title">' . t('Subscribe to <em>@name</em>', ['@name' => $args['name']]) . '&nbsp;-&nbsp;<a href="' . NexteuropaNewsroomHelper::getNewsroomUrl('newsletter-specific-archive.cfm?serviceId=' . $args['tid']) . '">' . t('See previous issues') . '</a></div>',
   ];
   $form['label'] = [
     '#markup' => '<label for="email">' . t('Subscribe email') . '</label><div class="form-group newsroom-subscription-form-group">',
@@ -371,8 +371,8 @@ function _nexteuropa_newsroom_agenda_form_submit(&$form, &$form_state) {
   $topic_id = !empty($form_state['values']['topic_id']) ? $form_state['values']['topic_id'] : NULL;
   $type_id = !empty($form_state['values']['type_id']) ? $form_state['values']['type_id'] : NULL;
   $date = !empty($form_state['values']['current_date']) ? $form_state['values']['current_date'] : NexteuropaNewsroomHelper::getFormatedDate();
-  $topic = NexteuropaNewsroomHelper::getNewsroomTopic($topic_id);
-  $type = NexteuropaNewsroomHelper::getNewsroomType($type_id);
+  $topic = NexteuropaNewsroomVocabularyHelper::getNewsroomTopic($topic_id);
+  $type = NexteuropaNewsroomVocabularyHelper::getNewsroomType($type_id);
   $agenda = new NexteuropaNewsroomAgenda($type, $topic, new DateTime($date));
 
   drupal_goto($agenda->getNavigationUrl(NexteuropaNewsroomHelper::checkDateFormat($date)), [], 301);

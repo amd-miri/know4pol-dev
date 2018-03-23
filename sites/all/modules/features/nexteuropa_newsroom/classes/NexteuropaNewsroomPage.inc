@@ -17,7 +17,6 @@ class NexteuropaNewsroomPage {
   protected $topic = NULL;
   protected $startDate = NULL;
   protected $endDate = NULL;
-  protected $ecContent = NEXTEUROPA_NEWSROOM_EC;
 
   /**
    * NexteuropaNewsroomPage constructor.
@@ -108,6 +107,10 @@ class NexteuropaNewsroomPage {
    *   End date.
    */
   public function setEndDate($value) {
+    if (!empty($value)) {
+      // Include the whole day.
+      $value->setTime(23, 59, 59);
+    }
     $this->endDate = $value;
   }
 
@@ -139,26 +142,6 @@ class NexteuropaNewsroomPage {
    */
   public function getTopic() {
     return $this->topic;
-  }
-
-  /**
-   * Sets EC content.
-   *
-   * @param string $value
-   *   EC content.
-   */
-  public function setEcContent($value) {
-    $this->ecContent = $value;
-  }
-
-  /**
-   * Gets EC content.
-   *
-   * @return string
-   *   EC content.
-   */
-  public function getEcContent() {
-    return $this->ecContent;
   }
 
   /**
@@ -236,7 +219,9 @@ class NexteuropaNewsroomPage {
       $data = [];
       if ($items) {
         foreach ($items as $item) {
-          $data[] = node_load($item->nid);
+          $node = node_load($item->nid);
+          $node->related_items = NexteuropaNewsroomRelatedItemHelper::getRelatedItems($item->nid);
+          $data[$item->nid] = $node;
         }
       }
 
@@ -365,7 +350,7 @@ class NexteuropaNewsroomPage {
     $query->orderBy('end_date', 'DESC');
 
     if ($this->getType()) {
-      $query->condition('type_field.field_newsroom_item_type_tid', NexteuropaNewsroomHelper::getTypeChildren($this->getType()->tid));
+      $query->condition('type_field.field_newsroom_item_type_tid', NexteuropaNewsroomVocabularyHelper::getTypeChildren($this->getType()->tid));
     }
 
     if ($this->getTopic()) {
@@ -386,7 +371,7 @@ class NexteuropaNewsroomPage {
 
       $db_and = db_and();
       $db_and->isNull('d.field_newsroom_item_date_value2');
-      $db_and->condition('n.created', $this->getEndDate()->getTimestamp(), '<=');
+      $db_and->condition('d.field_newsroom_item_date_value', $this->getEndDate()->getTimestamp(), '<=');
       $db_or->condition($db_and);
       $query->condition($db_or);
     }
@@ -410,7 +395,6 @@ class NexteuropaNewsroomPage {
     $url_parts[] = $this->getTermUrl($this->getTopic() ? $this->getTopic()->name : NULL);
     $url_parts[] = $this->getStartDate() ? $this->getStartDate()->format(NexteuropaNewsroomPage::MYSQL_DATE_FORMAT) : NEXTEUROPA_NEWSROOM_ALL;
     $url_parts[] = $this->getEndDate() ? $this->getEndDate()->format(NexteuropaNewsroomPage::MYSQL_DATE_FORMAT) : NEXTEUROPA_NEWSROOM_ALL;
-    $url_parts[] = $this->getEcContent() == NEXTEUROPA_NEWSROOM_EC ? NEXTEUROPA_NEWSROOM_EC : NEXTEUROPA_NEWSROOM_NONEC;
 
     return $is_rss ? NexteuropaNewsroomHelper::getRssUrl($url_parts) : NexteuropaNewsroomHelper::getPageUrl($url_parts);
   }
@@ -426,7 +410,7 @@ class NexteuropaNewsroomPage {
     $featured_item_id = NexteuropaNewsroomHelper::getFieldValue($this->getType(), 'field_newsroom_featured_item', 'target_id');
     if (empty($featured_item_id)) {
       // If featured item is not set we try to take from feature newsroom type.
-      if ($featured_type = NexteuropaNewsroomHelper::getNewsroomType(variable_get('nexteuropa_newsroom_featured_type'))) {
+      if ($featured_type = NexteuropaNewsroomVocabularyHelper::getNewsroomType(variable_get('nexteuropa_newsroom_featured_type'))) {
         $featured_item_id = NexteuropaNewsroomHelper::getFieldValue($featured_type, 'field_newsroom_featured_item', 'target_id');
       }
     }
@@ -441,7 +425,7 @@ class NexteuropaNewsroomPage {
 
         if ($featured_node = node_load($featured_item_id)) {
 
-          $type = NexteuropaNewsroomHelper::getNewsroomType(NexteuropaNewsroomHelper::getFieldValue($featured_node, 'field_newsroom_item_type', 'tid'));
+          $type = NexteuropaNewsroomVocabularyHelper::getNewsroomType(NexteuropaNewsroomHelper::getFieldValue($featured_node, 'field_newsroom_item_type', 'tid'));
 
           $image_style = 'large';
           $image = $this->getNodeImage($featured_node, 'field_newsroom_illustrative_img', $image_style);

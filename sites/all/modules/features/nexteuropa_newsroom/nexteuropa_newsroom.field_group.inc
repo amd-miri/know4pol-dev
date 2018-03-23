@@ -1,5 +1,4 @@
 <?php
-
 /**
  * @file
  * nexteuropa_newsroom.field_group.inc
@@ -28,12 +27,10 @@ function nexteuropa_newsroom_field_group_info() {
       1 => 'field_newsroom_ec_content',
       2 => 'field_newsroom_item_contact_mail',
       3 => 'field_newsroom_item_contact_text',
-      4 => 'field_newsroom_item_other_link',
-      5 => 'field_newsroom_item_venue',
-      6 => 'field_newsroom_location',
-      7 => 'field_newsroom_organiser',
-      8 => 'field_newsroom_registration_link',
-      9 => 'group_newsroom_project_info',
+      4 => 'field_newsroom_item_venue',
+      5 => 'field_newsroom_location',
+      6 => 'field_newsroom_organiser',
+      7 => 'group_newsroom_project_info',
     ),
     'format_type' => 'tab',
     'format_settings' => array(
@@ -98,19 +95,17 @@ function nexteuropa_newsroom_field_group_info() {
     'label' => 'Basic Information',
     'weight' => '1',
     'children' => array(
-      0 => 'field_newsroom_eur_lex_link',
-      1 => 'field_newsroom_newsletter_only',
-      2 => 'field_newsroom_item_date',
-      3 => 'field_newsroom_item_main_link',
-      4 => 'field_newsroom_item_rapid_pr',
-      5 => 'field_newsroom_item_short_title',
-      6 => 'field_newsroom_short_item',
+      0 => 'field_newsroom_item_date',
+      1 => 'field_newsroom_item_main_link',
+      2 => 'field_newsroom_item_rapid_pr',
+      3 => 'field_newsroom_item_short_title',
+      4 => 'field_newsroom_newsletter_only',
+      5 => 'field_newsroom_short_item',
+      6 => 'field_newsroom_teaser',
       7 => 'field_newsroom_teaser_only',
-      8 => 'field_newsroom_teaser',
-      9 => 'field_newsroom_ted_link',
-      10 => 'title_field',
-      11 => 'path',
-      12 => 'language',
+      8 => 'title_field',
+      9 => 'field_newsroom_publication_date',
+      10 => 'language',
     ),
     'format_type' => 'tab',
     'format_settings' => array(
@@ -168,9 +163,7 @@ function nexteuropa_newsroom_field_group_info() {
   $field_group->data = array(
     'label' => 'Context Information',
     'weight' => '8',
-    'children' => array(
-      0 => 'field_newsroom_item_id',
-    ),
+    'children' => array(),
     'format_type' => 'tab',
     'format_settings' => array(
       'formatter' => 'closed',
@@ -214,30 +207,6 @@ function nexteuropa_newsroom_field_group_info() {
     ),
   );
   $field_groups['group_newsroom_item_files|node|newsroom_item|default'] = $field_group;
-
-  $field_group = new stdClass();
-  $field_group->disabled = FALSE; /* Edit this to true to make a default field_group disabled initially */
-  $field_group->api_version = 1;
-  $field_group->identifier = 'group_newsroom_item_form_section|node|newsroom_item|form';
-  $field_group->group_name = 'group_newsroom_item_form_section';
-  $field_group->entity_type = 'node';
-  $field_group->bundle = 'newsroom_item';
-  $field_group->mode = 'form';
-  $field_group->parent_name = '';
-  $field_group->data = array(
-    'label' => 'Section',
-    'weight' => '7',
-    'children' => array(),
-    'format_type' => 'tabs',
-    'format_settings' => array(
-      'formatter' => '',
-      'instance_settings' => array(
-        'classes' => 'group-newsroom-item-form-section field-group-tabs',
-        'id' => '',
-      ),
-    ),
-  );
-  $field_groups['group_newsroom_item_form_section|node|newsroom_item|form'] = $field_group;
 
   $field_group = new stdClass();
   $field_group->disabled = FALSE; /* Edit this to true to make a default field_group disabled initially */
@@ -442,12 +411,12 @@ function nexteuropa_newsroom_field_group_info() {
     'label' => 'Attachments',
     'weight' => '6',
     'children' => array(
-      0 => 'field_newsroom_illustrative_img',
-      1 => 'field_newsroom_private_img',
-      2 => 'field_newsroom_documents',
-      3 => 'field_newsroom_docsroom_ids',
-      4 => 'field_newsroom_files',
-      5 => 'field_newsroom_item_image',
+      0 => 'field_newsroom_docsroom_ids',
+      1 => 'field_newsroom_documents',
+      2 => 'field_newsroom_files',
+      3 => 'field_newsroom_illustrative_img',
+      4 => 'field_newsroom_item_image',
+      5 => 'field_newsroom_private_img',
     ),
     'format_type' => 'tab',
     'format_settings' => array(
@@ -476,10 +445,9 @@ function nexteuropa_newsroom_field_group_info() {
     'children' => array(
       0 => 'field_newsroom_eur_lex_link',
       1 => 'field_newsroom_item_other_link',
-      2 => 'field_newsroom_project_website',
-      3 => 'field_newsroom_registration_link',
-      4 => 'field_newsroom_ted_link',
-      5 => 'path',
+      2 => 'field_newsroom_registration_link',
+      3 => 'field_newsroom_ted_link',
+      4 => 'path',
     ),
     'format_type' => 'tab',
     'format_settings' => array(
@@ -701,10 +669,10 @@ function nexteuropa_newsroom_field_group_info() {
     'label' => 'Project information',
     'weight' => '21',
     'children' => array(
-      0 => 'field_newsroom_project',
-      1 => 'field_newsroom_project_acr',
-      2 => 'field_newsroom_project_website',
-      3 => 'field_newsroom_prj_coordinator',
+      0 => 'field_newsroom_prj_coordinator',
+      1 => 'field_newsroom_project',
+      2 => 'field_newsroom_project_acr',
+      3 => 'field_newsroom_project_website',
     ),
     'format_type' => 'fieldset',
     'format_settings' => array(
@@ -886,9 +854,8 @@ function nexteuropa_newsroom_field_group_info() {
     'weight' => '4',
     'children' => array(
       0 => 'field_newsroom_highlighted_topic',
-      1 => 'field_newsroom_topics',
-      2 => 'field_newsroom_primary_topic',
-      3 => 'field_tags',
+      1 => 'field_newsroom_primary_topic',
+      2 => 'field_newsroom_topics',
     ),
     'format_type' => 'tab',
     'format_settings' => array(
@@ -921,7 +888,6 @@ function nexteuropa_newsroom_field_group_info() {
   t('Project information');
   t('Recommended reading');
   t('Relationships');
-  t('Section');
   t('Slide');
   t('Technical Fields');
   t('Technical fields');

@@ -11,27 +11,6 @@
 class NexteuropaNewsroomHelper {
 
   /**
-   * Merges a term_tid and it's children into one array.
-   *
-   * @param int $term_tid
-   *   Term id.
-   *
-   * @return array
-   *   tids
-   */
-  public static function getTypeChildren($term_tid) {
-    $children_items = self::findChildrenById(self::getNewsroomTypes(), $term_tid);
-    // We need parent ID also in the output array to use it in query.
-    $parent_children_tids = [$term_tid];
-    $children_tids = array_keys($children_items);
-    if (!empty($children_tids)) {
-      $parent_children_tids = array_merge($parent_children_tids, $children_tids);
-    }
-
-    return $parent_children_tids;
-  }
-
-  /**
    * Generates newsroom page URL.
    *
    * @param array $url_parts
@@ -58,100 +37,6 @@ class NexteuropaNewsroomHelper {
   }
 
   /**
-   * Calls feed importer with the certain URL.
-   *
-   * @param string $importer_id
-   *   Importer ID.
-   * @param string $url
-   *   RSS feed URL to call.
-   */
-  public static function runFeedImporter($importer_id, $url = NULL) {
-    $source = feeds_source($importer_id);
-    if (!empty($url)) {
-      $config['FeedsHTTPFetcher']['source'] = $url;
-      $source->addConfig($config);
-      $source->save();
-      $source->import();
-    }
-    else {
-      // For normal import we need batch, so we call startImport.
-      $source->startImport();
-    }
-  }
-
-  /**
-   * Delete items.
-   *
-   * @param string $importer_id
-   *   Importer ID.
-   */
-  public static function deleteItems($importer_id) {
-    $source = feeds_source($importer_id);
-    $source->startClear();
-    $source->progressClearing();
-  }
-
-  /**
-   * Importers list.
-   *
-   * @return array
-   *   Returns an array of Importers IDs.
-   */
-  public static function returnImporters() {
-    $importers = [
-      NEXTEUROPA_NEWSROOM_TYPE_IMPORTER,
-      NEXTEUROPA_NEWSROOM_TOPIC_IMPORTER,
-      NEXTEUROPA_NEWSROOM_ITEM_IMPORTER,
-      NEXTEUROPA_NEWSROOM_SERVICE_IMPORTER,
-      NEXTEUROPA_NEWSROOM_NEWSLETTER_IMPORTER,
-    ];
-
-    return $importers;
-  }
-
-  /**
-   * Gets default URL of importer.
-   *
-   * @param string $importer_id
-   *   Importer ID.
-   *
-   * @return string
-   *   URL.
-   */
-  public static function getImporterUrl($importer_id) {
-    $url = '';
-
-    switch ($importer_id) {
-
-      case NEXTEUROPA_NEWSROOM_TOPIC_IMPORTER:
-      case NEXTEUROPA_NEWSROOM_SERVICE_IMPORTER:
-        $url = self::getNewsroomUrl(variable_get('nexteuropa_newsroom_topic_import_script', NEXTEUROPA_NEWSROOM_TOPIC_SCRIPT));
-        break;
-
-      case NEXTEUROPA_NEWSROOM_TYPE_IMPORTER:
-        $url = self::getNewsroomUrl(variable_get('nexteuropa_newsroom_type_import_script', NEXTEUROPA_NEWSROOM_TYPE_SCRIPT));
-        break;
-
-      case NEXTEUROPA_NEWSROOM_ITEM_IMPORTER:
-        $subsite = variable_get('nexteuropa_newsroom_subsite', FALSE);
-        $subsite_url_part = '?';
-
-        if ($subsite) {
-          $subsite_url_part = '?subsite=' . $subsite;
-        }
-
-        $url = self::getNewsroomUrl(variable_get('nexteuropa_newsroom_item_import_script', NEXTEUROPA_NEWSROOM_ITEM_SCRIPT)) . $subsite_url_part;
-        break;
-
-      case NEXTEUROPA_NEWSROOM_NEWSLETTER_IMPORTER:
-        $url = self::getNewsroomUrl(variable_get('nexteuropa_newsroom_issue_import_script', NEXTEUROPA_NEWSROOM_NEWSLETTER_SCRIPT));
-        break;
-    }
-
-    return $url;
-  }
-
-  /**
    * Gets newsroom item by original newsroom Id.
    *
    * @param string $field_name
@@ -169,31 +54,6 @@ class NexteuropaNewsroomHelper {
       ->fieldCondition($field_name, 'value', $newsroom_id, '=')
       ->execute();
     return !empty($newsroom_item['node']) ? array_shift($newsroom_item['node']) : FALSE;
-  }
-
-  /**
-   * Finds a menu item for a given path.
-   *
-   * @param string $path
-   *   Drupal intermal url.
-   *
-   * @return array
-   *   Menu item.
-   */
-  public static function getMenuByPath($path) {
-    $cache_key = 'get_menu_by_path' . md5($path);
-    if ($cache = cache_get($cache_key, NEXTEUROPA_NEWSROOM_CACHE_TABLE)) {
-      $data = $cache->data;
-    }
-    else {
-      $query = db_select('menu_links', 'ml')
-        ->fields('ml')
-        ->condition('ml.link_path', $path)
-        ->execute();
-      $data = $query->fetchAll();
-      cache_set($cache_key, $data, NEXTEUROPA_NEWSROOM_CACHE_TABLE, time() + variable_get('nexteuropa_newsroom_ct_get_menu_by_path', 86400));
-    }
-    return $data;
   }
 
   /**
@@ -226,74 +86,6 @@ class NexteuropaNewsroomHelper {
   }
 
   /**
-   * Returns active menu item for a newsroom item.
-   *
-   * @param int $topic_id
-   *   Topic ID.
-   *
-   * @return string
-   *   Menu path.
-   */
-  public static function fetchActiveMenuPath($topic_id) {
-    $cache_key = 'fetch_active_menu' . $topic_id;
-    if ($cache = cache_get($cache_key, NEXTEUROPA_NEWSROOM_CACHE_TABLE)) {
-      $path = $cache->data;
-    }
-    else {
-      $path = FALSE;
-      // Check if they are added to menu.
-      $menu_items = [];
-      // Fetch entities associated to topic using the special field.
-      $topic_entities = self::getNodesAssociatedToTopics($topic_id);
-      if (!empty($topic_entities)) {
-        foreach ($topic_entities as $entity) {
-          // Could use entity_uri() but we would have to load the full entity.
-          $menu_link_items = self::getMenuByPath(str_replace('_', '/', $entity->entity_type) . '/' . $entity->entity_id);
-          if (!empty($menu_link_items)) {
-            foreach ($menu_link_items as $menu_item) {
-              $menu_items[] = $menu_item;
-            }
-          }
-        }
-      }
-
-      if (!empty($menu_items)) {
-        // Favor terms over nodes and lower entity ID in case we have multiple.
-        usort($menu_items, function ($a, $b) {
-          if ($a->router_path == 'taxonomy/term/%' && $b->router_path == 'node/%') {
-            return -1;
-          }
-          elseif ($a->router_path == 'node/%' && $b->router_path == 'taxonomy/term/%') {
-            return 1;
-          }
-          else {
-            $fields = [
-              'p1', 'p2', 'p3',
-              'p4', 'p5', 'p6',
-              'p7', 'p8', 'p9',
-              'plid', 'weight', 'mlid',
-            ];
-            foreach ($fields as $field) {
-              if ($a->{$field} == $b->{$field}) {
-                continue;
-              }
-              else {
-                return $a->{$field} < $b->{$field} ? -1 : 1;
-              }
-            }
-            return 0;
-          }
-        });
-        $menu_item_link = array_shift($menu_items);
-        $path = $menu_item_link->link_path;
-      }
-      cache_set($cache_key, $path, NEXTEUROPA_NEWSROOM_CACHE_TABLE, time() + variable_get('nexteuropa_newsroom_ct_fetch_active_menu', 3600));
-    }
-
-    return $path;
-  }
-
-  /**
    * Tries to resolve each taxonomy term with a corresponding ID to map.
    *
    * @param string $field_name
@@ -307,45 +99,29 @@ class NexteuropaNewsroomHelper {
    *   Taxonomy ids.
    */
   public static function getTaxonomyTermFromField($field_name, $field_value, $bundle = NULL) {
-    $term_ids = [];
-    $field_value = is_array($field_value) ? $field_value : [$field_value];
-    $query = new EntityFieldQuery();
-    $query->entityCondition('entity_type', 'taxonomy_term')
-      ->fieldCondition($field_name, 'value', $field_value);
-    if ($bundle) {
-      $query->entityCondition('bundle', $bundle);
-    }
-    $result = $query->execute();
-    if (!empty($result['taxonomy_term'])) {
-      $term_ids = array_keys($result['taxonomy_term']);
+    $taxonomy_items = [];
+
+    switch ($bundle) {
+      case NEXTEUROPA_NEWSROOM_TYPE_VOCABULARY:
+        $taxonomy_items = NexteuropaNewsroomVocabularyHelper::getNewsroomTypes();
+        break;
+
+      case NEXTEUROPA_NEWSROOM_TOPIC_VOCABULARY:
+        $taxonomy_items = NexteuropaNewsroomVocabularyHelper::getNewsroomTopics();
+        break;
+
+      case NEXTEUROPA_NEWSROOM_SERVICE_VOCABULARY:
+        $taxonomy_items = NexteuropaNewsroomVocabularyHelper::getNewsroomServices();
+        break;
     }
 
-    return $term_ids;
-  }
-
-  /**
-   * Gets events Terms ids.
-   *
-   * @return array
-   *   Newsroom type taxonomy terms array.
-   */
-  public static function getEventsTermsIds() {
-    $event_type_ids = &drupal_static(__FUNCTION__);
-    if (empty($event_type_ids)) {
-      $types = self::getNewsroomTypes();
-      $behavior_types = [
-        'consultation_funding',
-        'events',
-        'agenda',
-        'call',
-      ];
-      foreach ($types as $type) {
-        if (in_array(self::getFieldValue($type, 'field_newsroom_type'), $behavior_types)) {
-          $event_type_ids[] = $type->tid;
-        }
+    foreach ($taxonomy_items as $taxonomy_term_item) {
+      if (NexteuropaNewsroomHelper::getFieldValue($taxonomy_term_item, $field_name) == $field_value) {
+        return $taxonomy_term_item;
       }
     }
-    return $event_type_ids;
+
+    return NULL;
   }
 
   /**
@@ -408,10 +184,10 @@ class NexteuropaNewsroomHelper {
         $taxonomy_terms = [];
 
         if ($vocabulary_name == NEXTEUROPA_NEWSROOM_TYPE_VOCABULARY) {
-          $taxonomy_terms = array_merge($taxonomy_terms, self::getNewsroomTypes());
+          $taxonomy_terms = array_merge($taxonomy_terms, NexteuropaNewsroomVocabularyHelper::getNewsroomTypes());
         }
         elseif ($vocabulary_name == NEXTEUROPA_NEWSROOM_TOPIC_VOCABULARY) {
-          $taxonomy_terms = array_merge($taxonomy_terms, self::getNewsroomTopics());
+          $taxonomy_terms = array_merge($taxonomy_terms, NexteuropaNewsroomVocabularyHelper::getNewsroomTopics());
         }
         // Compare taxonomy terms modified by pathauto with the current value
         // from the URL.
@@ -457,9 +233,9 @@ class NexteuropaNewsroomHelper {
    *   Drop down options array.
    */
   public static function getNewsroomTypeOptions($events_only = FALSE, $add_empty_value = TRUE) {
-    $type_options = self::getTaxonomyTermOptions(self::getNewsroomTypes());
+    $type_options = self::getTaxonomyTermOptions(NexteuropaNewsroomVocabularyHelper::getNewsroomTypes());
     if ($events_only) {
-      $events_types = self::getEventsTermsIds();
+      $events_types = NexteuropaNewsroomVocabularyHelper::getEventsTermsIds();
       // Filter out non events type.
       if (!empty($events_types)) {
         foreach ($type_options as $key => $type_item) {
@@ -491,7 +267,7 @@ class NexteuropaNewsroomHelper {
    *   Drop down options array.
    */
   public static function getNewsroomTopicOptions($used_topics = [], $add_empty_value = TRUE) {
-    $topic_options = self::getTaxonomyTermOptions(self::getNewsroomTopics());
+    $topic_options = self::getTaxonomyTermOptions(NexteuropaNewsroomVocabularyHelper::getNewsroomTopics());
     if (!empty($used_topics)) {
       foreach ($topic_options as $key => $topic) {
         if (!in_array($key, $used_topics)) {
@@ -562,163 +338,6 @@ class NexteuropaNewsroomHelper {
    */
   public static function getUniverseId() {
     return variable_get('nexteuropa_newsroom_universe_id', FALSE);
-  }
-
-  /**
-   * Gets newsroom type vocabulary.
-   *
-   * @return object
-   *   Newsroom type vocabulary.
-   */
-  public static function getNewsroomTypeVocabulary() {
-    $data = &drupal_static(__FUNCTION__);
-    if (empty($data)) {
-      $data = taxonomy_vocabulary_machine_name_load(NEXTEUROPA_NEWSROOM_TYPE_VOCABULARY);
-    }
-    return $data;
-  }
-
-  /**
-   * Gets newsroom topic vocabulary.
-   *
-   * @return object
-   *   Newsroom topic vocabulary.
-   */
-  public static function getNewsroomTopicVocabulary() {
-    $data = &drupal_static(__FUNCTION__);
-    if (empty($data)) {
-      $data = taxonomy_vocabulary_machine_name_load(NEXTEUROPA_NEWSROOM_TOPIC_VOCABULARY);
-    }
-    return $data;
-  }
-
-  /**
-   * Gets newsroom topics.
-   *
-   * @return array
-   *   Newsroom topics.
-   */
-  public static function getNewsroomTopics() {
-    $data = &drupal_static(__FUNCTION__);
-    if (empty($data)) {
-      $vocabulary = self::getNewsroomTopicVocabulary();
-      $data = self::getNewsroomTaxonomyTerms($vocabulary->vid);
-    }
-    return $data;
-  }
-
-  /**
-   * Gets Newsroom types.
-   *
-   * @return array
-   *   Newsroom types.
-   */
-  public static function getNewsroomTypes() {
-    $data = &drupal_static(__FUNCTION__);
-    if (empty($data)) {
-      $vocabulary = self::getNewsroomTypeVocabulary();
-      $data = self::getNewsroomTaxonomyTerms($vocabulary->vid);
-    }
-    return $data;
-  }
-
-  /**
-   * Gets translated taxonomy items from vocabulary.
-   *
-   * @param int $vocabulary_id
-   *   Vocabulary ID.
-   *
-   * @return array
-   *   Array of taxonomy terms.
-   */
-  protected static function getNewsroomTaxonomyTerms($vocabulary_id) {
-    global $language;
-    $cache_key = 'terms_' . $vocabulary_id . $language->language;
-    if ($cache = cache_get($cache_key, NEXTEUROPA_NEWSROOM_CACHE_TABLE)) {
-      $data = $cache->data;
-    }
-    else {
-      $data = i18n_taxonomy_get_tree($vocabulary_id, self::getDefaultLanguage(), 0, NULL, TRUE);
-      foreach ($data as $key => $taxonomy_term) {
-        $i18n_object = i18n_get_object('taxonomy_term', $taxonomy_term->tid);
-        $data[$key] = $i18n_object->localize($language->language);
-      }
-      cache_set($cache_key, $data, NEXTEUROPA_NEWSROOM_CACHE_TABLE);
-    }
-
-    return $data;
-  }
-
-  /**
-   * Gets newsroom type by id.
-   *
-   * @param int|null $tid
-   *   Taxonomy term ID.
-   *
-   * @return object
-   *   Taxonomy term.
-   */
-  public static function getNewsroomType($tid = NULL) {
-    return $tid ? self::findTermById(self::getNewsroomTypes(), $tid) : NULL;
-  }
-
-  /**
-   * Gets newsroom type by id.
-   *
-   * @param int|null $tid
-   *   Taxonomy term ID.
-   *
-   * @return object
-   *   Taxonomy term.
-   */
-  public static function getNewsroomTopic($tid = NULL) {
-    return $tid ? self::findTermById(self::getNewsroomTopics(), $tid) : NULL;
-  }
-
-  /**
-   * Finds term by id.
-   *
-   * @param array $taxonomy_terms
-   *   Taxonomy terms array.
-   * @param int $tid
-   *   Taxonomy term ID.
-   *
-   * @return object
-   *   Taxonomy term.
-   */
-  public static function findTermById($taxonomy_terms, $tid) {
-    $taxonomy_term = NULL;
-    if ($taxonomy_terms) {
-      foreach ($taxonomy_terms as $item) {
-        if ($item->tid == $tid) {
-          $taxonomy_term = $item;
-        }
-      }
-    }
-    return $taxonomy_term;
-  }
-
-  /**
-   * Finds children by id.
-   *
-   * @param array $taxonomy_terms
-   *   Taxonomy terms array.
-   * @param int $parent_tid
-   *   Parent taxonomy term ID.
-   *
-   * @return array
-   *   Taxonomy terms.
-   */
-  public static function findChildrenById($taxonomy_terms, $parent_tid) {
-    $children = [];
-    if ($taxonomy_terms) {
-      foreach ($taxonomy_terms as $item) {
-        if (in_array($parent_tid, $item->parents)) {
-          $children[$item->tid] = $item;
-        }
-      }
-    }
-    return $children;
   }
 
   /**
@@ -943,7 +562,7 @@ class NexteuropaNewsroomHelper {
    */
   public static function getNodeMainUrl($node, $display_name = NULL) {
     $url = 'node/' . $node->nid;
-    $type = self::getNewsroomType(self::getFieldValue($node, 'field_newsroom_item_type', 'tid'));
+    $type = NexteuropaNewsroomVocabularyHelper::getNewsroomType(self::getFieldValue($node, 'field_newsroom_item_type', 'tid'));
     $click_through = self::getFieldValue($type, 'field_newsroom_direct_link');
     $main_link_url = self::getFieldTranslatedValue($node, 'field_newsroom_item_main_link', 'url');
 
@@ -1037,23 +656,6 @@ class NexteuropaNewsroomHelper {
   }
 
   /**
-   * Sets default importer URL.
-   *
-   * @param string $importer_id
-   *   Importer id.
-   */
-  public static function setDefaultImporterUrl($importer_id) {
-    $url = self::getImporterUrl($importer_id);
-    if (!empty($url)) {
-      $source = feeds_source($importer_id);
-      $config = $source->getConfig();
-      $config['FeedsHTTPFetcher']['source'] = $url;
-      $source->setConfig($config);
-      $source->save();
-    }
-  }
-
-  /**
    * Sets 404 http response.
    */
   public static function set404response() {
@@ -1086,7 +688,7 @@ class NexteuropaNewsroomHelper {
       $db_or->isNull('newsletter_item.field_newsroom_newsletter_only_value');
 
       $query->condition($db_or);
-      $query->condition('tf.field_newsroom_item_type_tid', NexteuropaNewsroomHelper::getEventsTermsIds());
+      $query->condition('tf.field_newsroom_item_type_tid', NexteuropaNewsroomVocabularyHelper::getEventsTermsIds());
       $tids = $query->execute()->fetchAllKeyed(0, 0);
       cache_set($cache_key, $tids, NEXTEUROPA_NEWSROOM_CACHE_TABLE, time() + variable_get('nexteuropa_newsroom_ct_result_topics', 86400));
     }

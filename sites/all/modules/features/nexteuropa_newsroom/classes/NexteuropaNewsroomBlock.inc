@@ -132,7 +132,7 @@ class NexteuropaNewsroomBlock extends NexteuropaNewsroomBlockBase {
         }
       }
 
-      $query->condition('tt.tid', NexteuropaNewsroomHelper::getTypeChildren($this->getType()->tid));
+      $query->condition('tt.tid', NexteuropaNewsroomVocabularyHelper::getTypeChildren($this->getType()->tid));
       $query->range(0, NexteuropaNewsroomHelper::getBlockItemsNumber($this->getHighlighted()));
       $query->orderBy('n.created', 'DESC');
       $result = $query->execute()->fetchAll();

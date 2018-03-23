@@ -1,3 +1,10 @@
+<?php
+
+/**
+ * @file
+ * Contains template file.
+ */
+?>
 <section<?php print $atomium['attributes']['wrapper']; ?>>
   <?php print render($title_prefix); ?>
   <?php if (!empty($title['#markup'])): ?>
