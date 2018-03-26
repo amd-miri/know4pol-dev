@@ -1,5 +1,4 @@
 <?php
-
 /**
  * @file
  * nexteuropa_newsroom.feeds_tamper_default.inc

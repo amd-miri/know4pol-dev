@@ -85,3 +85,18 @@ function _nexteuropa_newsroom_rename_field($old_name, $new_name) {
     }
   }
 }
+
+/**
+ * Removes field group.
+ *
+ * @param array $groups
+ *   Groups identifiers.
+ */
+function _nexteuropa_newsroom_remove_group(array $groups = []) {
+    foreach ($groups as $group_id) {
+        $query = db_delete('field_group');
+        $query->condition('identifier', $group_id);
+        $query->execute();
+        cache_clear_all('field_groups', 'cache_field');
+    }
+}

@@ -1,5 +1,4 @@
 <?php
-
 /**
  * @file
  * nexteuropa_newsroom.strongarm.inc
@@ -164,7 +163,23 @@ function nexteuropa_newsroom_strongarm() {
       ),
     ),
     'extra_fields' => array(
-      'form' => array(),
+      'form' => array(
+        'metatags' => array(
+          'weight' => '40',
+        ),
+        'path' => array(
+          'weight' => '20',
+        ),
+        'redirect' => array(
+          'weight' => '30',
+        ),
+        'xmlsitemap' => array(
+          'weight' => '30',
+        ),
+        'language' => array(
+          'weight' => '7',
+        ),
+      ),
       'display' => array(
         'share_buttons' => array(
           'default' => array(

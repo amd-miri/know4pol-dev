@@ -151,11 +151,11 @@ class NexteuropaNewsroomSummaryBlock {
       $types = [];
       if (!empty($selected_types)) {
         foreach ($selected_types as $type_id) {
-          $types[] = NexteuropaNewsroomHelper::getNewsroomType($type_id);
+          $types[] = NexteuropaNewsroomVocabularyHelper::getNewsroomType($type_id);
         }
       }
       else {
-        $types = NexteuropaNewsroomHelper::getNewsroomTypes();
+        $types = NexteuropaNewsroomVocabularyHelper::getNewsroomTypes();
         // We need only the first level of types.
         foreach ($types as $key => $type) {
           if ($type->depth > 0) {
@@ -166,7 +166,7 @@ class NexteuropaNewsroomSummaryBlock {
 
       $topics = [];
       foreach ($selected_topics as $topic_id) {
-        if ($topic_term = NexteuropaNewsroomHelper::getNewsroomTopic($topic_id)) {
+        if ($topic_term = NexteuropaNewsroomVocabularyHelper::getNewsroomTopic($topic_id)) {
           $topics[] = $topic_term;
         }
       }
@@ -228,7 +228,7 @@ class NexteuropaNewsroomSummaryBlock {
    */
   public function generateContent() {
     $this->getFilters();
-    $events_terms = NexteuropaNewsroomHelper::getEventsTermsIds();
+    $events_terms = NexteuropaNewsroomVocabularyHelper::getEventsTermsIds();
     $blocks = [];
     $output = NULL;
 

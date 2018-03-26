@@ -87,7 +87,7 @@ function nexteuropa_newsroom_admin_settings($form, &$form_state) {
     '#default_value' => variable_get('nexteuropa_newsroom_legacy', 1),
   ];
 
-  $types = NexteuropaNewsroomHelper::getNewsroomTypes();
+  $types = NexteuropaNewsroomVocabularyHelper::getNewsroomTypes();
 
   if (!empty($types)) {
     $form['newsroom_paths'] = [
@@ -412,6 +412,12 @@ function nexteuropa_newsroom_admin_settings($form, &$form_state) {
     '#default_value' => variable_get('nexteuropa_newsroom_use_default_view_mode', 1),
   ];
 
+  $form['viewmodes']['nexteuropa_newsroom_redirect_short_items'] = [
+    '#type' => 'checkbox',
+    '#title' => t('Redirect short items'),
+    '#default_value' => variable_get('nexteuropa_newsroom_redirect_short_items', 0),
+  ];
+
   // Attach a css to the admin settings form.
   $form['#attached']['css'] = [
     drupal_get_path('module', 'nexteuropa_newsroom') . '/styles/nexteuropa_newsroom_admin_setting.css',
@@ -658,7 +664,7 @@ function _nexteuropa_newsroom_admin_type_root_validate($element, &$form_state) {
  *   Pathes.
  */
 function _nexteuropa_newsroom_admin_reset_paths($form, &$form_state) {
-  foreach (NexteuropaNewsroomHelper::getNewsroomTypes() as $type) {
+  foreach (NexteuropaNewsroomVocabularyHelper::getNewsroomTypes() as $type) {
     $type_name = pathauto_cleanstring($type->name);
     $parents = taxonomy_get_parents($type->tid);
     $parent = '';
@@ -901,20 +907,7 @@ function _nexteuropa_newsroom_admin_prepare_check(array $previous, array $input)
  * Rebuilds multilingual importers.
  */
 function _nexteuropa_newsroom_admin_rebuild_importers() {
-  // Remove importers.
-  $importers = NexteuropaNewsroomHelper::returnImporters();
-
-  foreach ($importers as $importer) {
-    // WE drop all tampers for the current importer.
-    db_delete('feeds_tamper')
-      ->condition('importer', $importer)
-      ->execute();
-    feeds_importer($importer)->delete();
-    // Recreate them.
-    $importer = NexteuropaNewsroomBuilder::buildImporter($importer);
-    $importer->generateImporter();
-  }
-
+  NexteuropaNewsroomImporterHelper::rebuildImporters();
   drupal_set_message(t('Newsroom importers have been successfully generated.'));
 }
 
@@ -923,9 +916,9 @@ function _nexteuropa_newsroom_admin_rebuild_importers() {
  */
 function _nexteuropa_newsroom_import_importers() {
   // Run the multilingual imports if required.
-  $importers = NexteuropaNewsroomHelper::returnImporters();
+  $importers = NexteuropaNewsroomImporterHelper::returnImporters();
   foreach ($importers as $importer) {
-    NexteuropaNewsroomHelper::runFeedImporter($importer);
+    NexteuropaNewsroomImporterHelper::runFeedImporter($importer);
   }
 }
 
@@ -940,10 +933,10 @@ function _nexteuropa_newsroom_import_importers() {
 function _nexteuropa_newsroom_delete_items_confirm_submit(array $form, array &$form_state) {
   if ($form_state['values']['confirm']) {
     // Delete the imported items.
-    $importers = NexteuropaNewsroomHelper::returnImporters();
+    $importers = NexteuropaNewsroomImporterHelper::returnImporters();
 
     foreach ($importers as $importer) {
-      NexteuropaNewsroomHelper::deleteItems($importer);
+      NexteuropaNewsroomImporterHelper::deleteItems($importer);
     }
 
     drupal_set_message(t('Newsroom data has been removed.'));

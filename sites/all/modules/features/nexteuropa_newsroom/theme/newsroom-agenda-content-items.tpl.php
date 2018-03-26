@@ -31,6 +31,7 @@
                       'absolute' => TRUE,
                     ]); ?>
                     </h3>
+                    <?php echo $item->related_items; ?>
                 <?php endforeach; ?>
             </ul>
         </div>

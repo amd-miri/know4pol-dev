@@ -66,9 +66,22 @@ function know4pol_ec_europa_preprocess_block__sidebar_first(&$variables, $hook) 
 function know4pol_ec_europa_preprocess_node(&$variables, $hook) {
   // For all content types.
   drupal_add_js('https://visualise.jrc.ec.europa.eu/javascripts/api/viz_v1.js', 'external');
-  // Node is a file.
-  if ($variables['type'] == 'file') {
-    _know4pol_ec_europa_preprocess_node_file($variables);
+  // Per node type.
+  switch ($variables['type']) {
+    case 'file':
+      _know4pol_ec_europa_preprocess_node_file($variables);
+      break;
+  }
+}
+
+/**
+ * Implements template_preprocess_page().
+ */
+function know4pol_ec_europa_preprocess_page(&$variables, $hook) {
+  // If this is a search page, add wrapper to results.
+  if (isset($variables['page']['content']['system_main']['search_results'])) {
+    $variables['page']['content']['system_main']['search_results']['search_results']['#prefix'] = '<ul class="ecl-list ecl-list--unstyled ecl-u-mv-m">';
+    $variables['page']['content']['system_main']['search_results']['search_results']['#suffix'] = '</ul>';
   }
 }
 
@@ -78,7 +91,6 @@ function know4pol_ec_europa_preprocess_node(&$variables, $hook) {
 function know4pol_ec_europa_preprocess_field(&$variables) {
   // Handle apache solR preproces in a different function.
   if ($variables['element']['#view_mode'] == 'apachesolr_page') {
-    // _know4pol_ec_europa_preprocess_field__apache_solr_mode($variables);
     // Add template suggestions for field in the apache solr viewmode.
     $variables['theme_hook_suggestions'][] = 'field__' . $variables['element']['#view_mode'];
     $variables['theme_hook_suggestions'][] = 'field__' .

@@ -352,7 +352,7 @@ function know4pol_core_feeds_presave(FeedsSource $source, $entity, $item, $entit
       // in order to get its category and name.
       $entity_term = taxonomy_term_load($value['tid']);
       // If the category is "Knowledge4Policy Keywords".
-      if ($entity_term->field_newsroom_category_domain[en][0]['value'] == "Knowledge4Policy Keywords") {
+      if ($entity_term->field_newsroom_category_domain['en'][0]['value'] == "Knowledge4Policy Keywords") {
         // Then we search its equivalent in "tags" vocabulary.
         $matched_term_in_tags = taxonomy_get_term_by_name($entity_term->name, 'tags');
         if (!empty($matched_term_in_tags)) {
@@ -362,7 +362,7 @@ function know4pol_core_feeds_presave(FeedsSource $source, $entity, $item, $entit
         }
       }
       // Else if the category is "Knowledge Service".
-      elseif ($entity_term->field_newsroom_category_domain[en][0]['value'] == "Knowledge Service") {
+      elseif ($entity_term->field_newsroom_category_domain['en'][0]['value'] == "Knowledge Service") {
         // Then we search in "knowledge_centre" content type.
         // because it's a node reference.
         $query = new EntityFieldQuery();
@@ -423,11 +423,16 @@ function know4pol_core_block_view($delta = '') {
 function _know4pol_core_freetext_search_form($form, &$form_state, $keys = '') {
   $form = array();
   $form['#id'] = 'search-form';
-  $form['#attributes']['class'][] = 'search-form';
-
+  $form['#attributes']['class'][] = 'ecl-search-form';
+  $form['#attributes']['class'][] = 'ecl-search-form--internal';
+  $form['#attributes']['class'][] = 'ecl-u-mb-l';
+  
   $form['basic'] = array(
     '#type' => 'container',
-    '#attributes' => array('class' => array('container-inline')),
+    '#attributes' => array(
+      'class' => array('ecl-row', 'ecl-col'),
+      'style' => 'margin:0; padding:0',
+    ),
   );
 
   $form['basic']['keys'] = array(
@@ -435,6 +440,7 @@ function _know4pol_core_freetext_search_form($form, &$form_state, $keys = '') {
     '#default_value' => $keys,
     '#size' => 20,
     '#maxlength' => 255,
+    '#attributes' => array('class' => array('ecl-text-input', 'ecl-search-form__textfield')),
   );
 
   $form['basic']['submit'] = array(
@@ -468,4 +474,46 @@ function _know4pol_core_freetext_search_form_submit(&$form, &$form_state) {
     unset($get['page']);
   }
   $form_state['redirect'] = array($redirect, array('query' => $get));
+}
+
+/**
+ * Implements hook_apachesolr_facet_items_alter(&$form, &$form_state).
+ */
+function know4pol_core_facet_items_alter(&$build, &$settings) {
+  // Content type facet.
+  if ($settings->facet == "bundle") {
+    if (isset($build['newsroom_item'])) {
+      $nr_facet_name = 'im_field_newsroom_item_type';
+      $solr_pages = apachesolr_search_load_all_search_pages();
+      
+      // Split newsroom item in subtypes by getting the term facet.
+      if ($adapter = _know4pol_ec_europa_get_solr_instance()) {
+        $searcher = $adapter->getSearcher();
+        $nr_type = $adapter->getFacet(facetapi_facet_load($nr_facet_name, $searcher));
+        
+        foreach ($nr_type->getBuild() as $key => $item) {
+          // Get url for dedicated solR search page.
+          foreach ($solr_pages as $solr_page) {
+            if ($solr_page['label'] == $item['#markup'] || $solr_page['label'] == $item['#markup'] . 's') {
+              $item['#path'] = $solr_page['search_path'];
+              break;
+            }
+          }
+         
+          // Remove self since target page is already filtered. 
+          // Loop could be avoided if sure that self is always last. 
+          foreach ($item['#query']['f'] as $index => $value) {
+            if($value == $nr_facet_name . ':' . $item['#indexed_value']) { 
+              unset($item['#query']['f'][$index]); 
+              break;
+            }
+          }
+          
+          $build[$key] = $item;
+        } 
+      }
+      // Remove original filter anyway
+      unset($build['newsroom_item']);
+    }
+  }
 }

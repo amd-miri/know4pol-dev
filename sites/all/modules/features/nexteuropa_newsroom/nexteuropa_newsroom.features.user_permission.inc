@@ -1,5 +1,4 @@
 <?php
-
 /**
  * @file
  * nexteuropa_newsroom.features.user_permission.inc

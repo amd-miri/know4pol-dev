@@ -20,8 +20,6 @@ class NexteuropaNewsroomAgendaBlockSchedule extends NexteuropaNewsroomAgenda {
    *   Newsroom topic taxonomy term.
    * @param object $current_day
    *   Current date.
-   * @param object $operator
-   *   Topic operator.
    */
   public function __construct($type, $topics, $current_day, $operator) {
     $this->setIsBlock(TRUE);
