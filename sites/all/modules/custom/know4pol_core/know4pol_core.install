@@ -135,3 +135,12 @@ function know4pol_core_update_7005() {
     'views_autocomplete_filters',
   ), TRUE);
 }
+
+/**
+ * Enable know4pol_search module.
+ */
+function know4pol_core_update_7006() {
+  module_enable(array(
+    'know4pol_search',
+  ), TRUE);
+}
