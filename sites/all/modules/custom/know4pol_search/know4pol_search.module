@@ -18,6 +18,17 @@ function know4pol_search_permission() {
 }
 
 /**
+ * Implements hook_og_permission().
+ */
+function know4pol_search_og_permission() {
+  return array(
+    'configure OG search block content types' => array(
+      'title' => t('Configure OG search block content types'),
+    ),
+  );
+}
+
+/**
  * Implements hook_menu().
  */
 function know4pol_search_menu() {
@@ -29,7 +40,32 @@ function know4pol_search_menu() {
     'access arguments' => array('administer know4pol search'),
     'type' => MENU_NORMAL_ITEM,
   );
+  $items['group/node/%/admin/know4pol_search'] = array(
+    'title' => 'Know4pol Search settings',
+    'description' => 'Know4pol  search settings',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('_know4pol_search_settings_form', 2),
+    'access arguments' => array('node', 2,
+      'configure OG search block content types',
+    ),
+    'access callback' => 'og_user_access',
+    'type' => MENU_NORMAL_ITEM,
+  );
+  return $items;
+}
 
+/**
+ * Implements hook_og_ui_get_group_admin().
+ */
+function know4pol_search_og_ui_get_group_admin($group_type, $gid) {
+  $items = array();
+  if (og_user_access($group_type, $gid, 'configure OG search block content types')) {
+    $items['know4pol_search'] = array(
+      'title' => t('Configure search'),
+      'description' => t('Configure Knowledge for Policy search'),
+      'href' => 'admin/know4pol_search',
+    );
+  }
   return $items;
 }
 
@@ -40,38 +76,54 @@ function know4pol_search_menu() {
  *   The form.
  * @param array &$form_state
  *   The form states.
+ * @param int $kc_group_nid
+ *   OG group context.
  *
  * @return array
  *   Returns the settings form.
  */
-function _know4pol_search_settings_form($form, &$form_state) {
-
+function _know4pol_search_settings_form(array $form, array &$form_state, $kc_group_nid = 0) {
   $form = array();
   $know4pol_search_settings_array = variable_get('know4pol_search_settings');
   $options = node_type_get_names();
-
+  // Remove Newsroom_item.
+  unset($options['newsroom_item']);
+  unset($options['newsroom_selection']);
+  unset($options['newsroom_newsletter_issue']);
+  // Add the list of Newsroom items.
+  // Notice: if we load only once, it returns FALSE (known issue on Drupal.org).
+  // https://www.drupal.org/project/og_vocab/issues/2270529
+  $newsroom_items_vocabulary = taxonomy_vocabulary_machine_name_load('newsroom_item_type');
+  $newsroom_items_vocabulary = taxonomy_vocabulary_machine_name_load('newsroom_item_type');
+  $newsroom_items = taxonomy_get_tree($newsroom_items_vocabulary->vid);
+  foreach ($newsroom_items as $value) {
+    $options += array(drupal_strtolower($value->name) => $value->name);
+  }
   // Settings for Main form.
-  $form['Main'] = array(
-    '#type' => 'fieldset',
-    '#title' => 'Main',
-    '#collapsible' => TRUE,
-    '#collapsed' => TRUE,
-  );
-  $form['Main'][0] = array(
-    '#type' => 'checkboxes',
-    '#options' => $options,
-    '#default_value' => $know4pol_search_settings_array[0],
-  );
-
+  if (!$kc_group_nid) {
+    $form['Main'] = array(
+      '#type' => 'fieldset',
+      '#title' => 'Main',
+      '#collapsible' => TRUE,
+      '#collapsed' => TRUE,
+    );
+    $form['Main'][0] = array(
+      '#type' => 'checkboxes',
+      '#options' => _know4pol_search_get_solr_search_pages(),
+      '#default_value' => $know4pol_search_settings_array[0],
+    );
+  }
   // Get all Knowledge Centre nodes.
   $efq = new EntityFieldQuery();
   $efq->entityCondition('entity_type', 'node');
   $efq->entityCondition('bundle', 'knowledge_centre');
+  if ($kc_group_nid) {
+    $efq->propertyCondition('nid', $kc_group_nid);
+  }
   $efq->propertyOrderBy('title');
   $result = $efq->execute();
   $nids = array_keys($result['node']);
   $nodes = entity_load('node', $nids);
-
   // Settings per Knowledge Centre.
   foreach ($nodes as $node) {
     $form[$node->title] = array(
@@ -86,7 +138,6 @@ function _know4pol_search_settings_form($form, &$form_state) {
       '#default_value' => $know4pol_search_settings_array[$node->nid],
     );
   }
-
   $form['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Save'),
@@ -102,11 +153,11 @@ function _know4pol_search_settings_form($form, &$form_state) {
  * @param array &$form_state
  *   The form states.
  */
-function _know4pol_search_settings_form_submit($form, &$form_state) {
-
+function _know4pol_search_settings_form_submit(array $form, array &$form_state) {
+  $output = variable_get('know4pol_search_settings');
   foreach ($form_state['values'] as $key => $value) {
     if (is_numeric($key)) {
-      $output[$key] = array_keys(array_filter($value));
+      $output[$key] = array_filter($value);
     }
   }
   variable_set('know4pol_search_settings', $output);
@@ -117,17 +168,30 @@ function _know4pol_search_settings_form_submit($form, &$form_state) {
  * Get allowed content types to search per Knowledge Centre.
  *
  * @param int $nid
- *   Nid of Knowledge Centre or 'main'.
+ *   Nid of Knowledge Centre.
  *
  * @return array
  *   Returns content types.
  */
-function _know4pol_search_get_allowed_content_types($nid) {
-
+function _know4pol_search_get_allowed_content_types($nid = 0) {
   $know4pol_search_settings_array = variable_get('know4pol_search_settings');
-  $activated_content_types = $know4pol_search_settings_array[$nid];
-  $options = node_type_get_names();
-  $allowed_options = array_intersect_key($options, array_flip($activated_content_types));
+  if ($nid == 0) {
+    return $know4pol_search_settings_array[0];
+  }
+  $allowed_options = $know4pol_search_settings_array[$nid];
+  // Get human names.
+  $types = node_type_get_types();
+  // Change newsroom item to news and events, which aren't node types.
+  unset($types['newsroom_item']);
+  $newsarray = array('type' => 'news', 'name' => 'News');
+  $eventsarray = array('type' => 'event', 'name' => 'Events');
+  $newsobject = (object) $newsarray;
+  $eventsobject = (object) $eventsarray;
+  $types['news'] = $newsobject;
+  $types['event'] = $eventsobject;
+  foreach ($allowed_options as $allowed_option) {
+    $allowed_options[$allowed_option] = $types[$allowed_option]->name;
+  }
   // Default option, which isn't a content type.
   $allowed_options['all'] = 'All';
   // Move default option as first option.
@@ -142,13 +206,10 @@ function _know4pol_search_get_allowed_content_types($nid) {
  *   Returns content type or keyword.
  */
 function _know4pol_search_get_default_content_type() {
-
   $parameters = drupal_get_query_parameters();
-
   if (empty($parameters)) {
     return 'all';
   }
-
   foreach ($parameters['f'] as $bundle_parameter) {
     if (strpos($bundle_parameter, 'bundle:') !== FALSE) {
       $bundle_machine_name = str_replace('bundle:', '', $bundle_parameter);
@@ -171,12 +232,6 @@ function _know4pol_search_get_default_keyword() {
  * Implements hook_form().
  */
 function know4pol_search_form($form, $form_state) {
-
-  $form['keyword'] = array(
-    '#type' => 'textfield',
-    '#default_value' => _know4pol_search_get_default_keyword(),
-  );
-
   $con = context_get();
   if (isset($con['context']['homepage'])) {
     $setting_id = 0;
@@ -184,29 +239,35 @@ function know4pol_search_form($form, $form_state) {
   else {
     $setting_id = arg(1);
   };
-
   $form['knowledge_centre_nid'] = array(
     '#type' => 'hidden',
     '#value' => $setting_id,
   );
-
+  // Text field.
+  $form['keyword'] = array(
+    '#type' => 'textfield',
+    '#default_value' => _know4pol_search_get_default_keyword(),
+    '#prefix' => '<label id="know4pol-form-label" class="ecl-search-form__textfield-wrapper">',
+    '#suffix' => '</label>',
+    '#attributes' => array('class' => array('ecl-text-input', 'ecl-search-form__textfield')),
+  );
+  // Submit button.
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => 'Search',
+  );
+  // Search content type options.
   $form['type'] = array(
     '#type' => 'radios',
     '#weight' => '100',
     '#options' => _know4pol_search_get_allowed_content_types($setting_id),
     '#default_value' => _know4pol_search_get_default_content_type(),
-    '#attributes' => array('class' => array('container-inline')),
+    '#attributes' => array('class' => array('ecl-radio-group', 'container-inline')),
   );
-
-  $form['submit'] = array(
-    '#type' => 'submit',
-    '#value' => 'Search',
-    '#attributes' => array('class' => array('ecl-button', 'ecl-button--primary', 'ecl-u-f-r')),
-    '#weight' => -1,
+  $form['#attributes'] = array(
+    'class' => array('ecl-form', 'ecl-search-form--internal'),
+    'id' => 'know4pol-search-form',
   );
-
-  $form['#attributes'] = array('class' => 'ecl-form', 'id' => 'know4pol-search-form');
-
   return $form;
 }
 
@@ -215,39 +276,131 @@ function know4pol_search_form($form, $form_state) {
  */
 function know4pol_search_form_submit(&$form, &$form_state) {
   global $base_url;
-
   $keyword = preg_replace('/[^A-Za-z0-9\-\']/', '', $form_state['values']['keyword']);
-
   $knowledge_centre_nid = $form_state['values']['knowledge_centre_nid'];
   $content_type = $form_state['values']['type'];
-
   $is_content_type_selected = FALSE;
   if ($content_type != 'all') {
     $is_content_type_selected = TRUE;
   }
-
+  // Check if a Newsroom item is chosen.
+  $newsroom_items_names = array();
+  $newsroom_items_vocabulary = taxonomy_vocabulary_machine_name_load('newsroom_item_type');
+  $newsroom_items = taxonomy_get_tree($newsroom_items_vocabulary->vid);
+  foreach ($newsroom_items as $value) {
+    $newsroom_items_names += array(drupal_strtolower($value->name) => $value->name);
+  }
+  $is_newsroom_item_selected = FALSE;
+  // If it's a Newsroom item.
+  if (array_key_exists($content_type, $newsroom_items_names)) {
+    $is_newsroom_item_selected = TRUE;
+  }
   // Building search url, containing list of numbered solr search parameters.
-  $output = $base_url . '/search/site/' . $keyword;
+  if ($is_newsroom_item_selected) {
+    if (substr($content_type, -1) == 's') {
+      $output = $base_url . '/' . $content_type . '/' . $keyword;
+    }
+    else {
+      $output = $base_url . '/' . $content_type . 's/' . $keyword;
+    }
+  }
+  else {
+    $output = $base_url . '/search/site/' . $keyword;
+  }
   $i = 0;
-
-  if ($is_content_type_selected || $knowledge_centre_nid) {
+  if (($is_content_type_selected && !$is_newsroom_item_selected) || $knowledge_centre_nid) {
     $output .= '?';
   }
-
   if ($knowledge_centre_nid) {
     $output .= 'f[' . $i . ']=sm_og_group_ref:node:' . $knowledge_centre_nid;
     $i++;
   }
-
   if ($is_content_type_selected && $knowledge_centre_nid) {
     $output .= '&';
   }
-
-  if ($is_content_type_selected) {
+  if ($is_content_type_selected && !$is_newsroom_item_selected) {
     $output .= 'f[' . $i . ']=bundle:' . $content_type;
     $i++;
   }
+  $form_state['redirect'] = $output;
+}
 
+/**
+ * Get list of the solar pages and urls.
+ *
+ * @return array
+ *   Returns url and label.
+ */
+function _know4pol_search_get_solr_search_pages() {
+  $search_pages = apachesolr_search_load_all_search_pages();
+  foreach ($search_pages as $search_page) {
+    $output[$search_page['search_path']] = $search_page['label'];
+  }
+  $output['search/site'] = 'All';
+  return $output;
+}
+
+/**
+ * Get allowed search pages on homepage.
+ *
+ * @return array
+ *   Returns search pages.
+ */
+function _know4pol_search_get_allowed_search_pages() {
+  $know4pol_search_settings_array = variable_get('know4pol_search_settings');
+  $allowed_options = $know4pol_search_settings_array[0];
+  // Get human names.
+  $types = _know4pol_search_get_solr_search_pages();
+  foreach ($allowed_options as $allowed_option) {
+    $allowed_options[$allowed_option] = $types[$allowed_option];
+  }
+  $allowed_options['search/site'] = 'All';
+  // Move default option as first option.
+  $allowed_options_sorted = array('search/site' => $allowed_options['search/site']) + $allowed_options;
+  return $allowed_options_sorted;
+}
+
+/**
+ * Implements hook_form().
+ */
+function know4pol_mainsearch_form($form, $form_state) {
+  // Text field.
+  $form['keyword'] = array(
+    '#type' => 'textfield',
+    '#default_value' => _know4pol_search_get_default_keyword(),
+    '#prefix' => '<label id="know4pol-form-label" class="ecl-search-form__textfield-wrapper">',
+    '#suffix' => '</label>',
+    '#attributes' => array('class' => array('ecl-text-input', 'ecl-search-form__textfield')),
+  );
+  // Submit button.
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => 'Search',
+  );
+  // Search solr page type options.
+  $form['solr_search_page'] = array(
+    '#type' => 'radios',
+    '#weight' => '100',
+    '#options' => _know4pol_search_get_allowed_search_pages(),
+    '#default_value' => 'search/site',
+    '#attributes' => array('class' => array('ecl-radio-group', 'container-inline')),
+  );
+  $form['#attributes'] = array(
+    'class' => array('ecl-form', 'ecl-search-form--internal'),
+    'id' => 'know4pol-search-form',
+  );
+  return $form;
+}
+
+/**
+ * Implements hook_form_submit().
+ */
+function know4pol_mainsearch_form_submit(&$form, &$form_state) {
+  global $base_url;
+  $keyword = preg_replace('/[^A-Za-z0-9\-\']/', '', $form_state['values']['keyword']);
+  $solr_search_page = $form_state['values']['solr_search_page'];
+  // Building search url, containing list of numbered solr search parameters.
+  $output = $base_url . '/' . $solr_search_page . '/' . $keyword;
   $form_state['redirect'] = $output;
 }
 
@@ -257,6 +410,10 @@ function know4pol_search_form_submit(&$form, &$form_state) {
 function know4pol_search_block_info() {
   $blocks['know4pol_search'] = array(
     'info' => t('Know4pol search form block'),
+    'cache' => DRUPAL_NO_CACHE,
+  );
+  $blocks['know4pol_main_search'] = array(
+    'info' => t('Know4pol main search form block'),
     'cache' => DRUPAL_NO_CACHE,
   );
   return $blocks;
@@ -269,14 +426,18 @@ function know4pol_search_block_info() {
  */
 function know4pol_search_block_view($delta = '') {
   $block = array();
-
   // Prevent strict warnings.
   $searchform = drupal_get_form('know4pol_search_form');
-
+  $mainsearchform = drupal_get_form('know4pol_mainsearch_form');
   switch ($delta) {
     case 'know4pol_search':
       $block['subject'] = '';
       $block['content'] = drupal_render($searchform);
+      break;
+
+    case 'know4pol_main_search':
+      $block['subject'] = '';
+      $block['content'] = drupal_render($mainsearchform);
       break;
   }
   return $block;
