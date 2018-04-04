@@ -144,3 +144,12 @@ function know4pol_core_update_7006() {
     'know4pol_search',
   ), TRUE);
 }
+
+/**
+ * Enable weight module.
+ */
+function know4pol_core_update_7007() {
+  module_enable(array(
+    'weight',
+  ), TRUE);
+}

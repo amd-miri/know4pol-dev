@@ -207,6 +207,7 @@ function know4pol_core_form_node_form_alter(&$form, &$form_state, $form_id) {
  */
 function know4pol_core_feeds_processor_targets_alter(&$targets, $entity_type, $bundle_name) {
   $targets['og_group_ref:label']['callback'] = '_know4pol_core_post_process_callback';
+  $targets['og_group_ref:etid']['callback'] = '_know4pol_core_post_process_callback';
   $targets['og_vocabulary']['callback'] = '_know4pol_core_post_process_callback';
   $targets['og_vocabulary:label']['callback'] = '_know4pol_core_post_process_callback';
 }
