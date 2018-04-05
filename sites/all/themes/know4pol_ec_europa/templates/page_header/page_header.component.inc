@@ -29,8 +29,9 @@ function know4pol_ec_europa_atomium_theme_page_header() {
  */
 function know4pol_ec_europa_preprocess_page_header(&$variables, $hook) {
   // Node is viewed.
-  if (arg(0) == 'node' && is_numeric(arg(1))) {
-    $node = node_load(arg(1));
+  $menu_item = menu_get_item();
+  if ($menu_item['path'] == 'node/%') {
+    $node = $menu_item['page_arguments'][0];
     switch ($node->type) {
       case 'knowledge_centre':
         $variables['full_banner'] = TRUE;

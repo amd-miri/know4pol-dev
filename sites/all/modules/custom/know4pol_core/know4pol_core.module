@@ -292,9 +292,10 @@ function _know4pol_core_post_process_callback(FeedsSource $source, $entity, $tar
                 $vocab = taxonomy_vocabulary_machine_name_load($key);
                 $vocab_relation = og_vocab_relation_get($vocab->vid);
                 if (!empty($vocab_relation)) {
-                  $etids = array_keys($options[$key]);
+                  $etids[] = array_keys($options[$key]);
                 }
               }
+              $og_vocabulary_term_ids = array_values($etids);
             }
             else {
               $options = reset($options);
@@ -313,7 +314,13 @@ function _know4pol_core_post_process_callback(FeedsSource $source, $entity, $tar
        * (as a second pass), we can add this reference then.  (The "Update
        * existing nodes" option must be selected during the second pass.)
        */
-      if ($entity_id) {
+      if ($og_vocabulary_term_ids) {
+        foreach ($og_vocabulary_term_ids as $key => $value) {
+          // Assign the target ID.
+          $field[LANGUAGE_NONE][]['target_id'] = (string) $value[0];
+        }
+      }
+      elseif ($entity_id) {
         // Assign the target ID.
         $field[LANGUAGE_NONE][]['target_id'] = (string) $entity_id;
       }
@@ -444,8 +451,7 @@ function _know4pol_core_freetext_search_form($form, &$form_state, $keys = '') {
   $form['basic'] = array(
     '#type' => 'container',
     '#attributes' => array(
-      'class' => array('ecl-row', 'ecl-col'),
-      'style' => 'margin:0; padding:0',
+      'class' => array('ecl-row', 'ecl-col', 'ecl-u-ma-none', 'ecl-u-pa-none'),
     ),
   );
 

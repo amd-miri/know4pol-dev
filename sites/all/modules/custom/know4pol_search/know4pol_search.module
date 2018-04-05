@@ -297,7 +297,7 @@ function know4pol_search_form_submit(&$form, &$form_state) {
   }
   // Building search url, containing list of numbered solr search parameters.
   if ($is_newsroom_item_selected) {
-    if (substr($content_type, -1) == 's') {
+    if (drupal_substr($content_type, -1) == 's') {
       $output = $base_url . '/' . $content_type . '/' . $keyword;
     }
     else {
