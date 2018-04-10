@@ -9,7 +9,11 @@
  * Field handler to present the submission count of a node to the user.
  */
 class webform_handler_field_submission_count extends views_handler_field {
-  function construct() {
+
+  /**
+   *
+   */
+  public function construct() {
     parent::construct();
     $this->count_type = $this->definition['count_type'];
 
@@ -22,31 +26,43 @@ class webform_handler_field_submission_count extends views_handler_field {
     }
   }
 
-  function option_definition() {
+  /**
+   *
+   */
+  public function option_definition() {
     $options = parent::option_definition();
     $options['label'] = array('default' => '# of Submissions', 'translatable' => TRUE);
     return $options;
   }
 
-  function query() {
+  /**
+   *
+   */
+  public function query() {
     $this->ensure_my_table();
     $this->add_additional_fields();
   }
 
-  function render($values) {
+  /**
+   *
+   */
+  public function render($values) {
     global $user;
 
     $output = NULL;
-    if ($this->count_type == 'node' && in_array($values->{$this->aliases['type']}, webform_variable_get('webform_node_types'))) {
+    if ($this->count_type == 'node' && variable_get('webform_node_' . $values->{$this->aliases['type']}, FALSE)) {
       module_load_include('inc', 'webform', 'includes/webform.submissions');
       $node = node_load($values->{$this->aliases['nid']});
       if (webform_results_access($node, $user)) {
         $count = webform_get_submission_count($node->nid);
         $output = l($count, "node/$node->nid/webform-results");
       }
-      else {
+      elseif (webform_submission_access($node, NULL, 'list', $user)) {
         $count = webform_get_submission_count($node->nid, $user->uid);
         $output = l($count, "node/$node->nid/submissions");
+      }
+      else {
+        $output = webform_get_submission_count($node->nid);
       }
     }
     elseif ($this->count_type == 'users') {
@@ -57,4 +73,5 @@ class webform_handler_field_submission_count extends views_handler_field {
 
     return $output;
   }
+
 }

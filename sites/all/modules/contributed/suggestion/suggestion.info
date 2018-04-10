@@ -1,0 +1,24 @@
+name = "Suggestion"
+description = This module will provide auto-complete search suggestions.
+package = Other
+core = "7.x"
+configure = admin/config/suggestion
+
+dependencies[] = block
+dependencies[] = node
+
+files[] = src/SuggestionHelper.php
+files[] = src/SuggestionStorage.php
+
+; Information added by Drupal.org packaging script on 2017-11-13
+version = "7.x-1.0-alpha2"
+core = "7.x"
+project = "suggestion"
+datestamp = "1510607292"
+
+; Information added by Drupal.org packaging script on 2017-11-15
+version = "7.x-1.1"
+core = "7.x"
+project = "suggestion"
+datestamp = "1510762100"
+

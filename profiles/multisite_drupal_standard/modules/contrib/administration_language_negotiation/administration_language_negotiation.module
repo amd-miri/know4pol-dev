@@ -52,7 +52,7 @@ function administration_language_negotiation_language_negotiation_info() {
  * Language negotiation custom callback.
  */
 function administration_language_negotiation_admin_language() {
-  include 'includes/path.inc';
+  require_once 'includes/path.inc';
 
   if (_administration_language_negotiation_admin_get_language(current_path())) {
     return variable_get('administration_language_negotiation_default', FALSE);

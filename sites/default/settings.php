@@ -639,7 +639,7 @@ $conf['page_cache_without_database'] = FALSE; // we need to connect to the datab
 // Proxy configuration
 // -------------------------------------------------------------------------------
 
-$conf['proxy_server'] = '147.67.117.13';
+$conf['proxy_server'] = 'ps-bxl-usr.cec.eu.int';
 $conf['proxy_port'] = 8012;
 $conf['proxy_username'] = 'miriahm';
 $conf['proxy_password'] = 'Maman$4747';
@@ -653,7 +653,7 @@ $conf['feeds_never_use_curl'] = true;
 $conf['drupal_http_request_function'] = 'curl_http_request';
 
 $conf['https_proxy'] = $conf['http_proxy'] = array(
-  'server' => '47.67.117.13',
+  'server' => 'ps-bxl-usr.cec.eu.int',
   'port' => '8012',
   'username' => 'miriahm',
   'password' => 'Maman$4747',

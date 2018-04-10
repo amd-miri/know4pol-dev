@@ -37,7 +37,17 @@ function know4pol_ec_europa_menu_link(array $variables) {
 }
 
 /**
- * Implements hook_preprocess_hook().
+ * Implements hook_preprocess_block().
+ */
+function know4pol_ec_europa_preprocess_block(&$variables, $hook) {
+  // Add template suggestion for search pages.
+  if ($variables['elements']['#block']->bid == 'multisite_og_button-og-contextual-links') {
+    $variables['content'] = preg_replace("/class\=\"ecl\-link\"/", "class=\"ecl-link ecl-link--standalone ecl-link-block__link\"", $variables['content']);
+  }
+}
+
+/**
+ * Implements hook_preprocess_block__content().
  */
 function know4pol_ec_europa_preprocess_block__content(&$variables, $hook) {
   // Add template suggestion for search pages.
@@ -50,7 +60,7 @@ function know4pol_ec_europa_preprocess_block__content(&$variables, $hook) {
 }
 
 /**
- * Implements hook_preprocess_hook().
+ * Implements hook_preprocess_block__sidebar_first().
  */
 function know4pol_ec_europa_preprocess_block__sidebar_first(&$variables, $hook) {
   // Add template suggestion for search pages.

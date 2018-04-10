@@ -1,0 +1,115 @@
+<?php
+
+/**
+ * @file
+ * The installation file for the suggestion module.
+ */
+
+/**
+ * Implements hook_enable().
+ */
+function suggestion_enable() {
+  $min_weight = 100;
+
+  $weight = db_query("SELECT IFNULL(MAX(weight), 0) FROM {system}")->fetchField() + 1;
+
+  $fields = array(
+    'weight' => ($weight >= $min_weight) ? $weight : $min_weight,
+  );
+  db_update('system')->fields($fields)->condition('name', 'suggestion')->execute();
+}
+
+/**
+ * Implements hook_install().
+ */
+function suggestion_install() {
+  variable_set('suggestion_atoms', 6);
+  variable_set('suggestion_field_name', 'search_block_form');
+  variable_set('suggestion_form_id', 'search_block_form');
+  variable_set('suggestion_limit', 20);
+  variable_set('suggestion_max', 45);
+  variable_set('suggestion_min', 4);
+  variable_set('suggestion_rpp', 100);
+  variable_set('suggestion_stopword_hash', '');
+  variable_set('suggestion_stopword_uri', file_default_scheme() . '://suggestion/suggestion_stopword.txt');
+  variable_set('suggestion_synced', TRUE);
+  variable_set('suggestion_types', array());
+}
+
+/**
+ * Implements hook_schema().
+ */
+function suggestion_schema() {
+  $schema['suggestion'] = array(
+    'description' => 'Suggestion data.',
+    'fields' => array(
+      'ngram' => array(
+        'description' => "The suggestion string.",
+        'type'        => 'varchar',
+        'length'      => 65,
+        'binary'      => TRUE,
+        'not null'    => TRUE,
+      ),
+      'src' => array(
+        'description' => "Suggestion source bitmap: 0 = disabled, 1 = content, 2 = surfer, 4 = priority",
+        'type'        => 'int',
+        'unsigned'    => TRUE,
+        'not null'    => TRUE,
+        'default'     => 1,
+      ),
+      'atoms' => array(
+        'description' => "The number of words in this suggestion.",
+        'type'        => 'int',
+        'unsigned'    => TRUE,
+        'not null'    => TRUE,
+        'default'     => 1,
+      ),
+      'qty' => array(
+        'description' => "The number of instances.",
+        'type'        => 'int',
+        'unsigned'    => TRUE,
+        'not null'    => TRUE,
+        'default'     => 1,
+      ),
+      'density' => array(
+        'description' => "The weighted average.",
+        'type'        => 'float',
+        'unsigned'    => TRUE,
+        'precision'   => 3,
+        'not null'    => TRUE,
+        'default'     => 1.0,
+      ),
+    ),
+    'indexes' => array(
+      'src' => array('src'),
+    ),
+    'unique keys' => array(
+      'ngram_atom_src'     => array('src', 'atoms', 'ngram'),
+      'ngram_atom_density' => array('density', 'ngram', 'atoms'),
+    ),
+    'primary key' => array('ngram'),
+  );
+  return $schema;
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function suggestion_uninstall() {
+  $uri = variable_get('suggestion_stopword_uri', '');
+
+  if ($uri) {
+    file_unmanaged_delete($uri);
+  }
+  $uri = preg_replace('/\/[^\/]+$/', '', $uri);
+
+  if ($uri) {
+    drupal_rmdir($uri);
+  }
+  $vars = db_query("SELECT name FROM {variable} WHERE name LIKE :name", array(':name' => 'suggestion\_%'))->fetchCol();
+
+  foreach ($vars as $var) {
+    variable_del($var);
+  }
+  cache_clear_all('variables', 'cache_bootstrap');
+}

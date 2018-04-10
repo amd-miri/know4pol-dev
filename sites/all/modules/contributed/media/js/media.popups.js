@@ -128,7 +128,7 @@ Drupal.media.popups.mediaBrowser.mediaBrowserOnLoad = function (e) {
   var options = e.data;
 
   // Ensure that the iFrame is defined.
-  if (this.contentWindow.Drupal.media == undefined) {
+  if (this.contentWindow.Drupal.media.browser == undefined) {
     return;
   }
 
@@ -213,6 +213,7 @@ Drupal.media.popups.mediaStyleSelector = function (mediaFile, onSelect, options)
   dialogOptions.buttons[ok] = function () {
     // Find the current file selection.
     var formattedMedia = this.contentWindow.Drupal.media.formatForm.getFormattedMedia();
+    formattedMedia.options = $.extend({}, mediaFile.attributes, formattedMedia.options);
 
     // Alert the user if a selection has yet to be made.
     if (!formattedMedia) {
@@ -351,7 +352,16 @@ Drupal.media.popups.getDialogOptions = function () {
     },
     zIndex: Drupal.settings.media.dialogOptions.zindex,
     close: function (event, ui) {
-      $(event.target).remove();
+      var elem = $(event.target);
+      var id = elem.attr('id');
+      if(id == 'mediaStyleSelector') {
+        $(this).dialog("destroy");
+        $('#mediaStyleSelector').remove();
+      }
+      else {
+        $(this).dialog("destroy");
+        $('#mediaBrowser').remove();
+      }
     }
   };
 };

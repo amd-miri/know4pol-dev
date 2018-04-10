@@ -123,11 +123,21 @@ class views_plugin_style extends views_plugin {
   function get_row_class($row_index) {
     if ($this->uses_row_class()) {
       $class = $this->options['row_class'];
+
       if ($this->uses_fields() && $this->view->field) {
-        $class = strip_tags($this->tokenize_value($class, $row_index));
+        $classes = array();
+
+        // Explode the value by whitespace, this allows the function to handle
+        // a single class name and multiple class names that are then tokenized.
+        foreach(explode(' ', $class) as $token_class) {
+          $classes = array_merge($classes, explode(' ', strip_tags($this->tokenize_value($token_class, $row_index))));
+        }
+      }
+      else {
+        $classes = explode(' ', $class);
       }
 
-      $classes = explode(' ', $class);
+      // Convert whatever the result is to a nice clean class name
       foreach ($classes as &$class) {
         $class = drupal_clean_css_identifier($class);
       }
@@ -227,6 +237,7 @@ class views_plugin_style extends views_plugin {
             '#type' => 'checkbox',
             '#title' => t('Remove tags from rendered output'),
             '#default_value' => $grouping['rendered_strip'],
+            '#description' => t('Some modules add HTML to the rendered output and prevent the rows from grouping correctly. Stripping the HTML tags should correct this.'),
             '#dependency' => array(
               'edit-style-options-grouping-' . $i . '-field' => array_keys($field_labels),
             )

@@ -38,6 +38,7 @@ function know4pol_ec_europa_preprocess_page_header(&$variables, $hook) {
         if (!empty($node->field_short_description[LANGUAGE_NONE][0]['value'])) {
           $variables['introduction'] = $node->field_short_description[LANGUAGE_NONE][0]['value'];
         }
+        $variables['title'] = check_plain($node->field_ks_full_name[LANGUAGE_NONE][0]['value']);
     }
   }
   elseif (drupal_is_front_page()) {

@@ -406,6 +406,23 @@ function node_views_data() {
     ),
   );
 
+  $data['node']['version_count'] = array(
+    'title' => t('Version Count'),
+    'help' => t('The total count of versions/revisions of a certain node.'),
+    'field' => array(
+      'handler' => 'views_handler_field_node_version_count',
+      'field' => 'nid',
+      'click sortable' => TRUE,
+    ),
+    'filter' => array(
+      'handler' => 'views_handler_filter_node_version_count',
+      'allow empty' => FALSE,
+    ),
+    'sort' => array(
+      'handler' => 'views_handler_sort_node_version_count',
+    ),
+  );
+
   // ----------------------------------------------------------------------
   // Content revision table
 
@@ -716,7 +733,7 @@ function node_row_node_view_preprocess_node(&$vars) {
     unset($vars['content']['links']);
   }
 
-  if (!empty($options['comments']) && user_access('access comments') && $node->comment) {
+  if (module_exists('comment') && !empty($options['comments']) && user_access('access comments') && $node->comment) {
     $vars['content']['comments'] = comment_node_page_additions($node);
   }
 }
