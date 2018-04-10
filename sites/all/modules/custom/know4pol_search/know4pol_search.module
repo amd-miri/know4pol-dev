@@ -264,6 +264,7 @@ function know4pol_search_form($form, $form_state) {
     '#default_value' => _know4pol_search_get_default_content_type(),
     '#attributes' => array('class' => array('ecl-radio-group', 'container-inline')),
   );
+
   $form['#attributes'] = array(
     'class' => array('ecl-form', 'ecl-search-form--internal'),
     'id' => 'know4pol-search-form',
@@ -416,6 +417,10 @@ function know4pol_search_block_info() {
     'info' => t('Know4pol main search form block'),
     'cache' => DRUPAL_NO_CACHE,
   );
+  $blocks['know4pol_ks_topics'] = array(
+    'info' => t('Know4pol KS topics block'),
+    'cache' => DRUPAL_NO_CACHE,
+  );
   return $blocks;
 }
 
@@ -439,6 +444,75 @@ function know4pol_search_block_view($delta = '') {
       $block['subject'] = '';
       $block['content'] = drupal_render($mainsearchform);
       break;
+
+    case 'know4pol_ks_topics':
+      $block['subject'] = '';
+      $block['content'] = _know4pol_search_topic_dropdown_list();
+      break;
   }
   return $block;
+}
+
+/**
+ * Returns html code for topic dropdown div.
+ */
+function _know4pol_search_topic_dropdown_list() {
+  $html_list = _know4pol_search_links_into_rows(_know4pol_search_get_topics_list());
+  if ($html_list != "") {
+    return '<div class="browse-by">
+              <h3 class="ecl-heading ecl-heading--h3">Browse by : </h3>
+              <button type="button" class="ecl-button ecl-button--primary form-button-submit" id="topic_button">Topics &#9660;</button>
+              <div id="topic-dropdown-list" class="row dropdown-list">
+                <div class="col-sm-12">' . $html_list . '</div>
+              </div>
+            </div>';
+  }
+}
+
+/**
+ * Get allowed search pages on homepage.
+ *
+ * @return array
+ *   Returns list of links to topic pages.
+ */
+function _know4pol_search_get_topics_list() {
+  // Current group id.
+  $group = og_context();
+  $query = new EntityFieldQuery();
+  $result = $query->entityCondition('entity_type', 'node')
+    ->propertyCondition('type', 'topic')
+    ->propertyCondition('status', 1)
+    ->propertyOrderBy('title')
+    ->fieldCondition('og_group_ref', 'target_id', $group['gid'])
+    ->execute();
+  if (empty($result['node'])) {
+    return FALSE;
+  }
+  $nids = array_keys($result['node']);
+  $topics = node_load_multiple($nids);
+  foreach ($topics as $topicnode) {
+    $links[] = l($topicnode->title, 'node/' . $topicnode->nid, array('attributes' => array('class' => array('ecl-link', 'ecl-list-item__link'))));
+  }
+  return $links;
+}
+
+/**
+ * Get allowed search pages on homepage.
+ *
+ * @param array $links
+ *   Links to the nodes.
+ *
+ * @return array
+ *   Returns themed html list of links to topic pages.
+ */
+function _know4pol_search_links_into_rows($links = array()) {
+  $output = "";
+  if (!empty($links)) {
+    $output = '<ul class="ecl-listing ecl-listing--three-columns">';
+    foreach ($links as $link) {
+      $output .= '<li class="ecl-list-item ecl-list-item--three-columns">' . $link . '</li>';
+    }
+    $output .= '</ul>';
+  }
+  return $output;
 }

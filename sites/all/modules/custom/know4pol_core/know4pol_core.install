@@ -153,3 +153,12 @@ function know4pol_core_update_7007() {
     'weight',
   ), TRUE);
 }
+
+/**
+ * Enable weight module.
+ */
+function know4pol_core_update_7008() {
+  module_enable(array(
+    'facetapi_search',
+  ), TRUE);
+}

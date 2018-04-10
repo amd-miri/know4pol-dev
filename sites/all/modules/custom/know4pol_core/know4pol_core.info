@@ -5,4 +5,5 @@ package = JRC
 php = 5.2.4
 features[features_api][] = api:2
 features_exclude[dependencies][ctools] = ctools
+stylesheets[all][] = css/know4pol_core.css
 multisite_version = 2.4
