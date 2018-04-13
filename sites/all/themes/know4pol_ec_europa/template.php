@@ -108,10 +108,15 @@ function know4pol_ec_europa_preprocess_field(&$variables) {
       $variables['element']['#view_mode'];
 
     // Heading of search result.
+    // Beter way would to theme fields in the DS region but seems not possible.
     switch ($variables['element']['#field_name']) {
       case 'node_type_name':
       case 'field_pub_dc_date_created':
       case 'changed_date':
+      case 'field_newsroom_item_type':
+      case 'field_newsroom_item_date':
+      case 'changed_date':
+      case 'created':
         $variables['theme_hook_suggestions'][] = 'field__' . $variables['element']['#view_mode'] .
           '__meta_headers';
         break;
@@ -275,7 +280,11 @@ function know4pol_ec_europa_preprocess_form_element(&$variables) {
  */
 function _know4pol_ec_europa_get_solr_instance() {
   // Checks there is a SolR instance and a search.
-  $searcher = array_values(facetapi_get_active_searchers())[0];
+  $searcher = facetapi_get_active_searchers();
+  if (!isset($searcher) || !count($searcher)) {
+    return NULL;
+  }
+  $searcher = array_values($searcher)[0];
   if (!facetapi_is_active_searcher($searcher)) {
     return NULL;
   }
