@@ -11,6 +11,10 @@
   list-style-type: none;
 }
 
+.region-sidebar-first .block-facetapi ul.facetapi-know4pol-core-ogvocab-list li.ecl-form-label {
+  margin-top: 1rem;
+}
+
 .region-sidebar-first .ecl-form .form-item-facets.ecl-u-mt-m {
   margin-top: 1rem;
 }

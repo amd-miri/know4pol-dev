@@ -501,39 +501,101 @@ function _know4pol_core_freetext_search_form_submit(&$form, &$form_state) {
  */
 function know4pol_core_facet_items_alter(&$build, &$settings) {
   // Content type facet.
-  if ($settings->facet == "bundle") {
-    if (isset($build['newsroom_item'])) {
-      $nr_facet_name = 'im_field_newsroom_item_type';
-      $solr_pages = apachesolr_search_load_all_search_pages();
+  switch ($settings->facet) {
+    case "bundle":
+      if (isset($build['newsroom_item'])) {
+        $nr_facet_name = 'im_field_newsroom_item_type';
+        $solr_pages = apachesolr_search_load_all_search_pages();
 
-      // Split newsroom item in subtypes by getting the term facet.
-      if ($adapter = _know4pol_ec_europa_get_solr_instance()) {
-        $searcher = $adapter->getSearcher();
-        $nr_type = $adapter->getFacet(facetapi_facet_load($nr_facet_name, $searcher));
+        // Split newsroom item in subtypes by getting the term facet.
+        if ($adapter = _know4pol_ec_europa_get_solr_instance()) {
+          $searcher = $adapter->getSearcher();
+          $nr_type = $adapter->getFacet(facetapi_facet_load($nr_facet_name, $searcher));
 
-        foreach ($nr_type->getBuild() as $key => $item) {
-          // Get url for dedicated solR search page.
-          foreach ($solr_pages as $solr_page) {
-            if ($solr_page['label'] == $item['#markup'] || $solr_page['label'] == $item['#markup'] . 's') {
-              $item['#path'] = $solr_page['search_path'];
-              break;
+          foreach ($nr_type->getBuild() as $key => $item) {
+            // Get url for dedicated solR search page.
+            foreach ($solr_pages as $solr_page) {
+              if ($solr_page['label'] == $item['#markup'] || $solr_page['label'] == $item['#markup'] . 's') {
+                $item['#path'] = $solr_page['search_path'];
+                break;
+              }
             }
-          }
 
-          // Remove self since target page is already filtered.
-          // Loop could be avoided if sure that self is always last.
-          foreach ($item['#query']['f'] as $index => $value) {
-            if ($value == $nr_facet_name . ':' . $item['#indexed_value']) {
-              unset($item['#query']['f'][$index]);
-              break;
+            // Remove self since target page is already filtered.
+            // Loop could be avoided if sure that self is always last.
+            foreach ($item['#query']['f'] as $index => $value) {
+              if ($value == $nr_facet_name . ':' . $item['#indexed_value']) {
+                unset($item['#query']['f'][$index]);
+                break;
+              }
             }
-          }
 
-          $build[$key] = $item;
+            $build[$key] = $item;
+          }
         }
+        // Remove original filter anyway.
+        unset($build['newsroom_item']);
       }
-      // Remove original filter anyway.
-      unset($build['newsroom_item']);
-    }
+      break;
   }
+}
+
+/**
+ * Implements hook_facetapi_sort_info().
+ */
+function know4pol_core_facetapi_sort_info() {
+  $sorts = array();
+  $sorts['ogvocab'] = array(
+    'label' => t('OG vocab taxonomy'),
+    'callback' => '_know4pol_core_facetapi_sort_ogvocab',
+    'description' => t('Sort by taxonomy created into OG vocab'),
+    'weight' => -50,
+  );
+
+  return $sorts;
+}
+
+/**
+ * Parse term_id from facetapi indexed term and load term.
+ *
+ * @param string $term_info
+ *   The indexed_term value from facetapi.
+ *
+ * @return object
+ *   The loaded term by taxonomy_term_load().
+ */
+function _know4pol_core_facetapi_load_term($term_info) {
+  // Parse tid from indexed values.
+  if (preg_match('/\:([0-9]+)$/', $term_info, $r) != 1) {
+    return NULL;
+  }
+  return taxonomy_term_load($r[1]);
+}
+
+/**
+ * Facetapi sort, by vid of term.
+ *
+ * @see uasort()
+ */
+function _know4pol_core_facetapi_sort_ogvocab(array $a, array $b) {
+  // Parse tid from indexed values.
+  $a = _know4pol_core_facetapi_load_term($a['#indexed_value']);
+  $b = _know4pol_core_facetapi_load_term($b['#indexed_value']);
+  // Compare vid.
+  return ($a->vid == $b->vid) ? 0 : ($a->vid > $b->vid) ? 1 : -1;
+}
+
+/**
+ * Implements hook_facetapi_widgets().
+ */
+function know4pol_core_facetapi_widgets() {
+  return array(
+    'know4pol_core_ogvocab_list' => array(
+      'handler' => array(
+        'label' => t('OG vocab taxonomy'),
+        'class' => 'Know4polCoreFacetapiWidgetOGVocab',
+        'query types' => array('term'),
+      ),
+    ),
+  );
 }
