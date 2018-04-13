@@ -8,7 +8,7 @@
 /**
  * Facetapi widget that renders facets as list with OG vocab name.
  */
-class FacetapiWidgetOGVocab extends FacetapiWidgetCheckboxLinks {
+class Know4polCoreFacetapiWidgetOGVocab extends FacetapiWidgetCheckboxLinks {
 
   /**
    * Overrides FacetapiWidget::__construct().
@@ -53,7 +53,6 @@ class FacetapiWidgetOGVocab extends FacetapiWidgetCheckboxLinks {
    */
   public function buildListItems(array $build) {
     $settings = $this->settings->settings;
-
     // Initializes links attributes, adds rel="nofollow" if configured.
     $attributes = ($settings['nofollow']) ? array('rel' => 'nofollow') : array();
     $attributes += array('class' => $this->getItemClasses());
@@ -61,8 +60,9 @@ class FacetapiWidgetOGVocab extends FacetapiWidgetCheckboxLinks {
     // Builds rows.
     $items = array();
     $last_vid = NULL;
+    $vid_enable = array();
 
-    foreach ($build as $value => $item) {
+    foreach ($build as $item) {
       $row = array('class' => array());
 
       // Allow adding classes via altering.
@@ -112,22 +112,44 @@ class FacetapiWidgetOGVocab extends FacetapiWidgetCheckboxLinks {
       // Themes the link, adds row to items.
       $row['data'] = theme($item['#theme'], $variables);
 
-      // Display Taxonomy title if setting enabled.
-      if (!empty($settings['show_subtaxonomies'])) {
-        // Get vid of term.
-        $term = _know4pol_core_facetapi_load_term($item['#indexed_value']);
-        // If vid id different.
-        if ($last_vid != $term->vid) {
-          // Get the title for this vid.
-          $voc = taxonomy_vocabulary_load($term->vid);
-          $items[] = array(
-            'class' => array('leaf', 'ecl-form-label'),
-            'data' => $voc->name,
+      // Get vid of term.
+      $term = _know4pol_core_facetapi_load_term($item['#indexed_value']);
+      // Don't we know this vid already ?
+      if (!array_key_exists($term->vid, $vid_enable)) {
+        // Is this vocabulary par of the current OG ?
+        $gid = og_vocab_relation_get($term->vid);
+        if (!isset($gid->gid) || $gid->gid != $this->getGidFromQueryContext($item['#query']['f'])) {
+          $vid_enable[$term->vid] = array(
+            'enable' => FALSE,
           );
-          $last_vid = $term->vid;
+        }
+        else {
+          // Allow and load name.
+          $voc = taxonomy_vocabulary_load($term->vid);
+          $vid_enable[$term->vid] = array(
+            'enable' => TRUE,
+            'title' => $voc->name,
+          );
         }
       }
-      $items[] = $row;
+
+      // If term allowed (part of OG group).
+      if ($vid_enable[$term->vid]['enable']) {
+        // Display Taxonomy title if setting enabled.
+        if (!empty($settings['show_subtaxonomies'])) {
+
+          // If vid id different.
+          if ($last_vid != $term->vid) {
+            // Get the title for this vid.
+            $items[] = array(
+              'class' => array('leaf', 'ecl-form-label'),
+              'data' => $voc->name,
+            );
+            $last_vid = $term->vid;
+          }
+        }
+        $items[] = $row;
+      }
     }
     return $items;
   }
@@ -152,6 +174,24 @@ class FacetapiWidgetOGVocab extends FacetapiWidgetCheckboxLinks {
       '#default_value' => !empty($this->settings->settings['show_subtaxonomies']) ? $this->settings->settings['show_subtaxonomies'] : FALSE,
       '#states' => $states,
     );
+  }
+
+  /**
+   * Get gid from query array for a term.
+   *
+   * @param array $f
+   *   The f from query in facetapi item.
+   *
+   * @return string
+   *   The group_ref (node number)
+   */
+  private function getGidFromQueryContext(array $f) {
+    foreach ($f as $s) {
+      if (preg_match('/^sm_og_group_ref\:node\:([0-9]+)$/', $s, $r)) {
+        return $r[1];
+      }
+    }
+    return NULL;
   }
 
 }

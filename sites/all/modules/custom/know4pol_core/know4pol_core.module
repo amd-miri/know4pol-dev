@@ -593,7 +593,7 @@ function know4pol_core_facetapi_widgets() {
     'know4pol_core_ogvocab_list' => array(
       'handler' => array(
         'label' => t('OG vocab taxonomy'),
-        'class' => 'FacetapiWidgetOGVocab',
+        'class' => 'Know4polCoreFacetapiWidgetOGVocab',
         'query types' => array('term'),
       ),
     ),

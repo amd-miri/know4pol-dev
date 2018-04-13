@@ -5,6 +5,6 @@ package = JRC
 php = 5.2.4
 features[features_api][] = api:2
 features_exclude[dependencies][ctools] = ctools
-files[] = plugins/facetapi/FacetapiWidgetOGVocab.inc
+files[] = plugins/facetapi/Know4polCoreFacetapiWidgetOGVocab.inc
 stylesheets[all][] = css/know4pol_core.css
 multisite_version = 2.4
