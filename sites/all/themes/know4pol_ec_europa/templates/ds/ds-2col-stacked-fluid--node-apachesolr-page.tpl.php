@@ -25,7 +25,7 @@
     <<?php print $left_wrapper ?> class="group-left<?php print $left_classes; ?>">
       <?php print $left; ?>
     </<?php print $left_wrapper ?>>
-  <?php endif; ?>
+  <?php endif; ?> 
 
   <?php if ($right): ?>
     <<?php print $right_wrapper ?> class="group-right<?php print $right_classes; ?>">
