@@ -32,9 +32,11 @@ class Know4polCoreFacetapiWidgetOGVocab extends FacetapiWidgetCheckboxLinks {
 
     // Sets each item's theme hook, builds item list.
     $this->setThemeHooks($element);
+    $items = $this->buildListItems($element);
     $element = array(
-      '#theme' => 'item_list',
-      '#items' => $this->buildListItems($element),
+      // If items are still in the list theme it.
+      '#theme' => (count($items) ? 'item_list' : NULL),
+      '#items' => $items,
       '#attributes' => $this->build['#attributes'],
     );
   }
@@ -45,13 +47,9 @@ class Know4polCoreFacetapiWidgetOGVocab extends FacetapiWidgetCheckboxLinks {
    * The recursion allows this function to act on the various levels of a
    * hierarchical data set.
    *
-   * @param array $build
-   *   The items in the facet's render array being transformed.
-   *
-   * @return array
-   *   The "items" parameter for theme_item_list().
+   * @see FacetapiWidgetLinks::buildListItems()
    */
-  public function buildListItems(array $build) {
+  public function buildListItems($build) {
     $settings = $this->settings->settings;
     // Initializes links attributes, adds rel="nofollow" if configured.
     $attributes = ($settings['nofollow']) ? array('rel' => 'nofollow') : array();
