@@ -172,4 +172,8 @@
 </main>
 
 <?php print render($footer); ?>
-<script>document.addEventListener('DOMContentLoaded', function () { ECL.initExpandables(); ECL.navigationInpages(); });</script>
+<script>document.addEventListener('DOMContentLoaded', function () { 
+    ECL.initExpandables(); 
+    ECL.navigationInpages();
+    ECL.tabs();
+ });</script>
