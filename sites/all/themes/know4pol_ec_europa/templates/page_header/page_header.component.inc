@@ -95,13 +95,11 @@ function know4pol_ec_europa_preprocess_page_header(&$variables, $hook) {
     // And custom title.
     $id_suffix = $variables['identity'];
     // If in a KS search, append name of KS to title.
-    if ($adapter = _know4pol_ec_europa_get_solr_instance()) {
-      $searcher = $adapter->getSearcher();
-      if ($facet = facetapi_facet_load('sm_og_group_ref', $searcher)) {
-        if ($value = $adapter->getActiveItems($facet)) {
-          $value = $adapter->getMappedValue('sm_og_group_ref', key($value));
-          $id_suffix = $value['#markup'];
-        }
+    $searcher = $adapter->getSearcher();
+    if ($facet = facetapi_facet_load('sm_og_group_ref', $searcher)) {
+      if ($value = $adapter->getActiveItems($facet)) {
+        $value = $adapter->getMappedValue('sm_og_group_ref', key($value));
+        $id_suffix = $value['#markup'];
       }
     }
     $variables['title'] = t('Search') . ' ' . $id_suffix;
