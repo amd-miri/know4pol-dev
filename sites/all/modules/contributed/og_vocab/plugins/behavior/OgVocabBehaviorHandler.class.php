@@ -25,6 +25,7 @@ class OgVocabBehaviorHandler extends EntityReference_BehaviorHandler_Abstract {
         'force' => t('Hide widget if no context found'),
         'yes' => t('Use if possible'),
         'no' => t('Do not use'),
+        'custom' => t('Use custom argument'),
       ),
       '#description' => t('Should the OG vocabularies appear according to OG context. Depends on OG-context module.'),
       '#default_value' => $settings['use_context'],

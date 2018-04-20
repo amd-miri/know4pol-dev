@@ -30,28 +30,28 @@
   margin-top: 20px;
 }
 
-#topic-dropdown-list {
+.browse-by-block {
+  margin: 1rem 0;
+}
+
+.browse-by-block h3 {
+  margin-bottom: 0.8rem;
+}
+
+.browse-by-block .dropdown-list {
   background-color: #004494;
   display: none;
   margin: 0;
 }
 
-#topic-dropdown-list a {
+.browse-by-block .dropdown-list a {
   color: white;
 }
 
-#topic-dropdown-list p {
+.browse-by-block .dropdown-list p {
   color: white;
 }
 
-#topic-dropdown-list a:hover {
+.browse-by-block .dropdown-list a:hover {
   text-decoration: underline;
-}
-
-.browse-by {
-  margin: 1rem 0;
-}
-
-.browse-by h3 {
-  margin-bottom: 0.8rem;
 }
