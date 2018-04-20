@@ -421,6 +421,10 @@ function know4pol_search_block_info() {
     'info' => t('Know4pol KS topics block'),
     'cache' => DRUPAL_NO_CACHE,
   );
+  $blocks['know4pol_ks_countries'] = array(
+    'info' => t('Know4pol KS countries block'),
+    'cache' => DRUPAL_NO_CACHE,
+  );
   return $blocks;
 }
 
@@ -446,8 +450,13 @@ function know4pol_search_block_view($delta = '') {
       break;
 
     case 'know4pol_ks_topics':
-      $block['subject'] = '';
-      $block['content'] = _know4pol_search_topic_dropdown_list();
+      $block['subject'] = 'Browse by :';
+      $block['content'] = _know4pol_search_topics_dropdown_list();
+      break;
+
+    case 'know4pol_ks_countries':
+      $block['subject'] = 'Browse by :';
+      $block['content'] = _know4pol_search_countries_dropdown_list();
       break;
   }
   return $block;
@@ -456,13 +465,12 @@ function know4pol_search_block_view($delta = '') {
 /**
  * Returns html code for topic dropdown div.
  */
-function _know4pol_search_topic_dropdown_list() {
+function _know4pol_search_topics_dropdown_list() {
   $html_list = _know4pol_search_links_into_rows(_know4pol_search_get_topics_list());
   if ($html_list != "") {
-    return '<div class="browse-by">
-              <h3 class="ecl-heading ecl-heading--h3">Browse by : </h3>
+    return '<div class="browse-by-block">
               <button type="button" class="ecl-button ecl-button--primary form-button-submit" id="topic_button">Topics &#9660;</button>
-              <div id="topic-dropdown-list" class="row dropdown-list">
+              <div id="topics-dropdown-list" class="row dropdown-list">
                 <div class="col-sm-12">' . $html_list . '</div>
               </div>
             </div>';
@@ -470,7 +478,7 @@ function _know4pol_search_topic_dropdown_list() {
 }
 
 /**
- * Get allowed search pages on homepage.
+ * Get the list of topics related to an OG.
  *
  * @return array
  *   Returns list of links to topic pages.
@@ -479,6 +487,7 @@ function _know4pol_search_get_topics_list() {
   // Current group id.
   $group = og_context();
   $query = new EntityFieldQuery();
+  $result = array();
   $result = $query->entityCondition('entity_type', 'node')
     ->propertyCondition('type', 'topic')
     ->propertyCondition('status', 1)
@@ -486,12 +495,12 @@ function _know4pol_search_get_topics_list() {
     ->fieldCondition('og_group_ref', 'target_id', $group['gid'])
     ->execute();
   if (empty($result['node'])) {
-    return FALSE;
+    return $result;
   }
   $nids = array_keys($result['node']);
   $topics = node_load_multiple($nids);
-  foreach ($topics as $topicnode) {
-    $links[] = l($topicnode->title, 'node/' . $topicnode->nid, array('attributes' => array('class' => array('ecl-link', 'ecl-list-item__link'))));
+  foreach ($topics as $topic) {
+    $links[] = l($topic->title, 'node/' . $topic->nid, array('attributes' => array('class' => array('ecl-link', 'ecl-list-item__link'))));
   }
   return $links;
 }
@@ -505,7 +514,7 @@ function _know4pol_search_get_topics_list() {
  * @return array
  *   Returns themed html list of links to topic pages.
  */
-function _know4pol_search_links_into_rows($links = array()) {
+function _know4pol_search_links_into_rows(array $links = array()) {
   $output = "";
   if (!empty($links)) {
     $output = '<ul class="ecl-listing ecl-listing--three-columns">';
@@ -515,4 +524,47 @@ function _know4pol_search_links_into_rows($links = array()) {
     $output .= '</ul>';
   }
   return $output;
+}
+
+/**
+ * Returns html code for countries dropdown div.
+ */
+function _know4pol_search_countries_dropdown_list() {
+  $html_list = _know4pol_search_links_into_rows(_know4pol_search_get_countries_list());
+  if ($html_list != "") {
+    return '<div class="browse-by-block">
+              <button type="button" class="ecl-button ecl-button--primary form-button-submit" id="country_button">Countries &#9660;</button>
+              <div id="countries-dropdown-list" class="row dropdown-list">
+                <div class="col-sm-12">' . $html_list . '</div>
+              </div>
+            </div>';
+  }
+}
+
+/**
+ * Get the list of countries related to an OG.
+ *
+ * @return array
+ *   Returns list of links to country pages.
+ */
+function _know4pol_search_get_countries_list() {
+  // Current group id.
+  $group = og_context();
+  $query = new EntityFieldQuery();
+  $result = array();
+  $result = $query->entityCondition('entity_type', 'node')
+    ->propertyCondition('type', 'country')
+    ->propertyCondition('status', 1)
+    ->propertyOrderBy('title')
+    ->fieldCondition('og_group_ref', 'target_id', $group['gid'])
+    ->execute();
+  if (empty($result['node'])) {
+    return $result;
+  }
+  $nids = array_keys($result['node']);
+  $countries = node_load_multiple($nids);
+  foreach ($countries as $country) {
+    $links[] = l($country->title, 'node/' . $country->nid, array('attributes' => array('class' => array('ecl-link', 'ecl-list-item__link'))));
+  }
+  return $links;
 }

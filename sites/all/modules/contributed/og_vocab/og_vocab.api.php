@@ -29,3 +29,18 @@ function hook_og_vocab_is_admin_context() {
 /**
  * @} End of "addtogroup hooks".
  */
+
+ /**
+ * Implements og_vocab_get_accessible_vocabs_alter().
+ */
+function hook_og_vocab_get_accessible_vocabs_alter(&$result) {
+
+  $query = db_select('og_vocab_relation', 'ogr');
+  $query->fields('ogr', array('vid'));
+  // Join with the OG-vocab.
+  $query->innerJoin('og_vocab', 'ogv', 'ogr.vid = ogv.vid');
+  $query->condition('ogv.entity_type', 'node');
+  $result = $query
+    ->execute()
+    ->fetchAllAssoc('vid');
+}

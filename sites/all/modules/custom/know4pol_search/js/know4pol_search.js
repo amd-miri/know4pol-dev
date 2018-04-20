@@ -1,21 +1,29 @@
 /**
  * @file
- * JS file for the Topic browser.
+ * JS file for the Topics and countries browsers.
  */
 
 (function ($) {
-  Drupal.behaviors.know4pol4SearchTopicBrowser = {
+  Drupal.behaviors.know4pol4SearchBrowser = {
     attach: function (context, settings) {
       $("button#topic_button").click(function () {
         if ($(this).html() == 'Topics ▲') {
           $(this).html('Topics ▼');
-          $("#country-dropdown-list").slideUp();
-          $("#topic-dropdown-list").slideUp();
+          $("#topics-dropdown-list").slideUp();
         }
         else {
           $(this).html('Topics ▲');
-          $("#topic-dropdown-list").slideDown();
-          $("#country-dropdown-list").slideUp();
+          $("#topics-dropdown-list").slideDown();
+        }
+      });
+      $("button#country_button").click(function () {
+        if ($(this).html() == 'Countries ▲') {
+          $(this).html('Countries ▼');
+          $("#countries-dropdown-list").slideUp();
+        }
+        else {
+          $(this).html('Countries ▲');
+          $("#countries-dropdown-list").slideDown();
         }
       });
     }
