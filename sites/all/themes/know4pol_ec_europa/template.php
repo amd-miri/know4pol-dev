@@ -216,20 +216,44 @@ function _know4pol_ec_europa_preprocess_node_file__field_file(array $field_is_le
 function _know4pol_ec_europa_preprocess_field__field_vis_data_url__visualisation(array &$variables) {
   $el = &$variables['items'][0]['#element'];
   $el['v_type'] = $variables['element']['#object']->field_vis_type[LANGUAGE_NONE][0]['value'];
-
   // Build data paramters for the visualisation types.
   switch ($el['v_type']) {
     case "Tableau":
       $matches = array();
       if (preg_match('/(.*?ec\.europa\.eu)(\/t\/.*?)\/.*?\/([^\?]+)/', $el['url'], $matches)) {
-        $el['thost'] = urlencode($matches[1] . '/');
-        $el['troot'] = htmlentities($matches[2]);
-        $el['tname'] = htmlentities($matches[3]);
+        // Default object parameters.
+        $parameters = array(
+          'host_url' => urlencode($matches[1] . '/'),
+          'site_root' => htmlentities($matches[2]),
+          'name' => htmlentities($matches[3]),
+          'embed_code_version' => '3',
+          'tabs' => 'no',
+          'toolbar' => 'yes',
+          'showAppBanner' => 'false',
+        );
+
+        $filters = array();
+        // May override default param from url.
+        foreach (drupal_parse_url($el['url'])['query'] as $key => $value) {
+          // Filter or parameter ? Tableau uses ':' for param.
+          if ($key[0] == ':') {
+            $parameters[substr($key, 1)] = $value;
+          }
+          else {
+            $filters[] = urlencode($key) . '=' . urlencode($value);
+          }
+        }
+        if (count($filters)) {
+          $parameters['filter'] = implode("&", $filters);
+        }
+        $el['param'] = $parameters;
       }
       break;
 
     case "Highcharts":
-      // No preprocess.
+    case "Image":
+      // No preprocess yet.
+      // Image could copy first image into previsualisation if empty.
       break;
   }
 }

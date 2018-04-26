@@ -6,6 +6,8 @@
  */
 ?>
 
+
+
 <div<?php print $atomium['attributes']['wrapper']; ?> style="width:100%">
   <div class="ecl-field__label"><?php print $label ?></div>
   <div class="ecl-field__body">
@@ -14,13 +16,9 @@
       <?php if ($item['#element']['v_type'] == "Tableau"): ?>
         <div class='tableauPlaceholder' style='width: 100%; height: 1024px;'>
           <object class='tableauViz' width='100%' height='1024' style='display:none;'>
-            <param name='host_url' value='<?php print $item['#element']['thost']; ?>' /> 
-            <param name='site_root' value='<?php print $item['#element']['troot']; ?>' />
-            <param name='name' value='<?php print $item['#element']['tname']; ?>' />
-            <param name='embed_code_version' value='3' /> 
-            <param name='tabs' value='no' />
-            <param name='toolbar' value='yes' />
-            <param name='showAppBanner' value='false' />
+            <?php foreach ($item['#element']['param'] as $pname => $pvalue): ?>
+              <param name='<?php print $pname ?>' value='<?php print $pvalue ?>' />
+            <?php endforeach; ?> 
           </object>
         </div>
         <?php elseif ($item['#element']['v_type'] == "Highcharts"): ?>
