@@ -59,7 +59,6 @@ class Know4polCoreEclTabs extends QuickRenderer {
    */
   protected function buildTabLinks($active_tab) {
     $quickset = $this->quickset;
-    $settings = $quickset->getSettings();
     $qname = $quickset->getName();
 
     $tabs = array();
