@@ -707,7 +707,27 @@ function know4pol_core_apachesolr_query_prepare($query) {
   switch ($menu_item['map'][0]) {
     case 'events':
     case 'news':
-      $query->setSolrsort('field_newsroom_item_date', 'desc');
+      $query->setAvailableSort('ds_field_newsroom_item_date', array('title' => t('NR Date'), 'default' => 'desc'));
+      $query->setSolrsort('ds_field_newsroom_item_date', 'desc');
+  }
+}
+
+/**
+ * Implements hook_apachesolr_query_alter().
+ */
+function know4pol_core_apachesolr_query_alter($query) {
+  $query->addParam('fl', 'ds_field_newsroom_item_date');
+}
+
+/**
+ * Implements hook_apachesolr_index_document_build_node().
+ */
+function know4pol_core_apachesolr_index_document_build_node(ApacheSolrDocument $document, $entity, $entity_type) {
+
+  switch ($entity->type) {
+    case 'newsroom_item':
+      // Add signle field newsroom date in SolR index.
+      $document->addField('ds_field_newsroom_item_date', apachesolr_date_iso($entity->field_newsroom_item_date[LANGUAGE_NONE][0]['value']));
   }
 }
 
