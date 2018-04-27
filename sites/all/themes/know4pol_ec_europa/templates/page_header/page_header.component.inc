@@ -59,7 +59,7 @@ function know4pol_ec_europa_preprocess_page_header(&$variables, $hook) {
     // Specific for those types.
     switch ($node->type) {
       case 'newsroom_item':
-        if (!empty($node->field_ntermewsroom_teaser[$node->language][0]['value'])) {
+        if (!empty($node->field_newsroom_teaser[$node->language][0]['value'])) {
           $variables['introduction'] = filter_xss($node->field_newsroom_teaser[$node->language][0]['value']);
         }
         if (isset($node->field_newsroom_item_type[LANGUAGE_NONE][0]['tid'])) {
