@@ -62,8 +62,8 @@ function know4pol_ec_europa_preprocess_page_header(&$variables, $hook) {
         if (!empty($node->field_newsroom_teaser[$node->language][0]['value'])) {
           $variables['introduction'] = filter_xss($node->field_newsroom_teaser[$node->language][0]['value']);
         }
-        if (isset($node->field_newsroom_item_type[LANGUAGE_NONE][0]['taxonomy_term']->name)) {
-          $variables['meta']['#type'] = $node->field_newsroom_item_type[LANGUAGE_NONE][0]['taxonomy_term']->name;
+        if (isset($node->field_newsroom_item_type[LANGUAGE_NONE][0]['tid'])) {
+          $variables['meta']['#type'] = taxonomy_term_load($node->field_newsroom_item_type[LANGUAGE_NONE][0]['tid'])->name;
           if ($variables['meta']['#type'] == "Event") {
             // Events subtybe has different dates and a location.
             $variables['meta']['#date'] = _know4pol_ec_europa_format_dates_start_end($node->field_newsroom_item_date[LANGUAGE_NONE][0]);
@@ -77,8 +77,8 @@ function know4pol_ec_europa_preprocess_page_header(&$variables, $hook) {
         break;
 
       case 'publication':
-        if (isset($node->field_pub_type[LANGUAGE_NONE][0]['taxonomy_term']->name)) {
-          $variables['meta']['#type'] = $node->field_pub_type[LANGUAGE_NONE][0]['taxonomy_term']->name;
+        if (isset($node->field_pub_type[LANGUAGE_NONE][0]['tid'])) {
+          $variables['meta']['#type'] = taxonomy_term_load($node->field_pub_type[LANGUAGE_NONE][0]['tid'])->name;
         }
         if (!empty($node->field_pub_dc_descrip_abstract[LANGUAGE_NONE][0]['value'])) {
           $variables['introduction'] = $node->field_pub_dc_descrip_abstract[LANGUAGE_NONE][0]['value'];
