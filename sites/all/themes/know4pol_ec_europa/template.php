@@ -237,7 +237,7 @@ function _know4pol_ec_europa_preprocess_field__field_vis_data_url__visualisation
         foreach (drupal_parse_url($el['url'])['query'] as $key => $value) {
           // Filter or parameter ? Tableau uses ':' for param.
           if ($key[0] == ':') {
-            $parameters[substr($key, 1)] = $value;
+            $parameters[drupal_substr($key, 1)] = $value;
           }
           else {
             $filters[] = urlencode($key) . '=' . urlencode($value);

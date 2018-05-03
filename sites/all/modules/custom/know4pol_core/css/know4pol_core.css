@@ -1,6 +1,11 @@
 .region-utility {
   background-color: #ffd617;
+  display: flex;
   padding: 10px;
+}
+
+.region-utility p {
+  margin: 0 0 0 10px;
 }
 
 .wtShareList {

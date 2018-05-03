@@ -18,7 +18,7 @@
           <object class='tableauViz' width='100%' height='1024' style='display:none;'>
             <?php foreach ($item['#element']['param'] as $pname => $pvalue): ?>
               <param name='<?php print $pname ?>' value='<?php print $pvalue ?>' />
-            <?php endforeach; ?> 
+            <?php endforeach; ?>
           </object>
         </div>
         <?php elseif ($item['#element']['v_type'] == "Highcharts"): ?>
@@ -26,7 +26,7 @@
           <div id="chart_container"></div>
           <div id="chart_data_set" style="text-align: center; padding-top: 1em;"></div>
         </div>
-        <script type="application/json">{ 
+        <script type="application/json">{
           "service": "charts",
           "provider": "highcharts",
           "custom": "<?php print $item['#element']['url']; ?>"

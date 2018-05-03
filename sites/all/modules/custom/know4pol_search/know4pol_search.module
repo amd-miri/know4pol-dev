@@ -450,12 +450,12 @@ function know4pol_search_block_view($delta = '') {
       break;
 
     case 'know4pol_ks_topics':
-      $block['subject'] = 'Browse by :';
+      $block['subject'] = '<h3 class="ecl-list-item__title ecl-heading ecl-heading--h3">Browse by :</h3>';
       $block['content'] = _know4pol_search_topics_dropdown_list();
       break;
 
     case 'know4pol_ks_countries':
-      $block['subject'] = 'Browse by :';
+      $block['subject'] = '<h3 class="ecl-list-item__title ecl-heading ecl-heading--h3">Browse by :</h3>';
       $block['content'] = _know4pol_search_countries_dropdown_list();
       break;
   }

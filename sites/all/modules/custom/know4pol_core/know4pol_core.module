@@ -510,6 +510,10 @@ function know4pol_core_block_info() {
     'info' => t('Apache Solr Search Block'),
     'cache' => DRUPAL_NO_CACHE,
   );
+  $blocks['know4pol_ks_latest_content'] = array(
+    'info' => t('Know4pol KS latest content block'),
+    'cache' => DRUPAL_NO_CACHE,
+  );
   return $blocks;
 }
 
@@ -528,6 +532,32 @@ function know4pol_core_block_view($delta = '') {
       }
       $block_content = drupal_get_form('_know4pol_core_freetext_search_form', $keys);
       $block['content'] = drupal_render($block_content);
+      break;
+
+    case 'know4pol_ks_latest_content':
+      $block['content'] = '<ul class="ecl-listing ecl-listing--three-columns">';
+      $item = menu_get_item();
+      if (!empty($item['page_arguments'][0]->nid)) {
+        // Block 1 : latest news.
+        $view1 = views_get_view_result('ks_latest_content', 'latest_news', $item['page_arguments'][0]->nid);
+        if (count($view1)) {
+          $block_latest_news = views_embed_view('ks_latest_content', 'latest_news', $item['page_arguments'][0]->nid);
+          $block['content'] .= '<li class="ecl-list-item ecl-list-item--three-columns"><div class="ecl-list-item__body"><h3 class="ecl-list-item__title ecl-heading ecl-heading--h3">Latest News</h3>' . $block_latest_news . '</div></li>';
+        }
+        // Block 2 : next events.
+        $view2 = views_get_view_result('ks_latest_content', 'next_events', $item['page_arguments'][0]->nid);
+        if (count($view2)) {
+          $block_next_events = views_embed_view('ks_latest_content', 'next_events', $item['page_arguments'][0]->nid);
+          $block['content'] .= '<li class="ecl-list-item ecl-list-item--three-columns"><div class="ecl-list-item__body"><h3 class="ecl-list-item__title ecl-heading ecl-heading--h3">Next Events</h3>' . $block_next_events . '</div></li>';
+        }
+        // Block 3 : latest resources.
+        $view3 = views_get_view_result('ks_latest_content', 'latest_resources', $item['page_arguments'][0]->nid);
+        if (count($view3)) {
+          $block_latest_resources = views_embed_view('ks_latest_content', 'latest_resources', $item['page_arguments'][0]->nid);
+          $block['content'] .= '<li class="ecl-list-item ecl-list-item--three-columns"><div class="ecl-list-item__body"><h3 class="ecl-list-item__title ecl-heading ecl-heading--h3">Latest Resources</h3>' . $block_latest_resources . '</div></li>';
+        }
+        $block['content'] .= '</ul>';
+      }
       break;
   }
   return $block;
