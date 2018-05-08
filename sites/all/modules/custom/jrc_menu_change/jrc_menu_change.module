@@ -1,0 +1,18 @@
+<?php
+
+/**
+ * @file
+ * Code for altering the menu.
+ */
+
+function jrc_menu_change_menu_alter(&$items) {
+  global $user;
+  $user_roles = array_values($user->roles);
+  
+ if (!in_array('administrator', $user_roles)) {
+  unset($items['node/add']);
+}
+  
+}
+
+
