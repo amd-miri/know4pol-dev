@@ -1,4 +1,0 @@
-name = jrc_menu_change
-description = change the administration menu link
-core = 7.x
-package = JRC
