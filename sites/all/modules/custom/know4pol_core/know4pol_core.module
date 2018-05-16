@@ -780,7 +780,7 @@ function know4pol_core_quicktabs_renderers() {
 /**
 * Implements hook_menu_alter().
 */
-function jrc_menu_change_menu_alter(&$items) {
+function know4pol_core_menu_alter(&$items) {
   global $user;
   $user_roles = array_values($user->roles);
   //will only show link if the user has admin role
