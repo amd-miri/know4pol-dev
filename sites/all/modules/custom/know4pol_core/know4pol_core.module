@@ -81,6 +81,10 @@ function know4pol_core_og_permission() {
     'menu OG view unpublished' => array(
       'title' => t('View OG unpublished menu links'),
     ),
+    'assign publication to ks' => array(
+      'title' => t('Assign publication to KS'),
+      'description' => t('Assign publication to the current KS'),
+    ),
   );
 }
 
@@ -787,4 +791,75 @@ function know4pol_core_menu_alter(&$items) {
  if (!in_array('administrator', $user_roles)) {
   unset($items['node/add']);
  }
+}
+
+/**
+ * Implements hook_action_info().
+ */
+function know4pol_core_action_info() {
+  return array(
+    'know4pol_core_assign_ks_action' => array(
+      'type' => 'entity',
+      'label' => t('Assign publication to current KS'),
+      'behavior' => array('changes_property'),
+      'configurable' => FALSE,
+      'vbo_configurable' => FALSE,
+      'triggers' => array('any'),
+    ),
+    'know4pol_core_unassign_ks_action' => array(
+      'type' => 'entity',
+      'label' => t('Unassign publication from current KS'),
+      'behavior' => array('changes_property'),
+      'configurable' => FALSE,
+      'vbo_configurable' => FALSE,
+      'triggers' => array('any'),
+    ),
+
+  );
+}
+
+/**
+ * The action function for know4pol_ks_action_info
+ */
+
+function know4pol_core_assign_ks_action(&$entity, $context) {
+  $target_group_id = $context['view_info']['arguments'][0];
+  $next = count($entity->og_group_ref[LANGUAGE_NONE]);
+  $entity->og_group_ref[LANGUAGE_NONE][$next]['target_id'] = $target_group_id;
+  $values = array('entity type' => 'node', 'entity' => $entity, 'state' => OG_STATE_ACTIVE);
+  og_group('node', $target_group_id, $values);
+  node_save($entity);
+  return;
+}
+
+/**
+ * The action function for know4pol_ks_action_info
+ */
+
+function know4pol_core_unassign_ks_action(&$entity, $context) {
+  $target_group_id = $context['view_info']['arguments'][0];
+  $og_array = $entity->og_group_ref[LANGUAGE_NONE];
+  foreach($og_array as $key => $value) {
+    if ($value['target_id'] == $target_group_id) {
+      unset($og_array[$key]);
+    }
+  }
+  $entity->og_group_ref[LANGUAGE_NONE] = array_values($og_array);
+  node_save($entity);
+  return;
+}
+
+/**
+ * Implements hook_og_ui_get_group_admin().
+ */
+function know4pol_core_og_ui_get_group_admin($group_type, $gid) {
+  $items = array();
+  if (og_user_access($group_type, $gid, 'assign publication to ks')) {
+    $items['publication_assignment'] = array(
+      'title' => t('Assign publication'),
+      'description' => t('Assign publications to your Knowledge Service'),
+      'href' => 'admin/publication-assignment',
+    );
+  }
+  return $items;
 }
