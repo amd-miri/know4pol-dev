@@ -106,7 +106,6 @@ function know4pol_ec_europa_preprocess_field(&$variables) {
     $variables['theme_hook_suggestions'][] = 'field__' .
       $variables['element']['#field_name'] . '__' .
       $variables['element']['#view_mode'];
-
     // Heading of search result.
     // Beter way would to theme fields in the DS region but seems not possible.
     switch ($variables['element']['#field_name']) {
@@ -122,7 +121,14 @@ function know4pol_ec_europa_preprocess_field(&$variables) {
         break;
     }
   }
-
+  // Need to check that we have an event or news item
+  $start_date = $variables['element']['#object']->field_newsroom_item_date['und'][0]['value'];
+  $date_start[]= date('D', $start_date);
+  $date_start[] = date('j', $start_date);
+  $date_start[]  = date('M', $start_date);
+  $variables['newsroom_type'] = $variables['element']['#object']->field_newsroom_item_type['und'][0]['taxonomy_term']->name;
+  $variables['event_start_date'] = $date_start;
+  
   // Custom hook for specific fields.
   if ($variables['element']['#field_name'] == 'field_vis_data_url') {
     _know4pol_ec_europa_preprocess_field__field_vis_data_url__visualisation($variables);
