@@ -27,8 +27,9 @@ ul li.leaf {
 .ecl-date-block {
     float:left;
     margin-right:1rem;
+    margin-bottom:1.6rem;
 }
 
-.group-left{
-    height:6rem;
+.ecl-u-mt-m{
+    clear:both;
 }
