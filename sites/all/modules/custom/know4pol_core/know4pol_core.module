@@ -577,15 +577,32 @@ function know4pol_core_block_view($delta = '') {
 }
 
 /**
+ * Prepares menu array for theming.
  *
+ * @param array $menu_name
+ *   Machine name of KS admin menu.
+ *
+ * @return array
+ *   Generated menu array.
  */
-function _know4pol_core_get_ks_admin_menu($menu_name) {
+function _know4pol_core_get_ks_admin_menu(array $menu_name) {
   $loaded_menu = menu_tree_all_data($menu_name);
   foreach ($loaded_menu as $loaded_menu_parent_item) {
     $child_items = $loaded_menu_parent_item['below'];
     if (!empty($child_items)) {
       foreach ($child_items as $child_item) {
-        $links[] = l($child_item['link']['link_title'], $child_item['link']['href'], array('attributes' => array('class' => array('ecl-link', 'ecl-link--standalone', 'ecl-link-block__link'))));
+        $attributes = array(
+          'attributes' =>
+            array(
+              'class' =>
+                array(
+                  'ecl-link',
+                  'ecl-link--standalone',
+                  'ecl-link-block__link',
+                ),
+            ),
+        );
+        $links[] = l($child_item['link']['link_title'], $child_item['link']['href'], $attributes);
       }
     }
     else {
@@ -599,9 +616,15 @@ function _know4pol_core_get_ks_admin_menu($menu_name) {
 }
 
 /**
+ * Wraps links into seto of buttons and dropdowns.
  *
+ * @param array $menuarray
+ *   Generated menu array.
+ *
+ * @return string
+ *   Generated menu.
  */
-function _know4pol_core_theme_ks_admin_menu($menuarray) {
+function _know4pol_core_theme_ks_admin_menu(array $menuarray) {
 
   $output = '<aside class="region-utility" role="complementary">';
   foreach ($menuarray as $parent) {
