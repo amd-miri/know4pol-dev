@@ -518,6 +518,11 @@ function know4pol_core_block_info() {
     'info' => t('Know4pol KS latest content block'),
     'cache' => DRUPAL_NO_CACHE,
   );
+  $blocks['know4pol_ks_admin_menu'] = array(
+    'info' => t('Know4pol KS admin block'),
+    'cache' => DRUPAL_NO_CACHE,
+  );
+
   return $blocks;
 }
 
@@ -563,8 +568,83 @@ function know4pol_core_block_view($delta = '') {
         $block['content'] .= '</ul>';
       }
       break;
+
+    case 'know4pol_ks_admin_menu':
+      $block['content'] = _know4pol_core_theme_ks_admin_menu(_know4pol_core_get_ks_admin_menu('menu-ks-admin-menu'));
+      break;
   }
   return $block;
+}
+
+/**
+ * Prepares menu array for theming.
+ *
+ * @param array $menu_name
+ *   Machine name of KS admin menu.
+ *
+ * @return array
+ *   Generated menu array.
+ */
+function _know4pol_core_get_ks_admin_menu(array $menu_name) {
+  $loaded_menu = menu_tree_all_data($menu_name);
+  foreach ($loaded_menu as $loaded_menu_parent_item) {
+    $child_items = $loaded_menu_parent_item['below'];
+    if (!empty($child_items)) {
+      foreach ($child_items as $child_item) {
+        $attributes = array(
+          'attributes' =>
+            array(
+              'class' =>
+                array(
+                  'ecl-link',
+                  'ecl-link--standalone',
+                  'ecl-link-block__link',
+                ),
+            ),
+        );
+        $links[] = l($child_item['link']['link_title'], $child_item['link']['href'], $attributes);
+      }
+    }
+    else {
+      $links = '';
+    }
+    $output[$loaded_menu_parent_item['link']['link_title']]['title'] = $loaded_menu_parent_item['link']['link_title'];
+    $output[$loaded_menu_parent_item['link']['link_title']]['link'] = '<a class="ecl-button ecl-button--primary" href="' . url($loaded_menu_parent_item['link']['href']) . '">' . $loaded_menu_parent_item['link']['link_title'] . '</a>';
+    $output[$loaded_menu_parent_item['link']['link_title']]['links'] = $links;
+  }
+  return $output;
+}
+
+/**
+ * Wraps links into seto of buttons and dropdowns.
+ *
+ * @param array $menuarray
+ *   Generated menu array.
+ *
+ * @return string
+ *   Generated menu.
+ */
+function _know4pol_core_theme_ks_admin_menu(array $menuarray) {
+
+  $output = '<aside class="region-utility" role="complementary">';
+  foreach ($menuarray as $parent) {
+    if ($parent['links']) {
+      $output .= '<div class="ecl-dropdown">
+<button class="ecl-button ecl-button--default ecl-expandable__button" aria-controls="' . $parent['title'] . '-button-dropdown" aria-expanded="false" id="' . $parent['title'] . '-expandable-button" type="button">' . $parent['title'] . '</button>
+<div class="ecl-link-block ecl-dropdown__body" id="' . $parent['title'] . '-button-dropdown" aria-labelledby="' . $parent['title'] . '-expandable-button" aria-hidden="true">
+    <ul class="ecl-link-block__list">';
+
+      foreach ($parent['links'] as $link) {
+        $output .= '<li class="ecl-link-block__item">' . $link . '</li>';
+      }
+      $output .= '</ul></div></div>';
+    }
+    else {
+      $output .= '<div><p>' . $parent['link'] . '</p></div>';
+    }
+  }
+  $output .= '</aside><br>';
+  return $output;
 }
 
 /**
