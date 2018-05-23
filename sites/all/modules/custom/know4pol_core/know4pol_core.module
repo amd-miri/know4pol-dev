@@ -788,9 +788,9 @@ function know4pol_core_menu_alter(&$items) {
   global $user;
   $user_roles = array_values($user->roles);
   // Will only show link if the user has admin role.
- if (!in_array('administrator', $user_roles)) {
-  unset($items['node/add']);
- }
+  if (!in_array('administrator', $user_roles)) {
+    unset($items['node/add']);
+  }
 }
 
 /**
@@ -819,34 +819,34 @@ function know4pol_core_action_info() {
 }
 
 /**
- * The action function for know4pol_ks_action_info
+ * The action function for know4pol_ks_action_info.
  */
-
 function know4pol_core_assign_ks_action(&$entity, $context) {
   $target_group_id = $context['view_info']['arguments'][0];
   $next = count($entity->og_group_ref[LANGUAGE_NONE]);
   $entity->og_group_ref[LANGUAGE_NONE][$next]['target_id'] = $target_group_id;
-  $values = array('entity type' => 'node', 'entity' => $entity, 'state' => OG_STATE_ACTIVE);
+  $values = array(
+    'entity type' => 'node',
+    'entity' => $entity,
+    'state' => OG_STATE_ACTIVE,
+  );
   og_group('node', $target_group_id, $values);
   node_save($entity);
-  return;
 }
 
 /**
- * The action function for know4pol_ks_action_info
+ * The action function for know4pol_ks_action_info.
  */
-
 function know4pol_core_unassign_ks_action(&$entity, $context) {
   $target_group_id = $context['view_info']['arguments'][0];
   $og_array = $entity->og_group_ref[LANGUAGE_NONE];
-  foreach($og_array as $key => $value) {
+  foreach ($og_array as $key => $value) {
     if ($value['target_id'] == $target_group_id) {
       unset($og_array[$key]);
     }
   }
   $entity->og_group_ref[LANGUAGE_NONE] = array_values($og_array);
   node_save($entity);
-  return;
 }
 
 /**
