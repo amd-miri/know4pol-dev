@@ -798,7 +798,7 @@ function know4pol_core_menu_alter(&$items) {
  */
 function know4pol_core_action_info() {
   return array(
-    'know4pol_core_assign_ks_action' => array(
+    '_know4pol_core_assign_ks_action' => array(
       'type' => 'entity',
       'label' => t('Assign publication to current KS'),
       'behavior' => array('changes_property'),
@@ -806,7 +806,7 @@ function know4pol_core_action_info() {
       'vbo_configurable' => FALSE,
       'triggers' => array('any'),
     ),
-    'know4pol_core_unassign_ks_action' => array(
+    '_know4pol_core_unassign_ks_action' => array(
       'type' => 'entity',
       'label' => t('Unassign publication from current KS'),
       'behavior' => array('changes_property'),
@@ -821,7 +821,7 @@ function know4pol_core_action_info() {
 /**
  * The action function for know4pol_ks_action_info.
  */
-function know4pol_core_assign_ks_action(&$entity, $context) {
+function _know4pol_core_assign_ks_action(&$entity, $context) {
   $target_group_id = $context['view_info']['arguments'][0];
   $next = count($entity->og_group_ref[LANGUAGE_NONE]);
   $entity->og_group_ref[LANGUAGE_NONE][$next]['target_id'] = $target_group_id;
@@ -837,7 +837,7 @@ function know4pol_core_assign_ks_action(&$entity, $context) {
 /**
  * The action function for know4pol_ks_action_info.
  */
-function know4pol_core_unassign_ks_action(&$entity, $context) {
+function _know4pol_core_unassign_ks_action(&$entity, $context) {
   $target_group_id = $context['view_info']['arguments'][0];
   $og_array = $entity->og_group_ref[LANGUAGE_NONE];
   foreach ($og_array as $key => $value) {
