@@ -579,13 +579,13 @@ function know4pol_core_block_view($delta = '') {
 /**
  * Prepares menu array for theming.
  *
- * @param array $menu_name
+ * @param string $menu_name
  *   Machine name of KS admin menu.
  *
  * @return array
  *   Generated menu array.
  */
-function _know4pol_core_get_ks_admin_menu(array $menu_name) {
+function _know4pol_core_get_ks_admin_menu($menu_name) {
   $loaded_menu = menu_tree_all_data($menu_name);
   foreach ($loaded_menu as $loaded_menu_parent_item) {
     $child_items = $loaded_menu_parent_item['below'];
@@ -611,12 +611,13 @@ function _know4pol_core_get_ks_admin_menu(array $menu_name) {
     $output[$loaded_menu_parent_item['link']['link_title']]['title'] = $loaded_menu_parent_item['link']['link_title'];
     $output[$loaded_menu_parent_item['link']['link_title']]['link'] = '<a class="ecl-button ecl-button--primary" href="' . url($loaded_menu_parent_item['link']['href']) . '">' . $loaded_menu_parent_item['link']['link_title'] . '</a>';
     $output[$loaded_menu_parent_item['link']['link_title']]['links'] = $links;
+    unset($links);
   }
   return $output;
 }
 
 /**
- * Wraps links into seto of buttons and dropdowns.
+ * Wraps links into set of buttons and dropdowns.
  *
  * @param array $menuarray
  *   Generated menu array.
@@ -626,10 +627,9 @@ function _know4pol_core_get_ks_admin_menu(array $menu_name) {
  */
 function _know4pol_core_theme_ks_admin_menu(array $menuarray) {
 
-  $output = '<aside class="region-utility" role="complementary">';
   foreach ($menuarray as $parent) {
     if ($parent['links']) {
-      $output .= '<div class="ecl-dropdown">
+      $output .= '<div class="element"><div class="ecl-dropdown">
 <button class="ecl-button ecl-button--default ecl-expandable__button" aria-controls="' . $parent['title'] . '-button-dropdown" aria-expanded="false" id="' . $parent['title'] . '-expandable-button" type="button">' . $parent['title'] . '</button>
 <div class="ecl-link-block ecl-dropdown__body" id="' . $parent['title'] . '-button-dropdown" aria-labelledby="' . $parent['title'] . '-expandable-button" aria-hidden="true">
     <ul class="ecl-link-block__list">';
@@ -637,13 +637,13 @@ function _know4pol_core_theme_ks_admin_menu(array $menuarray) {
       foreach ($parent['links'] as $link) {
         $output .= '<li class="ecl-link-block__item">' . $link . '</li>';
       }
-      $output .= '</ul></div></div>';
+      $output .= '</ul></div></div></div>';
     }
     else {
-      $output .= '<div><p>' . $parent['link'] . '</p></div>';
+      $output .= '<p>' . $parent['link'] . '</p>';
     }
   }
-  $output .= '</aside><br>';
+
   return $output;
 }
 
