@@ -865,12 +865,23 @@ function know4pol_core_quicktabs_renderers() {
  * Implements hook_menu_alter().
  */
 function know4pol_core_menu_alter(&$items) {
-  global $user;
-  $user_roles = array_values($user->roles);
-  // Will only show link if the user has admin role.
-  if (!in_array('administrator', $user_roles)) {
-    unset($items['node/add']);
+  $items['node/add']['access callback'] = '_know4pol_core_node_add_access';
+  $items['admin/workbench/create']['access callback'] = '_know4pol_core_node_add_access';
+}
+
+/**
+ * Access callback: function for add content menu item.
+ *
+ * @return bool
+ *   TRUE if the user has add permission, otherwise FALSE.
+ *
+ * @see _node_add_access()
+ */
+function _know4pol_core_node_add_access() {
+  if (user_access('administer content types')) {
+    return _node_add_access();
   }
+  return FALSE;
 }
 
 /**
