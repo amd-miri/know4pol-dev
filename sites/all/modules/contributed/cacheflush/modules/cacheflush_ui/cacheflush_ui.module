@@ -1,0 +1,346 @@
+<?php
+
+/**
+ * @file
+ * Cacheflush User Interface.
+ */
+
+define('CACHEFLUSH_UI_ENABLED', 1);
+define('CACHEFLUSH_UI_MENU', 1);
+
+/**
+ * Implements hook_menu().
+ */
+function cacheflush_ui_menu() {
+
+  $items['cacheflush/%cacheflush'] = array(
+    'title' => 'View',
+    'page callback' => 'cacheflush_ui_entity_page_view',
+    'page arguments' => array(1),
+    'access callback' => 'cacheflush_ui_access',
+    'access arguments' => array('view', 1),
+    'file' => 'includes/cacheflush_ui.forms.inc',
+    'file path' => drupal_get_path('module', 'cacheflush_ui'),
+  );
+  $items['cacheflush/%cacheflush/view'] = array(
+    'title' => 'View',
+    'page callback' => 'cacheflush_ui_entity_page_view',
+    'page arguments' => array(1),
+    'access callback' => 'cacheflush_ui_access',
+    'access arguments' => array('view', 1),
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => -10,
+    'file' => 'includes/cacheflush_ui.forms.inc',
+    'file path' => drupal_get_path('module', 'cacheflush_ui'),
+  );
+  $items['cacheflush/%cacheflush/edit'] = array(
+    'title' => 'Edit',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('cacheflush_form', 1),
+    'access callback' => 'cacheflush_ui_access',
+    'access arguments' => array('update', 1),
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'includes/cacheflush_ui.forms.inc',
+    'file path' => drupal_get_path('module', 'cacheflush_ui'),
+  );
+  $items['cacheflush/%cacheflush/delete'] = array(
+    'title' => 'Delete',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('cacheflush_ui_delete_form', 1),
+    'access callback' => 'cacheflush_ui_access',
+    'access arguments' => array('delete', 1),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 10,
+    'file' => 'includes/cacheflush_ui.forms.inc',
+    'file path' => drupal_get_path('module', 'cacheflush_ui'),
+  );
+
+  foreach (cacheflush_ui_get_menu_items() as $preset) {
+    $items["admin/cacheflush/clear/$preset->id"] = array(
+      'title' => $preset->title,
+      'description' => "Clear " . $preset->title . " cache.",
+      'page callback' => 'cacheflush_clear_preset_menu_callback',
+      'page arguments' => array(3),
+      'access callback' => 'cacheflush_ui_access',
+      'access arguments' => array('clear', $preset->id),
+      'weight' => $preset->id,
+      'file' => 'cacheflush.api.inc',
+      'file path' => drupal_get_path('module', 'cacheflush'),
+    );
+  }
+
+  return $items;
+}
+
+/**
+ * Implements hook_entity_info_alter().
+ */
+function cacheflush_ui_entity_info_alter(&$entity_info) {
+
+  $entity_info['cacheflush']['access callback'] = 'cacheflush_ui_access';
+  // Extend cacheflush entity with UI.
+  $entity_info['cacheflush']['view modes'] = array(
+    'full' => array(
+      'label' => t('Full'),
+      'custom settings' => FALSE,
+    ),
+  );
+  $entity_info['cacheflush']['admin ui'] = array(
+    'path' => 'admin/structure/cacheflush',
+    'controller class' => 'CacheflushUIController',
+  );
+}
+
+/**
+ * Implements hook_admin_paths().
+ */
+function cacheflush_ui_admin_paths() {
+  $paths = array(
+    'cacheflush/*' => TRUE,
+  );
+  return $paths;
+}
+
+/**
+ * Implements hook_permission().
+ */
+function cacheflush_ui_permission() {
+  return array(
+    'cacheflush administer' => array(
+      'title' => t('Administer cacheflush entity'),
+      'restrict access' => TRUE,
+    ),
+    'cacheflush clear own' => array(
+      'title' => t('Clear own entity'),
+      'restrict access' => TRUE,
+    ),
+    'cacheflush clear any' => array(
+      'title' => t('Clear any entity'),
+      'restrict access' => TRUE,
+    ),
+    'cacheflush create new' => array(
+      'title' => t('Create new entity'),
+      'restrict access' => TRUE,
+    ),
+    'cacheflush view own' => array(
+      'title' => t('View own entity'),
+      'restrict access' => TRUE,
+    ),
+    'cacheflush view any' => array(
+      'title' => t('View any entity'),
+      'restrict access' => TRUE,
+    ),
+    'cacheflush edit own' => array(
+      'title' => t('Edit own entity'),
+      'restrict access' => TRUE,
+    ),
+    'cacheflush edit any' => array(
+      'title' => t('Edit any entity'),
+      'restrict access' => TRUE,
+    ),
+    'cacheflush delete own' => array(
+      'title' => t('Delete own entity'),
+      'restrict access' => TRUE,
+    ),
+    'cacheflush delete any' => array(
+      'title' => t('Delete any entity'),
+      'restrict access' => TRUE,
+    ),
+  );
+}
+
+/**
+ * Implements hook_cacheflush_ui_operations().
+ */
+function cacheflush_ui_cacheflush_ui_operations() {
+  $operations = array(
+    'enable' => array(
+      'label' => t('Enable selected content'),
+      'callback' => 'cacheflush_ui_mass_update',
+      'callback arguments' => array('updates' => array('status' => 1)),
+    ),
+    'disable' => array(
+      'label' => t('Disable selected content'),
+      'callback' => 'cacheflush_ui_mass_update',
+      'callback arguments' => array('updates' => array('status' => 0)),
+    ),
+    'add_menu_entry' => array(
+      'label' => t('Add menu entry'),
+      'callback' => 'cacheflush_ui_mass_update',
+      'callback arguments' => array('updates' => array('menu' => 1)),
+    ),
+    'remove_menu_entry' => array(
+      'label' => t('Remove menu entry'),
+      'callback' => 'cacheflush_ui_mass_update',
+      'callback arguments' => array('updates' => array('menu' => 0)),
+    ),
+    'delete' => array(
+      'label' => t('Delete selected content'),
+      'callback' => NULL,
+    ),
+  );
+  return $operations;
+}
+
+/**
+ * Implements hook_cacheflush_ui_tabs().
+ */
+function cacheflush_ui_cacheflush_ui_tabs() {
+
+  $tabs = array(
+    'vertical_tabs_core' => array(
+      'name' => t('Core cache tables'),
+      'validation' => 'cacheflush_ui_tab_validation',
+      'weight' => -100,
+    ),
+    'vertical_tabs_functions' => array(
+      'name' => t('Other core cache options'),
+      'validation' => 'cacheflush_ui_tab_validation',
+      'weight' => -90,
+    ),
+    'vertical_tabs_custom' => array(
+      'name' => t('Contrib cache tables'),
+      'validation' => 'cacheflush_ui_tab_validation',
+      'weight' => -80,
+    ),
+    'vertical_tabs_often' => array(
+      'name' => t('Other contrib cache options'),
+      'validation' => 'cacheflush_ui_tab_validation',
+      'weight' => -70,
+    ),
+  );
+  return $tabs;
+}
+
+/**
+ * Determines whether the given user can perform actions on cacheflush entity.
+ *
+ * For create operations, the pattern is to create an entity and then
+ * check if the user has create access.
+ *
+ * @param string $op
+ *   The operation being performed. One of 'view', 'update', 'create', 'clear'
+ *   or 'delete'.
+ * @param object $entity
+ *   Optionally an entity to check access for. If no entity is given, it will be
+ *   determined whether access is allowed for all entities of the given type.
+ * @param object $account
+ *   The user to check for. Leave it to NULL to check for the global user.
+ *
+ * @return bool
+ *   Whether access is allowed or not. If the entity type does not specify any
+ *   access information, NULL is returned.
+ *
+ * @see entity_type_supports()
+ */
+function cacheflush_ui_access($op, $entity, $account = NULL) {
+  global $user;
+  $rights = &drupal_static(__FUNCTION__, array());
+
+  if (empty($account)) {
+    $account = $user;
+  }
+
+  // User #1 has all privileges:
+  if ($account->uid == 1) {
+    return TRUE;
+  }
+
+  if (is_numeric($entity)) {
+    $entity = cacheflush_load($entity);
+  }
+  elseif (empty($entity)) {
+    $entity = new stdClass();
+    $entity->id = 0;
+  }
+
+  // If we've already checked access for this preset, user and op, return from
+  // cache.
+  if (isset($rights[$account->uid][$entity->id][$op])) {
+    return $rights[$account->uid][$entity->id][$op];
+  }
+
+  switch ($op) {
+    case 'create':
+      $rights[$account->uid][$entity->id][$op] = user_access("cacheflush create new", $account);
+      break;
+
+    case 'clear':
+      $rights[$account->uid][$entity->id][$op] = cacheflush_ui_access_single_many('cacheflush clear any', 'cacheflush clear own', $account, $entity);
+      break;
+
+    case 'view':
+      $rights[$account->uid][$entity->id][$op] = cacheflush_ui_access_single_many('cacheflush view any', 'cacheflush view own', $account, $entity);
+      break;
+
+    case 'update':
+      $rights[$account->uid][$entity->id][$op] = cacheflush_ui_access_single_many('cacheflush edit any', 'cacheflush edit own', $account, $entity);
+      break;
+
+    case 'delete':
+      $rights[$account->uid][$entity->id][$op] = cacheflush_ui_access_single_many('cacheflush delete any', 'cacheflush delete own', $account, $entity);
+      break;
+  }
+
+  return $rights[$account->uid][$entity->id][$op];
+}
+
+/**
+ * Check access for 'any' and 'own' permissions.
+ *
+ * @param string $any
+ *   Permission string for any content.
+ * @param string $single
+ *   Permission string for own content.
+ * @param object $account
+ *   User account to check.
+ * @param object $entity
+ *   The entity object.
+ *
+ * @return bool
+ *   Return TRUE if access is granted.
+ */
+function cacheflush_ui_access_single_many($any, $single, $account, $entity) {
+
+  if ($access = user_access($any, $account)) {
+    return TRUE;
+  }
+  else {
+    $access = user_access($single, $account);
+    if ($access && ($account->uid == $entity->uid)) {
+      return TRUE;
+    }
+  }
+  return FALSE;
+}
+
+/**
+ * Page callback for viewing an entity.
+ *
+ * @param object $entity
+ *   The entity to be rendered.
+ *
+ * @return array
+ *   A renderable array of the entity in full view mode.
+ */
+function cacheflush_ui_entity_page_view($entity) {
+  return $entity->view('full', NULL, TRUE);
+}
+
+/**
+ * Return the entity list page uri.
+ *
+ * @return string
+ *   URL of the Presets listing page.
+ */
+function cacheflush_ui_get_path() {
+  $entity_info = entity_get_info('cacheflush');
+  return $entity_info['admin ui']['path'];
+}
+
+/**
+ * Callback: Preset Menu items.
+ */
+function cacheflush_ui_get_menu_items() {
+  return cacheflush_load_multiple(FALSE, array('status' => CACHEFLUSH_UI_ENABLED, 'menu' => CACHEFLUSH_UI_MENU));
+}

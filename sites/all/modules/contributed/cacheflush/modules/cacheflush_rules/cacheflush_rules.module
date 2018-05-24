@@ -1,0 +1,20 @@
+<?php
+
+/**
+ * @file
+ * Cacheflush Rules module.
+ */
+
+/**
+ * Implements hook_cacheflush_before_clear().
+ */
+function cacheflush_rules_cacheflush_before_clear($entity) {
+  rules_invoke_event('cacheflush_before', $entity);
+}
+
+/**
+ * Implements hook_cacheflush_after_clear().
+ */
+function cacheflush_rules_cacheflush_after_clear($entity) {
+  rules_invoke_event('cacheflush_after', $entity);
+}

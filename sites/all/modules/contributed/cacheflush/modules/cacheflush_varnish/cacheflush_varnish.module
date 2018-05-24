@@ -1,0 +1,213 @@
+<?php
+
+/**
+ * @file
+ * Cacheflush varnish preset form.
+ */
+
+/**
+ * Implements hook_cacheflush_ui_tabs().
+ */
+function cacheflush_varnish_cacheflush_ui_tabs() {
+
+  $tabs = array(
+    'vertical_tabs_varnish' => array(
+      'name' => t('Varnish'),
+      'validation' => 'cacheflush_varnish_tab_validation',
+      'weight' => -40,
+    ),
+  );
+  return $tabs;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function cacheflush_varnish_theme() {
+
+  return array(
+    'cacheflush_varnish_form_table' => array(
+      'render element' => 'form',
+    ),
+  );
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function cacheflush_varnish_form_cacheflush_form_alter(&$form, &$form_state, $form_id) {
+
+  // Advanced table form.
+  $form['vertical_tabs_varnish']['#attributes'] = array('class' => array('varnish_tab'));
+  $form['vertical_tabs_varnish']['cacheflush_varnish_table'] = array(
+    '#theme' => 'cacheflush_varnish_form_table',
+    '#prefix' => '<div id="cacheflush-varnish-settings-table">',
+    '#suffix' => '</div>',
+  );
+
+  // Form element, vertical tab parent.
+  $form['cacheflush_vertical_tabs']['#attached']['js']['vertical-tabs-varnish'] = drupal_get_path('module', 'cacheflush_varnish') . '/js/cacheflush_varnish_vertical_tab.js';
+
+  // Check if Ajax call.
+  if (isset($form_state['clicked_button'])) {
+    // Check if Remove row and remove.
+    if (strpos($form_state['clicked_button']['#name'], 'varnish_remove_') === 0) {
+      $exploded_name = explode('varnish_remove_', $form_state['clicked_button']['#name']);
+      $remove_id = $exploded_name[1];
+      unset($form_state['values']['vertical_tabs_varnish']['cacheflush_varnish_table'][$remove_id]);
+    }
+
+    // ReCreat table.
+    if (isset($form_state['values']['vertical_tabs_varnish']['cacheflush_varnish_table'])) {
+      foreach ($form_state['values']['vertical_tabs_varnish']['cacheflush_varnish_table'] as $key => $value) {
+        if ('varnish_remove_' . $key != $form_state['clicked_button']['#name']) {
+          $form['vertical_tabs_varnish']['cacheflush_varnish_table'][$key] = _cacheflush_varnish_table_row($key, $value['varnish_pattern']);
+        }
+      }
+    }
+
+    // Check if Add row and add 1 more.
+    if ($form_state['clicked_button']['#name'] == 'varnish_add') {
+      $id = 1;
+      if (isset($form_state['values']['vertical_tabs_varnish']['cacheflush_varnish_table'])) {
+        $id = max(array_keys($form_state['values']['vertical_tabs_varnish']['cacheflush_varnish_table'])) + 1;
+      }
+      $form['vertical_tabs_varnish']['cacheflush_varnish_table'][$id] = _cacheflush_varnish_table_row($id);
+    }
+  }
+  else {
+    // If is preset edit add the varnish preset rows.
+    if (isset($form_state['cacheflush']->data['varnish']['functions'])) {
+      foreach ($form_state['cacheflush']->data['varnish']['functions'] as $key => $value) {
+        $form['vertical_tabs_varnish']['cacheflush_varnish_table'][$key] = _cacheflush_varnish_table_row($key, $value['#params'][1]);
+      }
+    }
+    else {
+      // Add 1 row by default.
+      $form['vertical_tabs_varnish']['cacheflush_varnish_table'][0] = _cacheflush_varnish_table_row(0);
+    }
+  }
+
+  // Add new row button.
+  $form['vertical_tabs_varnish']['varnish_add'] = array(
+    '#name' => 'varnish_add',
+    '#type' => 'button',
+    '#value' => t('Add another row'),
+    '#ajax' => array(
+      'callback' => '_cacheflush_varnish_form_callback',
+      'wrapper' => 'cacheflush-varnish-settings-table',
+      'method' => 'replace',
+      'effect' => 'fade',
+    ),
+  );
+
+  $form['vertical_tabs_varnish']['note'] = array(
+    '#type' => 'item',
+    '#title' => t('Note'),
+    '#weight' => -10,
+    '#description' => t('Create custom preset which will use the <b>varnish_purge($host, $pattern)</b> function.') .
+    '<ul><li>' . t('<b>Pattern</b>: the pattern to look for and purge. Ex: $pattern = "/" to purge all cache for this host.') .
+    '</li></ul>',
+  );
+}
+
+/**
+ * Implements varnish preset validation.
+ */
+function cacheflush_varnish_tab_validation($tab, &$form, &$form_state) {
+
+  // Check for varnish preset.
+  if (isset($form_state['values']['vertical_tabs_varnish']['cacheflush_varnish_table'])) {
+    foreach ($form_state['values']['vertical_tabs_varnish']['cacheflush_varnish_table'] as $key => $value) {
+      if (isset($value['varnish_pattern'])) {
+        unset($value['operations']);
+        if (isset($form_state['values']['vertical_tabs_varnish']['cacheflush_varnish_table'])) {
+          foreach ($form_state['values']['vertical_tabs_varnish']['cacheflush_varnish_table'] as $key => $value) {
+            if (!empty($value['varnish_pattern'])) {
+              $form_state['cacheflush']->data['varnish']['functions'][$key] = array(
+                '#name' => 'varnish_purge',
+                '#params' => array(
+                  _varnish_get_host(),
+                  $value['varnish_pattern'],
+                ),
+              );
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Theme cacheflush table for varnish preset.
+ *
+ * @param array $variables
+ *   Theme variables.
+ *
+ * @return array
+ *   Table theme.
+ */
+function theme_cacheflush_varnish_form_table(array $variables) {
+
+  $form = $variables['form'];
+  $rows = array();
+  foreach (element_children($form) as $key) {
+    $rows[$key] = array(
+      'data' => array(
+        drupal_render($form[$key]['varnish_pattern']),
+        drupal_render($form[$key]['varnish_operations']),
+      ),
+    );
+  }
+
+  $headers = array(
+    t('Pattern'),
+    t('Operations'),
+  );
+
+  return theme('table', array('header' => $headers, 'rows' => $rows));
+}
+
+/**
+ * Build cacheflush varnish settings row form elements.
+ *
+ * @param int $delta
+ *   Row weight.
+ * @param string $pattern
+ *   The pattern to look for and purge.
+ *
+ * @return string
+ *   Advanced table row.
+ */
+function _cacheflush_varnish_table_row($delta, $pattern = '') {
+
+  $form['varnish_pattern'] = array(
+    '#type' => 'textfield',
+    '#default_value' => $pattern,
+    '#size' => 20,
+  );
+
+  $form['varnish_operations'] = array(
+    '#name' => 'varnish_remove_' . $delta,
+    '#type' => 'button',
+    '#value' => t('Remove'),
+    '#ajax' => array(
+      'callback' => '_cacheflush_varnish_form_callback',
+      'wrapper' => 'cacheflush-varnish-settings-table',
+      'method' => 'replace',
+      'effect' => 'fade',
+    ),
+  );
+
+  return $form;
+}
+
+/**
+ * AJAX callback for varnish table.
+ *
+ * @see ajax_get_form()
+ */
+function _cacheflush_varnish_form_callback($form, $form_state) {
+  return $form['vertical_tabs_varnish']['cacheflush_varnish_table'];
+}

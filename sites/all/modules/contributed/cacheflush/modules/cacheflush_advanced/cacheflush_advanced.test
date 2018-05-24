@@ -1,0 +1,172 @@
+<?php
+
+/**
+ * @file
+ * Contains test suite for cacheflush module.
+ */
+
+/**
+ * Defines a test for cacheflush module.
+ */
+class CacheFlushAdvancedTest extends DrupalWebTestCase {
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function getInfo() {
+    return array(
+      'name' => 'Cacheflush Advanced',
+      'description' => 'Test cacheflush Advanced UI.',
+      'group' => 'CacheFlush',
+    );
+  }
+
+  /**
+   * Sets up the test.
+   */
+  protected function setUp() {
+    parent::setUp(array('cacheflush_advanced'));
+    $roles = array(
+      'cacheflush create new',
+      'cacheflush view own',
+      'cacheflush edit own',
+      'cacheflush delete own',
+    );
+    $user = $this->drupalCreateUser($roles);
+    $this->drupalLogin($user);
+  }
+
+  /**
+   * Test for add page.
+   */
+  public function testAddInterface() {
+
+    // Check interface has all fields.
+    $this->drupalGet('admin/structure/cacheflush/add');
+    $this->assertRaw(t('Custom (advanced)'));
+    $this->assertFieldByName('vertical_tabs_advance[cacheflush_advanced_table][0][cid]');
+    $this->assertFieldByName('vertical_tabs_advance[cacheflush_advanced_table][0][table]');
+    $this->assertFieldByName('vertical_tabs_advance[cacheflush_advanced_table][0][wildcard]');
+    $this->assertFieldByName('advanced_remove_0');
+    $this->assertFieldByName('advance_add');
+
+    // Test NO error generate if nothing completet on the advanced form.
+    $this->drupalPost(NULL, array(), t('Add another row'));
+    $this->assertRaw(t('Title field is required.'));
+    $this->assertNoRaw(t('The cache ID field is mandatory.'));
+    $this->assertNoRaw(t('The table field is mandatory.'));
+
+    // Test if WILDCARD checked generate error for the table and cid field.
+    $edit = array(
+      'vertical_tabs_advance[cacheflush_advanced_table][0][wildcard]' => TRUE,
+    );
+    $this->drupalPost(NULL, $edit, t('Add another row'));
+    $this->assertRaw(t('The cache ID field is mandatory.'));
+    $this->assertRaw(t('The table field is mandatory.'));
+
+    // Test if WILDCARD checked and CID, error for table field.
+    $edit = array(
+      'vertical_tabs_advance[cacheflush_advanced_table][0][wildcard]' => TRUE,
+      'vertical_tabs_advance[cacheflush_advanced_table][0][cid]' => 'test',
+    );
+    $this->drupalPost(NULL, $edit, t('Add another row'));
+    $this->assertNoRaw(t('The cache ID field is mandatory.'));
+    $this->assertRaw(t('The table field is mandatory.'));
+
+    // Test if WILDCARD checked and table, error for CID field.
+    $edit = array(
+      'vertical_tabs_advance[cacheflush_advanced_table][0][wildcard]' => TRUE,
+      'vertical_tabs_advance[cacheflush_advanced_table][0][cid]' => '',
+      'vertical_tabs_advance[cacheflush_advanced_table][0][table]' => 'cache',
+    );
+    $this->drupalPost(NULL, $edit, t('Add another row'));
+    $this->assertRaw(t('The cache ID field is mandatory.'));
+    $this->assertNoRaw(t('The table field is mandatory.'));
+
+    // Test if CID set, error for table field.
+    $edit = array(
+      'vertical_tabs_advance[cacheflush_advanced_table][0][wildcard]' => FALSE,
+      'vertical_tabs_advance[cacheflush_advanced_table][0][cid]' => 'TEST',
+      'vertical_tabs_advance[cacheflush_advanced_table][0][table]' => 0,
+    );
+    $this->drupalPost(NULL, $edit, t('Add another row'));
+    $this->assertNoRaw(t('The cache ID field is mandatory.'));
+    $this->assertRaw(t('The table field is mandatory.'));
+
+    // Test if table selected, error for CID field.
+    $edit = array(
+      'vertical_tabs_advance[cacheflush_advanced_table][0][cid]' => '',
+      'vertical_tabs_advance[cacheflush_advanced_table][0][table]' => 'cache',
+    );
+    $this->drupalPost(NULL, $edit, t('Add another row'));
+    $this->assertRaw(t('The cache ID field is mandatory.'));
+    $this->assertNoRaw(t('The table field is mandatory.'));
+
+    // Test NO error if all is completeted.
+    $edit = array(
+      'vertical_tabs_advance[cacheflush_advanced_table][0][wildcard]' => TRUE,
+      'vertical_tabs_advance[cacheflush_advanced_table][0][cid]' => 'TEST',
+      'vertical_tabs_advance[cacheflush_advanced_table][0][table]' => 'cache',
+    );
+    $this->drupalPost(NULL, $edit, t('Add another row'));
+    $this->assertNoRaw(t('The cache ID field is mandatory.'));
+    $this->assertNoRaw(t('The table field is mandatory.'));
+  }
+
+  /**
+   * Test add remove ellement on form.
+   */
+  public function testAddInterfaceAddRemoveElements() {
+
+    $this->drupalGet('admin/structure/cacheflush/add');
+
+    // Check if row 2 added.
+    $this->drupalPost(NULL, array('title' => 'Test1'), t('Add another row'));
+    $this->assertFieldByName('advanced_remove_0');
+    $this->assertFieldByName('advanced_remove_1');
+
+    // Check if row 3 added.
+    $this->drupalPost(NULL, array(), t('Add another row'));
+    $this->assertFieldByName('advanced_remove_0');
+    $this->assertFieldByName('advanced_remove_1');
+    $this->assertFieldByName('advanced_remove_2');
+
+    // Remove element 2.
+    $this->drupalPostAJAX(NULL, array(), 'advanced_remove_1');
+    $this->assertFieldByName('advanced_remove_0');
+    $this->assertNoFieldByName('advanced_remove_1');
+    $this->assertFieldByName('advanced_remove_2');
+
+    // Remove element 1.
+    $this->drupalPostAJAX(NULL, array(), 'advanced_remove_0');
+    $this->assertNoFieldByName('advanced_remove_0');
+    $this->assertNoFieldByName('advanced_remove_1');
+    $this->assertFieldByName('advanced_remove_2');
+
+    // Remove element 3.
+    $this->drupalPostAJAX(NULL, array(), 'advanced_remove_2');
+    $this->assertNoFieldByName('advanced_remove_0');
+    $this->assertNoFieldByName('advanced_remove_1');
+    $this->assertNoFieldByName('advanced_remove_2');
+
+    // Add new row and save the entity.
+    $this->drupalPost(NULL, array(), t('Add another row'));
+    $this->assertRaw(t('Remove'));
+    $edit = array(
+      'title' => 'AdvancedCIDTest',
+      'vertical_tabs_advance[cacheflush_advanced_table][1][wildcard]' => TRUE,
+      'vertical_tabs_advance[cacheflush_advanced_table][1][cid]' => 'AdvancedTestCID',
+      'vertical_tabs_advance[cacheflush_advanced_table][1][table]' => 'cache',
+    );
+    $this->drupalPost(NULL, $edit, t('Save'));
+    $entities = array_values(cacheflush_load_multiple(FALSE, array('title' => 'AdvancedCIDTest')));
+    $this->assertEqual($entities[0]->title, 'AdvancedCIDTest', 'Entity successfully created.');
+
+    // Check if entity create on interface.
+    $this->drupalGet('cacheflush/' . $entities[0]->id . '/edit');
+    $this->assertFieldByName('vertical_tabs_advance[cacheflush_advanced_table][1][cid]', 'AdvancedTestCID');
+    $this->assertFieldByName('vertical_tabs_advance[cacheflush_advanced_table][1][table]', 'cache');
+    $this->assertFieldByName('vertical_tabs_advance[cacheflush_advanced_table][1][wildcard]', TRUE);
+  }
+
+}

@@ -1,0 +1,239 @@
+<?php
+
+/**
+ * @file
+ * Cacheflush memcache preset form.
+ */
+
+/**
+ * Implements hook_cacheflush_ui_tabs().
+ */
+function cacheflush_memcache_cacheflush_ui_tabs() {
+
+  $tabs = array(
+    'vertical_tabs_memcache' => array(
+      'name' => t('Memcache'),
+      'validation' => 'cacheflush_memcache_tab_validation',
+      'weight' => -40,
+    ),
+  );
+  return $tabs;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function cacheflush_memcache_theme() {
+
+  return array(
+    'cacheflush_memcache_form_table' => array(
+      'render element' => 'form',
+    ),
+  );
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function cacheflush_memcache_form_cacheflush_form_alter(&$form, &$form_state, $form_id) {
+
+  // Memcache table form.
+  $form['vertical_tabs_memcache']['#attributes'] = array('class' => array('memcache_tab'));
+  $form['vertical_tabs_memcache']['cacheflush_memcache_table'] = array(
+    '#theme' => 'cacheflush_memcache_form_table',
+    '#prefix' => '<div id="cacheflush-memcache-settings-table">',
+    '#suffix' => '</div>',
+  );
+
+  // Form element, vertical tab parent.
+  $form['cacheflush_vertical_tabs']['#attached']['js']['vertical-tabs-memcache'] = drupal_get_path('module', 'cacheflush_memcache') . '/js/cacheflush_memcache_vertical_tab.js';
+
+  // Check if Ajax call.
+  if (isset($form_state['clicked_button'])) {
+
+    // Check if Remove row and remove.
+    if (strpos($form_state['clicked_button']['#name'], 'memcache_remove_') === 0) {
+      $exploded_name = explode('memcache_remove_', $form_state['clicked_button']['#name']);
+      $remove_id = $exploded_name[1];
+      unset($form_state['values']['vertical_tabs_memcache']['cacheflush_memcache_table'][$remove_id]);
+    }
+
+    // ReCreat table.
+    if (isset($form_state['values']['vertical_tabs_memcache']['cacheflush_memcache_table'])) {
+      foreach ($form_state['values']['vertical_tabs_memcache']['cacheflush_memcache_table'] as $key => $value) {
+        if ('memcache_remove_' . $key != $form_state['clicked_button']['#name']) {
+          $form['vertical_tabs_memcache']['cacheflush_memcache_table'][$key] = _cacheflush_memcache_table_row($key, $value['memcache_cid'], $value['memcache_table']);
+        }
+      }
+    }
+
+    // Check if Add row and add 1 more.
+    if ($form_state['clicked_button']['#name'] == 'memcache_add') {
+      $id = 1;
+      if (isset($form_state['values']['vertical_tabs_memcache']['cacheflush_memcache_table'])) {
+        $id = max(array_keys($form_state['values']['vertical_tabs_memcache']['cacheflush_memcache_table'])) + 1;
+      }
+      $form['vertical_tabs_memcache']['cacheflush_memcache_table'][$id] = _cacheflush_memcache_table_row($id);
+    }
+  }
+  else {
+    // If is preset edit add the memcache preset rows.
+    if (isset($form_state['cacheflush']->data['memcache']['functions'])) {
+      foreach ($form_state['cacheflush']->data['memcache']['functions'] as $key => $value) {
+        $form['vertical_tabs_memcache']['cacheflush_memcache_table'][$key] = _cacheflush_memcache_table_row($key, $value['#params'][0], $value['#params'][1]);
+      }
+    }
+    else {
+      // Add 1 row by default.
+      $form['vertical_tabs_memcache']['cacheflush_memcache_table'][0] = _cacheflush_memcache_table_row(0);
+    }
+  }
+
+  // Add new row button.
+  $form['vertical_tabs_memcache']['memcache_add'] = array(
+    '#name' => 'memcache_add',
+    '#type' => 'button',
+    '#value' => t('Add another row'),
+    '#ajax' => array(
+      'callback' => '_cacheflush_memcache_form_callback',
+      'wrapper' => 'cacheflush-memcache-settings-table',
+      'method' => 'replace',
+      'effect' => 'fade',
+    ),
+  );
+
+  $form['vertical_tabs_memcache']['note'] = array(
+    '#type' => 'item',
+    '#title' => t('Note'),
+    '#weight' => -10,
+    '#description' => t('Create custom preset which will use the <a href="@href">cache_clear_all()</a> function to clear memcache.', array('@href' => 'https://api.drupal.org/api/drupal/includes%21cache.inc/function/cache_clear_all/7')) .
+    '<ul><li>' . t('<b>Cache ID ($cid)</b>: The cache ID to delete.') .
+    '</li><li>' . t('<b>Table ($table)</b>: The name of the table to delete from.') .
+    '</li></ul>',
+  );
+}
+
+/**
+ * Implements memcache preset validation.
+ */
+function cacheflush_memcache_tab_validation($tab, &$form, &$form_state) {
+
+  // Check for memcache preset.
+  if (isset($form_state['values']['vertical_tabs_memcache']['cacheflush_memcache_table'])) {
+    foreach ($form_state['values']['vertical_tabs_memcache']['cacheflush_memcache_table'] as $key => $value) {
+      if (!empty($value['memcache_cid']) && !empty($value['memcache_table'])) {
+        unset($value['memcache_operations']);
+        if (isset($form_state['values']['vertical_tabs_memcache']['cacheflush_memcache_table'])) {
+          foreach ($form_state['values']['vertical_tabs_memcache']['cacheflush_memcache_table'] as $key => $value) {
+            $form_state['cacheflush']->data['memcache']['functions'][$key] = array(
+              '#name' => 'cache_clear_all',
+              '#params' => array(
+                $value['memcache_cid'],
+                $value['memcache_table'],
+              ),
+            );
+          }
+        }
+      }
+      else {
+        if ($value['memcache_cid'] || $value['memcache_table']) {
+          if (empty($value['memcache_cid'])) {
+            form_error($form['vertical_tabs_memcache']['cacheflush_memcache_table'][$key]['memcache_cid'], t('The cache ID field is mandatory.'));
+          }
+          if (empty($value['memcache_table'])) {
+            form_error($form['vertical_tabs_memcache']['cacheflush_memcache_table'][$key]['memcache_table'], t('The table field is mandatory.'));
+          }
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Theme cacheflush table for memcache preset.
+ *
+ * @param array $variables
+ *   Theme variables.
+ *
+ * @return array
+ *   Table theme.
+ */
+function theme_cacheflush_memcache_form_table(array $variables) {
+
+  $form = $variables['form'];
+  $rows = array();
+  foreach (element_children($form) as $key) {
+    $rows[$key] = array(
+      'data' => array(
+        drupal_render($form[$key]['memcache_cid']),
+        drupal_render($form[$key]['memcache_table']),
+        drupal_render($form[$key]['memcache_operations']),
+      ),
+    );
+  }
+
+  $headers = array(
+    t('Cache ID'),
+    t('Table'),
+    t('Operations'),
+  );
+
+  return theme('table', array('header' => $headers, 'rows' => $rows));
+}
+
+/**
+ * Build cacheflush memcache settings row form elements.
+ *
+ * @param int $delta
+ *   Row weight.
+ * @param string $memcache_cid
+ *   Cache ID.
+ * @param string $table
+ *   Table id to be flushed.
+ *
+ * @return string
+ *   Advanced table row.
+ */
+function _cacheflush_memcache_table_row($delta, $memcache_cid = '', $table = '') {
+  static $table_options;
+
+  if (empty($table_options)) {
+    $cache_tables = cacheflush_get_all_tabels();
+    asort($cache_tables);
+    $table_options = array_combine($cache_tables, $cache_tables);
+    array_unshift($table_options, t("- Select a table -"));
+  }
+
+  $form['memcache_cid'] = array(
+    '#type' => 'textfield',
+    '#default_value' => $memcache_cid,
+    '#size' => 20,
+  );
+  $form['memcache_table'] = array(
+    '#type' => 'select',
+    '#default_value' => $table,
+    '#options' => $table_options,
+  );
+  $form['memcache_operations'] = array(
+    '#name' => 'memcache_remove_' . $delta,
+    '#type' => 'button',
+    '#value' => t('Remove'),
+    '#ajax' => array(
+      'callback' => '_cacheflush_memcache_form_callback',
+      'wrapper' => 'cacheflush-memcache-settings-table',
+      'method' => 'replace',
+      'effect' => 'fade',
+    ),
+  );
+
+  return $form;
+}
+
+/**
+ * AJAX callback for memcache table.
+ *
+ * @see ajax_get_form()
+ */
+function _cacheflush_memcache_form_callback($form, $form_state) {
+  return $form['vertical_tabs_memcache']['cacheflush_memcache_table'];
+}

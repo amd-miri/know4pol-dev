@@ -1,0 +1,107 @@
+<?php
+
+/**
+ * @file
+ * Cacheflush cron job.
+ */
+
+define('CACHEFLUSH_CRON', 1);
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function cacheflush_cron_form_cacheflush_form_alter(&$form, &$form_state) {
+
+  // Cron fieldset.
+  $form['cron_fieldset'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Cron'),
+    '#weight' => 2,
+  );
+
+  // Set cron checkbox.
+  $form['cron_fieldset']['cacheflush_cron_sett'] = array(
+    '#type' => "checkbox",
+    '#title' => t('Cron job'),
+    '#weight' => 1,
+    '#default_value' => (isset($form_state['cacheflush']->cron) && $form_state['cacheflush']->cron) ? 1 : 0,
+    '#description' => t('Enable cron job for this preset.'),
+  );
+
+  if (isset($form_state['cacheflush']->cron_rule) && $form_state['cacheflush']->cron_rule) {
+    // Cron Settings Page link container.
+    $form['cron_fieldset']['cacheflush_cron_link'] = array(
+      '#type' => 'container',
+      '#weight' => 3,
+      '#states' => array(
+        'invisible' => array(
+          ':input[name="cacheflush_cron_sett"]' => array('checked' => FALSE),
+        ),
+      ),
+    );
+
+    // Cron Settings Page link.
+    $form['cron_fieldset']['cacheflush_cron_link']['markup'] = array(
+      '#markup' => l(t('Cron Settings'), 'admin/config/system/cron'),
+    );
+  }
+  else {
+    // Cron rule.
+    $form['cron_fieldset']['cacheflush_cron_rule'] = array(
+      '#type' => "textfield",
+      '#title' => t('Cron job rule'),
+      '#weight' => 2,
+      '#default_value' => (isset($form_state['cacheflush']->cron_rule) && $form_state['cacheflush']->cron_rule) ? $form_state['cacheflush']->cron_rule : '* * * * *',
+      '#description' => t('Cron job rule example ("*/5 * * * *") // Every 5 minutes.'),
+      '#states' => array(
+        'invisible' => array(
+          ':input[name="cacheflush_cron_sett"]' => array('checked' => FALSE),
+        ),
+      ),
+    );
+  }
+  $form['#validate'][] = 'cacheflush_cron_validate';
+}
+
+/**
+ * Implements hook_cronapi().
+ */
+function cacheflush_cron_cronapi($op, $job = NULL) {
+
+  $entities = cacheflush_load_multiple(FALSE, array('status' => CACHEFLUSH_UI_ENABLED, 'cron' => CACHEFLUSH_CRON));
+  $items = array();
+
+  foreach ($entities as $key => $entity) {
+    $items['cacheflush_entity_' . $key] = array(
+      'description' => t('Cron for cacheflush preset:') . $entity->title,
+      'rule' => $entity->cron_rule,
+      'callback' => '_cacheflush_clear_preset',
+      'arguments' => array($entity->id),
+      'file' => 'cacheflush.api.inc',
+      'file path' => drupal_get_path('module', 'cacheflush'),
+    );
+  }
+
+  return $items;
+}
+
+/**
+ * Validate cron fields.
+ */
+function cacheflush_cron_validate(&$form, &$form_state) {
+
+  // Valide Crone Rule text field.
+  if ($form_state['values']['cacheflush_cron_sett'] == '1') {
+    if (!preg_match('/^\\s*([0-9*, \/-]+[]+[0-9*, \/-]+[]+[0-9*, \/-]+[]+[0-9*, \/-]+[]+[0-9*, \/-]+)\\s*$/', $form_state['values']['cacheflush_cron_rule'])) {
+      form_error($form['cron_fieldset']['cacheflush_cron_rule'], t('Invalid rule:') . $form_state['values']['cacheflush_cron_rule']);
+    }
+    else {
+      $form_state['cacheflush']->cron = $form_state['values']['cacheflush_cron_sett'];
+      $form_state['cacheflush']->cron_rule = $form_state['values']['cacheflush_cron_rule'];
+    }
+  }
+  else {
+    $form_state['cacheflush']->cron = 0;
+    $form_state['cacheflush']->cron_rule = '';
+  }
+}

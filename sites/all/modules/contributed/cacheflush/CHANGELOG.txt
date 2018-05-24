@@ -1,0 +1,36 @@
+=======================================
+cacheflush 7.x-3.0-rc3
+=======================================
+#2607528: Upgrade from 2.x to 3.x - remove hook_update_dependencies.
+#2861015: Bulk options fails if more than 10 items are selected
+#2634306: Remove the View operation link to avoid seeing the blank view entity tab.
+
+=======================================
+cacheflush 7.x-3.0-rc2
+=======================================
+#2604866: Add @return values in the comment docblocks......
+#2568079: Support for PHP < 5.4 - remove the requirement hook
+#2607528: Upgrade from 2.x to 3.x
+
+=======================================
+cacheflush 7.x-3.0-rc1
+=======================================
+#2604854: Advanced module form - Remove button error check
+#2604822: Advanced module form error
+#2568079: Support for PHP < 5.4
+
+=======================================
+cacheflush 7.x-3.0-beta2
+=======================================
+#2564863: View link
+
+=======================================
+cacheflush 7.x-3.0-beta1
+=======================================
+#2506803: Notice: Trying to get property of non-object em cacheflush_ui_access()
+
+=======================================
+cacheflush 7.x-3.0-alpha1 (03-Jun-2015)
+=======================================
+Convert cacheflush in Entity.
+Drush, Memcache and Varnish suport.

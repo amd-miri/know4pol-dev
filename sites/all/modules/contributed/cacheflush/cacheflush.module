@@ -1,0 +1,248 @@
+<?php
+
+/**
+ * @file
+ * Cacheflush module.
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function cacheflush_menu() {
+
+  /*   * ************** Preset's **************** */
+  $items['admin/cacheflush'] = array(
+    'title' => 'Cache Flush',
+    'type' => MENU_NORMAL_ITEM,
+    'description' => 'List cache clear presets',
+    'page callback' => 'system_admin_menu_block_page',
+    'access arguments' => array('cacheflush clear cache'),
+    'file' => 'system.admin.inc',
+    'file path' => drupal_get_path('module', 'system'),
+  );
+  $items['admin/cacheflush/clearall'] = array(
+    'title' => 'Clear All',
+    'description' => 'Clear all cache.',
+    'page callback' => '_cacheflush_clear_all',
+    'weight' => -50,
+    'access arguments' => array('cacheflush clear cache'),
+    'file' => 'cacheflush.api.inc',
+  );
+  $items['admin/cacheflush/%'] = array(
+    'title' => 'Clear preset',
+    'description' => 'Clear preset cache.',
+    'page callback' => 'cacheflush_clear_preset_menu_callback',
+    'page arguments' => array(2),
+    'access arguments' => array('cacheflush clear cache'),
+    'file' => 'cacheflush.api.inc',
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_permission().
+ */
+function cacheflush_permission() {
+
+  $item = array(
+    'cacheflush clear cache' => array(
+      'title' => t('Cacheflush clear cache'),
+      'restrict access' => TRUE,
+    ),
+  );
+
+  return $item;
+}
+
+/**
+ * Implements hook_cacheflush_tabs_options().
+ */
+function cacheflush_cacheflush_tabs_options() {
+
+  $options = array(
+    'query-strings' => array(
+      'description' => 'Change query-strings on css/js files to enforce reload for all users.',
+      'category' => 'vertical_tabs_functions',
+      'functions' => array(
+        '0' => array(
+          '#name' => '_drupal_flush_css_js',
+          '#params' => array(),
+        ),
+      ),
+    ),
+    'css' => array(
+      'description' => 'Empty the css cache.',
+      'category' => 'vertical_tabs_functions',
+      'functions' => array(
+        '0' => array(
+          '#name' => 'drupal_clear_css_cache',
+          '#params' => array(),
+        ),
+      ),
+    ),
+    'js' => array(
+      'description' => 'Empty the js cache.',
+      'category' => 'vertical_tabs_functions',
+      'functions' => array(
+        '0' => array(
+          '#name' => 'drupal_clear_js_cache',
+          '#params' => array(),
+        ),
+      ),
+    ),
+    'registry' => array(
+      'description' => 'Empty the registry cache.',
+      'category' => 'vertical_tabs_functions',
+      'functions' => array(
+        '0' => array(
+          '#name' => 'registry_rebuild',
+          '#params' => array(),
+        ),
+      ),
+    ),
+    'theme' => array(
+      'description' => 'Rebuild the theme data.',
+      'category' => 'vertical_tabs_functions',
+      'functions' => array(
+        '0' => array(
+          '#name' => 'system_rebuild_theme_data',
+          '#params' => array(),
+        ),
+        '1' => array(
+          '#name' => 'drupal_theme_rebuild',
+          '#params' => array(),
+        ),
+      ),
+    ),
+    'entity_info' => array(
+      'description' => 'Empty the entity info cache.',
+      'category' => 'vertical_tabs_functions',
+      'functions' => array(
+        '0' => array(
+          '#name' => 'entity_info_cache_clear',
+          '#params' => array(),
+        ),
+      ),
+    ),
+    'actions_synchronize' => array(
+      'description' => 'Synchronize to catch any actions that were added or removed.',
+      'category' => 'vertical_tabs_functions',
+      'functions' => array(
+        '0' => array(
+          '#name' => 'actions_synchronize',
+          '#params' => array(),
+        ),
+      ),
+    ),
+    'update_bootstrap' => array(
+      'description' => 'Rebuild the bootstrap module list. We do this here so that developers can get new hook_boot() implementations registered without having to write a hook_update_N() function.',
+      'category' => 'vertical_tabs_functions',
+      'functions' => array(
+        '0' => array(
+          '#name' => '_system_update_bootstrap_status',
+          '#params' => array(),
+        ),
+      ),
+    ),
+    'admin_menu' => array(
+      'description' => 'The administration menu clear cache function.',
+      'category' => 'vertical_tabs_often',
+      'functions' => array(
+        '0' => array(
+          '#name' => 'admin_menu_flush_caches',
+          '#params' => array(),
+        ),
+      ),
+    ),
+    'ctools' => array(
+      'description' => 'The Ctools clear cache function',
+      'category' => 'vertical_tabs_often',
+      'functions' => array(
+        '0' => array(
+          '#name' => 'ctools_flush_caches',
+          '#params' => array(),
+        ),
+      ),
+    ),
+    'eck' => array(
+      'description' => 'Cache table for ECK',
+      'category' => 'vertical_tabs_often',
+      'functions' => array(
+        '0' => array(
+          '#name' => 'cache_clear_all',
+          '#params' => array('*', 'cache_eck', TRUE),
+        ),
+      ),
+    ),
+  );
+  return $options;
+}
+
+/**
+ * Return a list of cache options to be cleared.
+ *
+ * @return array
+ *   List cache options.
+ */
+function _cacheflush_get_option_list() {
+
+  $core_tables = cacheflush_create_tab_options(cacheflush_get_core_tabels(), 'vertical_tabs_core');
+  $custom_tables = cacheflush_create_tab_options(module_invoke_all('flush_caches'), 'vertical_tabs_custom');
+  $other = module_invoke_all('cacheflush_tabs_options');
+
+  return array_merge($core_tables, $custom_tables, $other);
+}
+
+/**
+ * Create option array for preset.
+ *
+ * @param array $tabels
+ *   Cache tabels.
+ * @param string $category
+ *   Category to add.
+ *
+ * @return array
+ */
+function cacheflush_create_tab_options(array $tabels, $category) {
+
+  $tables_info = array();
+  foreach ($tabels as $table) {
+    $schema = drupal_get_schema($table);
+    $schema = drupal_get_schema_unprocessed($schema['module']);
+    $tables_info[$table] = array(
+      'description' => isset($schema[$table]['description']) ? $schema[$table]['description'] : t('No description available'),
+      'category' => $category,
+      'functions' => array(
+        '0' => array(
+          '#name' => 'cache_clear_all',
+          '#params' => array('*', $table, TRUE),
+        ),
+      ),
+    );
+  }
+  return $tables_info;
+}
+
+/**
+ * List of the core cache tabels.
+ */
+function cacheflush_get_core_tabels() {
+  $core = array(
+    'cache',
+    'cache_path',
+    'cache_filter',
+    'cache_bootstrap',
+    'cache_form',
+    'cache_menu',
+    'cache_update',
+    'cache_page',
+  );
+  return $core;
+}
+
+/**
+ * List of the all cache tabels.
+ */
+function cacheflush_get_all_tabels() {
+  return array_merge(cacheflush_get_core_tabels(), module_invoke_all('flush_caches'));
+}

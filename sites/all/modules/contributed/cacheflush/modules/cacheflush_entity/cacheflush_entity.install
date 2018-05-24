@@ -1,0 +1,69 @@
+<?php
+
+/**
+ * @file
+ * Installation info for Cacheflush entity.
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function cacheflush_entity_schema() {
+  $schema['cacheflush'] = array(
+    'description' => 'Cacheflush entity.',
+    'fields' => array(
+      'id' => array(
+        'description' => 'Cacheflush ID.',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'title' => array(
+        'description' => 'The title of this cacheflush preset.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'status' => array(
+        'description' => 'Cacheflush status.',
+        'type' => 'int',
+        'size' => 'tiny',
+        'length' => 1,
+        'not null' => TRUE,
+        'default' => 1,
+      ),
+      'uid' => array(
+        'description' => 'Author user id.',
+        'type' => 'int',
+        'length' => 11,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'data' => array(
+        'description' => 'A collection of data information for cacheflush preset.',
+        'type' => 'blob',
+        'not null' => FALSE,
+        'size' => 'big',
+      ),
+      'created' => array(
+        'description' => 'UNIX timestamp of cacheflush creation.',
+        'type' => 'int',
+        'length' => 11,
+        'not null' => TRUE,
+      ),
+      'changed' => array(
+        'description' => 'UNIX timestamp of cacheflush change.',
+        'type' => 'int',
+        'length' => 11,
+        'not null' => TRUE,
+      ),
+    ),
+    'primary key' => array('id'),
+    'indexes' => array(
+      'status' => array('status'),
+    ),
+  );
+
+  return $schema;
+}

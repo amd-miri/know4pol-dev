@@ -1,0 +1,121 @@
+<?php
+
+/**
+ * @file
+ * Cacheflush entity to store presets.
+ */
+
+/**
+ * Implements hook_entity_info().
+ */
+function cacheflush_entity_entity_info() {
+  $return = array(
+    'cacheflush' => array(
+      'label' => t('Cacheflush'),
+      'plural label' => t('Cacheflush Entities'),
+      'module' => 'cacheflush_entity',
+      'entity class' => 'CacheFlushEntity',
+      'controller class' => 'CacheFlushEntityAPIController',
+      'base table' => 'cacheflush',
+      'static cache' => TRUE,
+      'field cache' => TRUE,
+      'load hook' => 'cacheflush_load',
+      'uri callback' => 'entity_class_uri',
+      'label callback' => 'entity_class_label',
+      'fieldable' => TRUE,
+      'entity keys' => array(
+        'id' => 'id',
+        'label' => 'title',
+      ),
+      'bundles' => array(),
+    ),
+  );
+
+  return $return;
+}
+
+/**
+ * Implements hook_entity_property_info_alter().
+ */
+function cacheflush_entity_entity_property_info_alter(&$info) {
+  $info['cacheflush']['properties']['uid']['type'] = 'user';
+  $info['cacheflush']['properties']['created']['type'] = 'date';
+  $info['cacheflush']['properties']['changed']['type'] = 'date';
+}
+
+/**
+ * Create new entity.
+ *
+ * @param array $values
+ *   Values of the entity is created.
+ *
+ * @return object
+ *   New cacheflush entity.
+ */
+function cacheflush_create($values = array()) {
+  return entity_create('cacheflush', $values);
+}
+
+/**
+ * Saves new entity or updates existing one into database.
+ *
+ * @param object $entity
+ *   The entity object to be saved.
+ *
+ * @return object
+ *   The saved entity object. With populated ID property.
+ */
+function cacheflush_save($entity) {
+  return entity_save('cacheflush', $entity);
+}
+
+/**
+ * Loads entity by ID.
+ *
+ * @param mixed $id
+ *   The entity ID to be loaded.
+ *
+ * @return object
+ *   The entity object or FALSE if not found.
+ */
+function cacheflush_load($id) {
+  $list = cacheflush_load_multiple(array($id));
+  return $list ? reset($list) : FALSE;
+}
+
+/**
+ * Loads all entities from ID list.
+ *
+ * @param array $ids
+ *   The list of entity IDs to be loaded.
+ * @param array $conditions
+ *   Conditions by which entities can be filtered.
+ * @param bool $reset
+ *   True to load uncached entities.
+ */
+function cacheflush_load_multiple($ids = array(), $conditions = array(), $reset = FALSE) {
+  return entity_load('cacheflush', $ids, $conditions, $reset);
+}
+
+/**
+ * Deletes a single entity by ID.
+ *
+ * @param mixed $id
+ *   The ID of entity to be deleted.
+ */
+function cacheflush_delete($id) {
+  cacheflush_delete_multiple(array($id));
+}
+
+/**
+ * Deletes all entities from ID list.
+ *
+ * @param array $ids
+ *   The list of entity IDs.
+ */
+function cacheflush_delete_multiple(array $ids) {
+  $entities = cacheflush_load_multiple($ids);
+  foreach ($entities as $entity) {
+    entity_get_controller('cacheflush')->delete(array($entity->id));
+  }
+}

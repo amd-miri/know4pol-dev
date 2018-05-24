@@ -1,0 +1,127 @@
+<?php
+
+/**
+ * @file
+ * Contains test suite for cacheflush module.
+ */
+
+/**
+ * Defines a test for cacheflush module.
+ */
+class CacheFlushTest extends DrupalWebTestCase {
+
+  /**
+   * Profile to use.
+   */
+  protected $profile = 'testing';
+
+  /**
+   * User of test.
+   */
+  protected $testUser;
+
+  /**
+   * Modules to enable.
+   *
+   * @var array
+   */
+  public static $modules = array(
+    'cacheflush',
+    'cacheflush_entity',
+    'entity',
+  );
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function getInfo() {
+    return array(
+      'name' => 'Cacheflush',
+      'description' => 'Test cacheflush API.',
+      'group' => 'CacheFlush',
+    );
+  }
+
+  /**
+   * Sets up the test.
+   */
+  protected function setUp() {
+    parent::setUp(self::$modules);
+    $this->testUser = $this->drupalCreateUser(array('cacheflush clear cache'));
+  }
+
+  /**
+   * Check menus access.
+   */
+  public function testMenuAccessAnonymusUser() {
+    // Check access of the menus - access denied expected - Anonymus user.
+    $this->drupalGet('admin/cacheflush');
+    $this->assertResponse(403);
+
+    $this->drupalGet('admin/cacheflush/clearall');
+    $this->assertResponse(403);
+
+    $this->drupalGet('admin/cacheflush/1');
+    $this->assertResponse(403);
+  }
+
+  /**
+   * Check clear cache.
+   */
+  public function testClearPresetMenu() {
+
+    $this->createTestEntitys();
+
+    $enabled = array_values(cacheflush_load_multiple(FALSE, array('title' => 'Enabled', 'status' => 1)));
+    $this->assertEqual($enabled[0]->title, 'Enabled', 'Created and loaded entity: enabled.');
+    $disabled = array_values(cacheflush_load_multiple(FALSE, array('title' => 'Disabled', 'status' => 0)));
+    $this->assertEqual($disabled[0]->title, 'Disabled', 'Created and loaded entity: disabled.');
+
+    $this->drupalLogin($this->testUser);
+
+    // Check access of the menus - access TRUE expected.
+    $this->drupalGet('admin/cacheflush');
+    $this->assertResponse(200);
+
+    $this->drupalGet('admin/cacheflush/clearall');
+    $this->assertResponse(200);
+
+    $this->drupalGet('admin/cacheflush/' . $enabled[0]->id);
+    $this->assertResponse(200);
+
+    // Check if the disabled entity will be refused.
+    $this->drupalGet('admin/cacheflush/' . $disabled[0]->id);
+    $this->assertResponse(403);
+
+    $this->drupalLogout();
+  }
+
+  /**
+   * Create cacheflush test entities.
+   */
+  public function createTestEntitys() {
+    $options = _cacheflush_get_option_list();
+
+    $data = array();
+    $data['cache']['functions'] = $options['cache']['functions'];
+    $data['cache_menu']['functions'] = $options['cache_menu']['functions'];
+    $data['css']['functions'] = $options['css']['functions'];
+    $data = serialize($data);
+
+    $entity = entity_create('cacheflush', array(
+      'title' => 'Enabled',
+      'status' => 1,
+      'data' => $data,
+        )
+    );
+    $entity->save();
+    $entity = entity_create('cacheflush', array(
+      'title' => 'Disabled',
+      'status' => 0,
+      'data' => $data,
+        )
+    );
+    $entity->save();
+  }
+
+}

@@ -1,0 +1,68 @@
+<?php
+
+/**
+ * @file
+ * Contains test suite for cacheflush rules module.
+ */
+
+/**
+ * Test the Rules integration.
+ */
+class CacheFlushRulesEvents extends DrupalWebTestCase {
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function getInfo() {
+    return array(
+      'name' => 'Cacheflush Rules integration',
+      'description' => 'Tests the Rules integration provided by the Cacheflush.',
+      'group' => 'CacheFlush',
+      'dependencies' => array('rules'),
+    );
+  }
+
+  /**
+   * Sets up the test.
+   */
+  public function setUp() {
+    parent::setUp('cacheflush_rules');
+    // Make sure the logger is enabled so the debug log is saved.
+    variable_set('rules_debug_log', 1);
+  }
+
+  /**
+   * Test the events.
+   */
+  public function testEvents() {
+
+    module_load_include('inc', 'cacheflush', 'cacheflush.api');
+
+    // Create test user.
+    $user = $this->drupalCreateUser(array('cacheflush clear cache'));
+    $this->drupalLogin($user);
+
+    // Create rule.
+    $rule = rules_reaction_rule();
+    $rule->event('cacheflush_before');
+    $rule->event('cacheflush_after');
+    $rule->action('drupal_message', array('message' => 'hello!'));
+    $rule->save();
+    rules_clear_cache(TRUE);
+
+    RulesLog::logger()->clear();
+    $entity = entity_create('cacheflush', array('title' => 'test', 'uid' => $user->uid));
+    $entity->save();
+
+    // Let the events occur.
+    _cacheflush_clear_preset($entity->id);
+
+    // Now there should have been 5 events, 2 times presave and once insert,
+    // update and delete.
+    $count = substr_count(RulesLog::logger()->render(), '0 ms Reacting on event');
+    $this->assertTrue($count == 2, 'Events have been properly invoked.');
+    RulesLog::logger()->checkLog();
+    $this->drupalLogout();
+  }
+
+}

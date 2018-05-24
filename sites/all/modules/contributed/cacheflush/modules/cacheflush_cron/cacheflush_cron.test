@@ -1,0 +1,119 @@
+<?php
+
+/**
+ * @file
+ * Contains test suite for cacheflush cron module.
+ */
+
+/**
+ * Defines a test for cacheflush Cron module.
+ */
+class CacheFlushCronTest extends DrupalWebTestCase {
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function getInfo() {
+    return array(
+      'name' => 'Cacheflush Cron',
+      'description' => 'Test cacheflush Cron intergartion.',
+      'group' => 'CacheFlush',
+    );
+  }
+
+  /**
+   * Sets up the test.
+   */
+  protected function setUp() {
+    parent::setUp(array('cacheflush_cron'));
+    $roles = array(
+      'cacheflush create new',
+      'cacheflush view own',
+      'cacheflush edit own',
+      'cacheflush delete own',
+    );
+    $user = $this->drupalCreateUser($roles);
+    $this->drupalLogin($user);
+
+    $entity = entity_create('cacheflush', array(
+      'title' => 'CronTest2',
+      'status' => 1,
+      'menu' => 0,
+      'uid' => $user->uid,
+        )
+    );
+    $entity->save();
+    $this->eid = $entity->id;
+  }
+
+  /**
+   * Test add interface for cron functionality.
+   */
+  public function testAddInterface() {
+
+    // Check interface.
+    $this->drupalGet('admin/structure/cacheflush/add');
+    $this->assertResponse(200);
+    $this->assertFieldByName('cacheflush_cron_sett');
+    $this->assertFieldByName('cacheflush_cron_rule');
+
+    // Add new entity.
+    $edit = array(
+      'title' => 'CronTest1',
+      'cacheflush_cron_sett' => TRUE,
+      'cacheflush_cron_rule' => '*/5 * * * *',
+    );
+    $this->drupalPost('admin/structure/cacheflush/add', $edit, t('Save'));
+
+    // Load entity and check if cron sett.
+    $entities = array_values(cacheflush_load_multiple(FALSE, array('title' => 'CronTest1')));
+    $this->assertEqual($entities[0]->cron, 1);
+    $this->assertEqual($entities[0]->cron_rule, '*/5 * * * *');
+
+    // Check if entity was corectly create on EDIT interface.
+    $this->drupalGet('cacheflush/' . $entities[0]->id . '/edit');
+    $this->assertFieldByName('cacheflush_cron_sett', 1);
+    $this->assertLink(t('Cron Settings'));
+    $this->assertNoFieldByName('cacheflush_cron_rule');
+
+    // Check if cron job created.
+    $crons = elysia_cron_module_jobs();
+    $this->assertTrue($crons['cacheflush_entity_' . $entities[0]->id]);
+  }
+
+  /**
+   * Test edit interface for cron functionality.
+   */
+  public function testEditInterface() {
+
+    // Entity create by code with no cron set. Check if true.
+    $this->drupalGet('cacheflush/' . $this->eid . '/edit');
+    $this->assertFieldByName('cacheflush_cron_sett', 0);
+    $this->assertFieldByName('cacheflush_cron_rule', '* * * * *');
+    $this->assertNoLink(t('Cron Settings'));
+
+    // Add cron on the edit page for an entity create without cron settings.
+    $edit = array('cacheflush_cron_sett' => TRUE, 'cacheflush_cron_rule' => '*/5 * * * *');
+    $this->drupalPost(NULL, $edit, t('Update'));
+
+    // Load entity and check if cron sett.
+    $entities = array_values(cacheflush_load_multiple(FALSE, array('title' => 'CronTest2')));
+    $this->assertEqual($entities[0]->cron, 1);
+    $this->assertEqual($entities[0]->cron_rule, '*/5 * * * *');
+
+    // Check if entity was corectly create on EDIT interface.
+    $this->drupalGet('cacheflush/' . $this->eid . '/edit');
+    $this->assertFieldByName('cacheflush_cron_sett', 1);
+    $this->assertLink(t('Cron Settings'));
+    $this->assertNoFieldByName('cacheflush_cron_rule');
+
+    // Remove cron settings and check if interface got back to normal.
+    $edit = array('cacheflush_cron_sett' => FALSE);
+    $this->drupalPost(NULL, $edit, t('Update'));
+    $this->drupalGet('cacheflush/' . $this->eid . '/edit');
+    $this->assertResponse(200);
+    $this->assertFieldByName('cacheflush_cron_sett', 0);
+    $this->assertFieldByName('cacheflush_cron_rule', '* * * * *');
+  }
+
+}

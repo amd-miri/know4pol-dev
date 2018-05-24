@@ -1,0 +1,45 @@
+<?php
+
+/**
+ * @file
+ * Installation info for Cacheflush UI.
+ */
+
+/**
+ * Implements hook_install().
+ */
+function cacheflush_ui_schema_alter(&$schema) {
+  // Add field to existing schema.
+  $schema['cacheflush']['fields']['menu'] = array(
+    'type' => 'int',
+    'size' => 'tiny',
+    'not null' => TRUE,
+    'default' => 0,
+    'length' => 1,
+    'description' => 'Create or not menu entry for preset.',
+  );
+}
+
+/**
+ * Implements hook_install().
+ */
+function cacheflush_ui_install() {
+  $menu = array(
+    'type' => 'int',
+    'size' => 'tiny',
+    'not null' => TRUE,
+    'default' => 0,
+    'length' => 1,
+    'description' => 'Create or not menu entry for preset.',
+  );
+  db_add_field('cacheflush', 'menu', $menu);
+  db_add_index('cacheflush', 'menu', array('menu'));
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function cacheflush_ui_uninstall() {
+  db_drop_field('cacheflush', 'menu');
+  db_drop_index('cacheflush', 'menu');
+}

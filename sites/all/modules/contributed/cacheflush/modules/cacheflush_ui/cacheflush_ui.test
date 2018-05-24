@@ -1,0 +1,522 @@
+<?php
+
+/**
+ * @file
+ * Contains test suite for cacheflush ui module.
+ */
+
+/**
+ * Test the UI CRUD.
+ */
+class CacheFlushUICRUD extends DrupalWebTestCase {
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function getInfo() {
+    return array(
+      'name' => 'Cacheflush UI CRUD',
+      'description' => 'Tests the UI CRUD.',
+      'group' => 'CacheFlush',
+    );
+  }
+
+  /**
+   * Sets up the test.
+   */
+  public function setUp() {
+    parent::setUp('cacheflush_ui');
+
+    $roles = array(
+      'cacheflush create new',
+      'cacheflush administer',
+      'cacheflush view own',
+      'cacheflush edit own',
+      'cacheflush delete own',
+    );
+
+    $user = $this->drupalCreateUser($roles);
+    $this->drupalLogin($user);
+  }
+
+  /**
+   * Test if add interface has all buttons/links/etc.
+   */
+  public function testAddInterfaceIntegrity() {
+
+    $this->drupalGet('admin/structure/cacheflush/add');
+    $this->assertResponse(200);
+
+    $this->assertFieldByName('title');
+    $this->assertFieldByName('op', t('Save'));
+    $this->assertLink('Cancel');
+
+    $tabs = module_invoke_all('cacheflush_ui_tabs');
+    if ($tabs) {
+      foreach ($tabs as $key => $value) {
+        $this->assertText($value['name']);
+      }
+    }
+
+    $checkboxes = _cacheflush_get_option_list();
+    if ($checkboxes) {
+      foreach ($checkboxes as $key => $value) {
+        // Special tab element added only if there module are instaled.
+        if ($value['category'] == 'vertical_tabs_often' && !module_exists($key)) {
+          continue;
+        }
+        $this->assertFieldByName($value['category'] . "[$key]");
+      }
+    }
+  }
+
+  /**
+   * Check if form requring is working on title field.
+   */
+  public function testFieldRequiring() {
+
+    $this->drupalPost('admin/structure/cacheflush/add', array(), t('Save'));
+    $this->assertResponse(200);
+    $this->assertRaw('error');
+  }
+
+  /**
+   * Test CRUD.
+   */
+  public function testCRUD() {
+
+    // Test Entity create.
+    $data = array(
+      'title' => 'NewEntityTitle',
+      'vertical_tabs_core[cache]' => 1,
+      'vertical_tabs_core[cache_filter]' => 1,
+    );
+    $this->drupalPost('admin/structure/cacheflush/add', $data, t('Save'));
+
+    $entities = array_values(cacheflush_load_multiple(FALSE, array('title' => 'NewEntityTitle')));
+    $this->assertEqual($entities[0]->title, 'NewEntityTitle', 'Entity successfully created.');
+
+    // Test Entity update.
+    $data2 = array(
+      'title' => 'UpdatedEntityTitle',
+      'vertical_tabs_core[cache_path]' => 1,
+      'vertical_tabs_core[cache_filter]' => FALSE,
+    );
+    $this->drupalGet('cacheflush/' . $entities[0]->id . '/edit');
+    $this->assertFieldByName('vertical_tabs_core[cache]', 1, 'Entity 1: vertical_tabs_core[cache] value appears correctly in the form.');
+    $this->assertFieldByName('vertical_tabs_core[cache_filter]', 1, 'Entity 1: vertical_tabs_core[cache_filter] value appears correctly in the form.');
+    $this->assertFieldByName('vertical_tabs_core[cache_path]', 0, 'Entity 1: vertical_tabs_core[cache_path] value appears correctly in the form.');
+
+    $this->drupalPost('cacheflush/' . $entities[0]->id . '/edit', $data2, t('Update'));
+    $entities = array_values(cacheflush_load_multiple(FALSE, array('title' => 'UpdatedEntityTitle'), TRUE));
+    $this->assertEqual($entities[0]->title, 'UpdatedEntityTitle', 'Entity successfully updated.');
+
+    $this->drupalGet('cacheflush/' . $entities[0]->id . '/edit');
+    $this->assertFieldByName('vertical_tabs_core[cache]', 1, 'Entity 1: vertical_tabs_core[cache] value appears correctly in the form.');
+    $this->assertFieldByName('vertical_tabs_core[cache_filter]', 0, 'Entity 1: vertical_tabs_core[cache_filter] value appears correctly in the form.');
+    $this->assertFieldByName('vertical_tabs_core[cache_path]', 1, 'Entity 1: vertical_tabs_core[cache_path] value appears correctly in the form.');
+
+    // Test delete page and delete.
+    $this->drupalGet('cacheflush/' . $entities[0]->id . '/delete');
+    $this->assertLink(t('Cancel'));
+    $this->assertFieldByName('op', t('Confirm'));
+    $this->drupalPost(NULL, array(), t('Confirm'));
+    $this->drupalGet('cacheflush/' . $entities[0]->id);
+    $this->assertResponse(404);
+  }
+
+  /**
+   * Tests List page.
+   */
+  public function testAdminPage() {
+
+    $entities = $this->createTestEntitys();
+    $this->drupalGet('admin/structure/cacheflush');
+
+    $this->assertLink(t('Add cacheflush'));
+    $this->assertLink(t('Reset'));
+
+    $this->filterTest();
+    $this->operationTest($entities[0], $entities[1]);
+  }
+
+  /**
+   * Tests for List interface filters.
+   */
+  public function filterTest() {
+
+    $this->assertRaw('Test-Entity-Enabled');
+    $this->assertRaw('Test-Entity-Disabled');
+    $this->drupalPost(NULL, array('status' => 1, 'menu' => 0), t('Filter'));
+    $this->assertRaw('Test-Entity-Enabled');
+    $this->assertNoRaw('Test-Entity-Disabled');
+    $this->drupalPost(NULL, array('status' => 0, 'menu' => 1), t('Filter'));
+    $this->assertNoRaw('Test-Entity-Enabled');
+    $this->assertRaw('Test-Entity-Disabled');
+    $this->drupalPost(NULL, array('status' => 1, 'menu' => 1), t('Filter'));
+    $this->assertNoRaw('Test-Entity-Enabled');
+    $this->assertNoRaw('Test-Entity-Disabled');
+    $this->drupalPost(NULL, array('status' => 0, 'menu' => 0), t('Filter'));
+    $this->assertNoRaw('Test-Entity-Enabled');
+    $this->assertNoRaw('Test-Entity-Disabled');
+  }
+
+  /**
+   * Tests for Bulk Operations.
+   */
+  public function operationTest($enabled, $disabled) {
+
+    $this->drupalGet('admin/structure/cacheflush');
+
+    // Check publish and remove menu entry operation.
+    $this->drupalPost(NULL, array('operation' => 'enable', 'presets[' . $disabled->id . ']' => 1), t('Update'));
+    $this->drupalPost(NULL, array('operation' => 'remove_menu_entry', 'presets[' . $disabled->id . ']' => 1), t('Update'));
+    $disabled_to_enabled = cacheflush_load_multiple(array($disabled->id), NULL, TRUE);
+    $this->assertEqual($disabled_to_enabled[$disabled->id]->status, 1, 'Entity successfully Published.');
+    $this->assertEqual($disabled_to_enabled[$disabled->id]->menu, 0, 'Menu entry removed.');
+
+    // Check unpublish and add menu entry operation.
+    $this->drupalPost(NULL, array('operation' => 'disable', 'presets[' . $enabled->id . ']' => 1), t('Update'));
+    $this->drupalPost(NULL, array('operation' => 'add_menu_entry', 'presets[' . $enabled->id . ']' => 1), t('Update'));
+    $enabled_to_disabled = cacheflush_load_multiple(array($enabled->id), NULL, TRUE);
+    $this->assertEqual($enabled_to_disabled[$enabled->id]->status, 0, 'Entity successfully Unpublished.');
+    $this->assertEqual($enabled_to_disabled[$enabled->id]->menu, 1, 'Add menu entry.');
+
+    // Remove the entities.
+    $edit = array(
+      'operation' => 'delete',
+      'presets[' . $enabled->id . ']' => 1,
+      'presets[' . $disabled->id . ']' => 1,
+    );
+    $this->drupalPost(NULL, $edit, t('Update'));
+    $this->assertLink(t('Cancel'));
+    $this->assertFieldByName('op', t('Delete'));
+    $this->drupalPost(NULL, array(), t('Delete'));
+
+    $entities = array_values(cacheflush_load_multiple(FALSE));
+    $this->assertEqual(count($entities), 0, 'Entity successfully deleted.');
+  }
+
+  /**
+   * Create cacheflush test entities.
+   */
+  public function createTestEntitys() {
+
+    $entity = entity_create('cacheflush', array(
+      'title' => 'Test-Entity-Enabled',
+      'status' => 1,
+      'menu' => 0,
+      'uid' => $this->loggedInUser->uid,
+        )
+    );
+    $entity->save();
+
+    $entity = entity_create('cacheflush', array(
+      'title' => 'Test-Entity-Disabled',
+      'status' => 0,
+      'menu' => 1,
+      'uid' => $this->loggedInUser->uid,
+        )
+    );
+    $entity->save();
+
+    $entities = array_values(cacheflush_load_multiple(FALSE));
+    $this->assertEqual($entities[0]->title, 'Test-Entity-Enabled', 'Entity successfully created.');
+    $this->assertEqual($entities[1]->title, 'Test-Entity-Disabled', 'Entity successfully created.');
+
+    // Clear menu cache to rebuild the Cacheflush clear menus.
+    menu_rebuild();
+
+    return $entities;
+  }
+
+}
+
+/**
+ * Defines a test for cacheflush ui module CRUD access.
+ */
+class CacheFlushUICRUDAccessTest extends DrupalWebTestCase {
+
+  /**
+   * Profile to use.
+   */
+  protected $profile = 'testing';
+
+  /**
+   * User of test.
+   */
+  protected $testUser;
+
+  /**
+   * Modules to enable.
+   *
+   * @var array
+   */
+  public static $modules = array(
+    'cacheflush_ui',
+    'cacheflush',
+    'cacheflush_entity',
+    'entity',
+  );
+
+  /**
+   * CRUD urls.
+   *
+   * @var array
+   */
+  protected $urls = array(
+    'admin' => 'admin/structure/cacheflush',
+    'new' => 'admin/structure/cacheflush/add',
+    'clear' => 'admin/cacheflush/clear/',
+    'view' => 'cacheflush/[ID]/view',
+    'edit' => 'cacheflush/[ID]/edit',
+    'delete' => 'cacheflush/[ID]/delete',
+  );
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function getInfo() {
+    return array(
+      'name' => 'Cacheflush UI Access',
+      'description' => 'Test cacheflush UI access on links and interface.',
+      'group' => 'CacheFlush',
+    );
+  }
+
+  /**
+   * Sets up the test.
+   */
+  public function setUp() {
+    parent::setUp('cacheflush_ui');
+
+    $role1 = array(
+      'cacheflush administer',
+      'cacheflush clear any',
+      'cacheflush create new',
+      'cacheflush view any',
+      'cacheflush edit any',
+      'cacheflush delete any',
+    );
+    $this->admin_user = $this->drupalCreateUser($role1);
+
+    $role2 = array(
+      'cacheflush clear own',
+      'cacheflush create new',
+      'cacheflush view own',
+      'cacheflush edit own',
+      'cacheflush delete own',
+    );
+    $this->logged_user = $this->drupalCreateUser($role2);
+
+    $role3 = array(
+      'cacheflush administer',
+      'cacheflush view own',
+      'cacheflush edit own',
+      'cacheflush delete own',
+    );
+    $this->interface_user = $this->drupalCreateUser($role3);
+
+    $role4 = array(
+      'cacheflush administer',
+      'cacheflush view any',
+      'cacheflush edit own',
+    );
+    $this->interface_user2 = $this->drupalCreateUser($role4);
+
+    $this->anonymous_user = drupal_anonymous_user();
+    $this->createTestEntitys();
+  }
+
+  /**
+   * Test the access for user with no permissions.
+   */
+  public function testAccessAnonymous() {
+    // Access to administration page.
+    $this->cacheflushUrlAccess($this->urls['admin'], 403);
+    // Access to new entity create.
+    $this->cacheflushUrlAccess($this->urls['new'], 403);
+    // Access to cache clear.
+    $this->cacheflushUrlAccess($this->urls['clear'] . '1', 403);
+    $this->cacheflushUrlAccess($this->urls['clear'] . '2', 403);
+    // Access to CRUD.
+    $this->cacheflushUrlAccess(str_replace("[ID]", 1, $this->urls['view']), 403);
+    $this->cacheflushUrlAccess(str_replace("[ID]", 1, $this->urls['edit']), 403);
+    $this->cacheflushUrlAccess(str_replace("[ID]", 1, $this->urls['delete']), 403);
+  }
+
+  /**
+   * Test the access for user with permissions for own content.
+   */
+  public function testAccessLogged() {
+
+    $this->drupalLogin($this->logged_user);
+
+    // Access to administration page.
+    $this->cacheflushUrlAccess($this->urls['admin'], 403);
+    // Access to new entity create.
+    $this->cacheflushUrlAccess($this->urls['new'], 200);
+    // Access to cache clear.
+    $this->cacheflushUrlAccess($this->urls['clear'] . '1', 200);
+    $this->cacheflushUrlAccess($this->urls['clear'] . '2', 403);
+    // Access to CRUD for own entity.
+    $this->cacheflushUrlAccess(str_replace("[ID]", 1, $this->urls['view']), 200);
+    $this->cacheflushUrlAccess(str_replace("[ID]", 1, $this->urls['edit']), 200);
+    $this->cacheflushUrlAccess(str_replace("[ID]", 1, $this->urls['delete']), 200);
+    // Access to CRUD for other user created entity.
+    $this->cacheflushUrlAccess(str_replace("[ID]", 2, $this->urls['view']), 403);
+    $this->cacheflushUrlAccess(str_replace("[ID]", 2, $this->urls['edit']), 403);
+    $this->cacheflushUrlAccess(str_replace("[ID]", 2, $this->urls['delete']), 403);
+
+    $this->drupalLogout();
+  }
+
+  /**
+   * Test the access for user with permissions to all content (full CRUD).
+   */
+  public function testAccessAdmin() {
+
+    $this->drupalLogin($this->admin_user);
+
+    // Access to administration page.
+    $this->cacheflushUrlAccess($this->urls['admin'], 200);
+    // Access to new entity create.
+    $this->cacheflushUrlAccess($this->urls['new'], 200);
+    // Access to cache clear.
+    $this->cacheflushUrlAccess($this->urls['clear'] . '1', 200);
+    $this->cacheflushUrlAccess($this->urls['clear'] . '2', 200);
+    // Access to CRUD for own entity.
+    $this->cacheflushUrlAccess(str_replace("[ID]", 2, $this->urls['view']), 200);
+    $this->cacheflushUrlAccess(str_replace("[ID]", 2, $this->urls['edit']), 200);
+    $this->cacheflushUrlAccess(str_replace("[ID]", 2, $this->urls['delete']), 200);
+    // Access to CRUD for other user created entity.
+    $this->cacheflushUrlAccess(str_replace("[ID]", 1, $this->urls['view']), 200);
+    $this->cacheflushUrlAccess(str_replace("[ID]", 1, $this->urls['edit']), 200);
+    $this->cacheflushUrlAccess(str_replace("[ID]", 1, $this->urls['delete']), 200);
+
+    // Check Access on the list interface.
+    $this->drupalGet('admin/structure/cacheflush');
+    $this->assertRaw('LoggedUserEntity');
+    $this->assertRaw('AdminUserEntity');
+    $this->assertRaw('InterfaceUserEntity');
+    $this->assertRaw('InterfaceUser2Entity');
+
+    // User has access on the 4 entities to all operations.
+    $this->assertLink('Edit', 3);
+    $this->assertLink('Delete', 3);
+
+    $this->drupalLogout();
+  }
+
+  /**
+   * Test interface listed entity views access.
+   */
+  public function testAccessInterface() {
+    $this->drupalLogin($this->interface_user);
+
+    // Check Access on the list interface.
+    $this->drupalGet('admin/structure/cacheflush');
+    $this->assertNoRaw('LoggedUserEntity');
+    $this->assertNoRaw('AdminUserEntity');
+    $this->assertRaw('InterfaceUserEntity');
+    $this->assertNoRaw('InterfaceUser2Entity');
+
+    // User has access on the own entity to all operations.
+    $this->assertLink('Edit', 0);
+    $this->assertLink('Delete', 0);
+
+    $this->drupalLogout();
+  }
+
+  /**
+   * Test interface listed entity views access.
+   */
+  public function testAccessInterface2() {
+    $this->drupalLogin($this->interface_user2);
+
+    // Check Access on the list interface.
+    $this->drupalGet('admin/structure/cacheflush');
+    $this->assertRaw('LoggedUserEntity');
+    $this->assertRaw('AdminUserEntity');
+    $this->assertRaw('InterfaceUserEntity');
+    $this->assertRaw('InterfaceUser2Entity');
+
+    // User has access to all entities.
+    // Edit 1 -> own.
+    // No delete.
+    $this->assertLink('Edit', 0);
+    $this->assertNoLink('Delete');
+
+    $this->drupalLogout();
+  }
+
+  /**
+   * Check access of URL.
+   *
+   * @param string $url
+   *   URL to check access.
+   * @param int $code
+   *   HTTP response.
+   */
+  public function cacheflushUrlAccess($url, $code) {
+    $this->drupalGet($url);
+    $this->assertResponse($code);
+  }
+
+  /**
+   * Create cacheflush test entities.
+   */
+  public function createTestEntitys() {
+    $options = _cacheflush_get_option_list();
+
+    $data = array();
+    $data['cache']['functions'] = $options['cache']['functions'];
+    $data['cache_menu']['functions'] = $options['cache_menu']['functions'];
+    $data['css']['functions'] = $options['css']['functions'];
+    $data = serialize($data);
+
+    $entity = entity_create('cacheflush', array(
+      'title' => 'LoggedUserEntity',
+      'status' => 1,
+      'menu' => 1,
+      'data' => $data,
+      'uid' => $this->logged_user->uid,
+        )
+    );
+    $entity->save();
+
+    $entity = entity_create('cacheflush', array(
+      'title' => 'AdminUserEntity',
+      'status' => 1,
+      'menu' => 1,
+      'data' => $data,
+      'uid' => $this->admin_user->uid,
+        )
+    );
+    $entity->save();
+
+    $entity = entity_create('cacheflush', array(
+      'title' => 'InterfaceUserEntity',
+      'status' => 1,
+      'menu' => 1,
+      'data' => $data,
+      'uid' => $this->interface_user->uid,
+        )
+    );
+    $entity->save();
+
+    $entity = entity_create('cacheflush', array(
+      'title' => 'InterfaceUser2Entity',
+      'status' => 1,
+      'menu' => 1,
+      'data' => $data,
+      'uid' => $this->interface_user2->uid,
+        )
+    );
+    $entity->save();
+
+    // Clear menu cache to rebuild the Cacheflush clear menus.
+    menu_rebuild();
+  }
+
+}

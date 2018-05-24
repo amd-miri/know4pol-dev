@@ -1,0 +1,17 @@
+name = CacheFlush
+description = "Allows you to create configurable cache flusher presets."
+core = "7.x"
+package = CacheFlush
+
+dependencies[] = cacheflush_entity
+
+configure = admin/structure/cacheflush
+
+files[] = cacheflush.test
+
+; Information added by Drupal.org packaging script on 2017-05-30
+version = "7.x-3.0"
+core = "7.x"
+project = "cacheflush"
+datestamp = "1496146449"
+

@@ -1,0 +1,61 @@
+<?php
+
+/**
+ * @file
+ * Installation info for Cacheflush Cron.
+ */
+
+/**
+ * Implements hook_install().
+ */
+function cacheflush_cron_schema_alter(&$schema) {
+  // Add field to existing schema.
+  $schema['cacheflush']['fields']['cron'] = array(
+    'type' => 'int',
+    'size' => 'tiny',
+    'not null' => TRUE,
+    'default' => 0,
+    'length' => 1,
+    'description' => 'Create or not cron entry for preset.',
+  );
+  $schema['cacheflush']['fields']['cron_rule'] = array(
+    'type' => 'varchar',
+    'length' => 255,
+    'not null' => TRUE,
+    'default' => '',
+    'description' => 'Crone rule value.',
+  );
+}
+
+/**
+ * Implements hook_install().
+ */
+function cacheflush_cron_install() {
+  $cron = array(
+    'type' => 'int',
+    'size' => 'tiny',
+    'not null' => TRUE,
+    'default' => 0,
+    'length' => 1,
+    'description' => 'Create or not cron entry for preset.',
+  );
+  $cron_value = array(
+    'type' => 'varchar',
+    'length' => 255,
+    'not null' => TRUE,
+    'default' => '',
+    'description' => 'Crone rule value.',
+  );
+  db_add_field('cacheflush', 'cron', $cron);
+  db_add_field('cacheflush', 'cron_rule', $cron_value);
+  db_add_index('cacheflush', 'cron', array('cron'));
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function cacheflush_cron_uninstall() {
+  db_drop_field('cacheflush', 'cron');
+  db_drop_field('cacheflush', 'cron_rule');
+  db_drop_index('cacheflush', 'cron');
+}

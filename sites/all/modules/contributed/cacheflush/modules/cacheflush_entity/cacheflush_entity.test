@@ -1,0 +1,92 @@
+<?php
+
+/**
+ * @file
+ * Contains test suite for cacheflush entity module.
+ */
+
+/**
+ * Defines a test for cacheflush module.
+ */
+class CacheFlushEntityTest extends DrupalWebTestCase {
+
+  /**
+   * Profile to use.
+   */
+  protected $profile = 'testing';
+
+  /**
+   * Admin user.
+   *
+   * @var \StdClass
+   */
+  protected $adminUser;
+
+  /**
+   * Modules to enable.
+   *
+   * @var array
+   */
+  public static $modules = array(
+    'cacheflush_entity',
+    'entity',
+  );
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function getInfo() {
+    return array(
+      'name' => 'Cacheflush Entity',
+      'description' => 'Test cacheflush entity functionality.',
+      'group' => 'CacheFlush',
+    );
+  }
+
+  /**
+   * Sets up the test.
+   */
+  protected function setUp() {
+    parent::setUp(self::$modules);
+    $this->adminUser = $this->drupalCreateUser();
+  }
+
+  /**
+   * Tests CRUD functions for cacheflush entity.
+   */
+  public function testCrudFunctions() {
+    $this->drupalLogin($this->adminUser);
+
+    $user = $this->drupalCreateUser();
+    // Create test entities for the user and unrelated to a user.
+    $entity = entity_create('cacheflush', array('title' => 'test', 'uid' => $user->uid));
+    $entity->save();
+    $entity = entity_create('cacheflush', array('title' => 'test2', 'uid' => $this->adminUser->uid));
+    $entity->save();
+    $entity = entity_create('cacheflush', array('title' => 'test', 'uid' => NULL));
+    $entity->save();
+
+    $entities = array_values(cacheflush_load_multiple(FALSE, array('title' => 'test')));
+
+    $this->assertEqual($entities[0]->title, 'test', 'Created and loaded entity.');
+    $this->assertEqual($entities[1]->title, 'test', 'Created and loaded entity.');
+
+    $loaded = cacheflush_load($entity->id);
+    $this->assertEqual($loaded->id, $entity->id, 'Loaded the entity unrelated to a user.');
+
+    $entities = array_values(cacheflush_load_multiple(FALSE, array('title' => 'test2')));
+    $entities[0]->delete();
+    $entities = array_values(cacheflush_load_multiple(FALSE, array('title' => 'test2')));
+    $this->assertEqual($entities, array(), 'Entity successfully deleted.');
+
+    $entity->save();
+    $this->assertEqual($entity->id, $loaded->id, 'Entity successfully updated.');
+
+    // Try deleting multiple test entities by deleting all.
+    $ids = array_keys(cacheflush_load_multiple(FALSE));
+    cacheflush_delete_multiple($ids);
+
+    $this->drupalLogout();
+  }
+
+}
