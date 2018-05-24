@@ -87,6 +87,7 @@ function know4pol_ec_europa_preprocess_page_header(&$variables, $hook) {
   }
   elseif (drupal_is_front_page()) {
     $variables['full_banner'] = TRUE;
+    $variables['introduction'] = variable_get('site_slogan', '');
   }
   // Or it's a SolR page.
   elseif ($adapter = _know4pol_ec_europa_get_solr_instance()) {
