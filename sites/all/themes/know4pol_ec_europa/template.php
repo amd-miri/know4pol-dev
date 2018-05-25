@@ -120,19 +120,75 @@ function know4pol_ec_europa_preprocess_field(&$variables) {
           '__meta_headers';
         break;
     }
+
+    // Specific to solR page.
+    $menu_item = menu_get_item();
+    // Determine which apache solR page is viewed.
+    switch ($menu_item['map'][0]) {
+      case 'events':
+        $variables['hide_metas'] = TRUE;
+        // Newsroom date, field newsroom_item_type exists, and it's an event.
+        if ($variables['element']['#field_name'] == "field_newsroom_item_date" &&
+          $variables['element']['#object']->field_newsroom_item_type[LANGUAGE_NONE][0]['taxonomy_term']->name == "Event") {
+          // Determine which apache solR page is viewed.
+          $variables['theme_hook_suggestions'][] = 'field__' . $variables['element']['#view_mode'] .
+              '__event_date';
+          $variables['ecl_date'] = _know4pol_ec_europa_get_date_for_ecl($variables['element']['#items'][0]);
+          // =.
+        }
+    }
   }
-  // Need to check that we have an event or news item.
-  $start_date = $variables['element']['#object']->field_newsroom_item_date['und'][0]['value'];
-  $date_start[] = date('D', $start_date);
-  $date_start[] = date('j', $start_date);
-  $date_start[] = date('M', $start_date);
-  $variables['newsroom_type'] = $variables['element']['#object']->field_newsroom_item_type['und'][0]['taxonomy_term']->name;
-  $variables['event_start_date'] = $date_start;
 
   // Custom hook for specific fields.
   if ($variables['element']['#field_name'] == 'field_vis_data_url') {
     _know4pol_ec_europa_preprocess_field__field_vis_data_url__visualisation($variables);
   }
+}
+
+/**
+ * Format date with begin and end value for ECL dateblocks.
+ *
+ * @param array $date
+ *   The date field to format.
+ *
+ * @return string
+ *   The formatted date with meta formater.
+ */
+function _know4pol_ec_europa_get_date_for_ecl(array $date) {
+  // No end date or not different.
+  $result = array();
+  // Convert now to today at 00:00 so we can compare with the dates.
+  $now = strtotime('today midnight');
+
+  if ($date['value'] == $now || (
+    isset($date['value2']) && ($date['value1'] > $now  && $date['value2'] <= $now))) {
+    $result['type'] = 'ongoing';
+  }
+  elseif ($date['value'] < $now &&
+    (!isset($date['value2']) || isset($date['value2']) && $date['value2'] < $now)) {
+    $result['type'] = 'past';
+  }
+
+  // Start with first date.
+  $result['weekday'] = date('D', $date['value']);
+  $result['day'] = date('j', $date['value']);
+  $result['month'] = date('M', $date['value']);
+  $result['year'] = date('Y', $date['value']);
+  $result['next_year'] = ($result['year'] > date('Y', $now));
+
+  if (isset($date['value2']) && $date['value2'] > $date['value']) {
+    $result['weekday'] .= '&ndash;' . date('D', $date['value2']);
+    $result['day'] .= '&ndash;' . date('j', $date['value2']);
+
+    if (date('Y', $date['value2']) != $result['year']) {
+      $result['year'] .= '&ndash;' . date('Y', $date['value2']);
+      $result['month'] .= '&ndash;' . date('M', $date['value2']);
+    }
+    elseif (date('M', $date['value2']) != $result['month']) {
+      $result['month'] .= '&ndash;' . date('M', $date['value2']);
+    }
+  }
+  return $result;
 }
 
 /**
