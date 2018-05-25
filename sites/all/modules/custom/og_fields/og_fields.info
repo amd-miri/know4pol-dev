@@ -1,0 +1,6 @@
+name = Organic groups Fields
+description = "Enable groups to maintain their own Fields."
+dependencies[] = og
+dependencies[] = taxonomy
+package = "Organic groups"
+core = 7.x
