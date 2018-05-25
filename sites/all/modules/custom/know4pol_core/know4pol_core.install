@@ -169,3 +169,13 @@ function know4pol_core_update_7008() {
 function know4pol_core_update_7009() {
   module_enable(array('statistics', 'statistics_counter'), TRUE);
 }
+
+/**
+ * Enable better_watchdog_ui modules.
+ */
+function know4pol_core_update_7010() {
+  module_enable(array('better_watchdog_ui',
+    'better_watchdog_ui_entity',
+    'better_watchdog_ui_rules',
+  ), TRUE);
+}
