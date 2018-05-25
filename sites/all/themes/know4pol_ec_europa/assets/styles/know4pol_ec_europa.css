@@ -23,13 +23,3 @@ ul li.leaf {
   list-style-type: none;
   list-style-image: none;
 }
-
-.ecl-date-block {
-  float: left;
-  margin-right: 1rem;
-  margin-bottom: 1.6rem;
-}
-
-.ecl-u-mt-m {
-  clear: both;
-}
