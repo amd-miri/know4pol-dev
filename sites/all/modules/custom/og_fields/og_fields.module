@@ -1,0 +1,708 @@
+<?php
+
+/**
+ * @file
+ * Give each group its own system controlled fields.
+ */
+
+/**
+ * Implements hook_permission().
+ */
+function og_fields_permission() {
+  return array(
+    'administer organic groups fields' => array(
+      'title' => t('Administer og_fields search'),
+      'description' => t('Administer og_fields search'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_og_permission().
+ */
+function og_fields_og_permission() {
+  return array(
+    'configure OG search block content types' => array(
+      'title' => t('Configure OG search block content types'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_menu().
+ */
+function og_fields_menu() {
+  $items['group/node/%/admin/og_fields/add'] = array(
+    'title' => 'Organic Groups field settings',
+    'description' => 'Organic group settings',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('_og_fields_settings_add_form'),
+    'access arguments' => array('administer organic groups fields'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+  $items['group/node/%/admin/og_fields'] = array(
+    'title' => 'Organic Group field settings',
+    'description' => 'Organic groups field overview',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('_og_fields_settings_table_form', 2),
+    'access arguments' => array('node', 2,
+      'configure OG search block content types',
+    ),
+    'access callback' => 'og_user_access',
+    'type' => MENU_NORMAL_ITEM,
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_og_ui_get_group_admin().
+ */
+function og_fields_og_ui_get_group_admin($group_type, $gid) {
+  $items = array();
+  if (og_user_access($group_type, $gid, 'configure Organic Group fields')) {
+    $items['og_fields'] = array(
+      'title' => t('Add Fields'),
+      'description' => t('Configure OG Fields'),
+      'href' => 'admin/og_fields',
+    );
+  }
+  return $items;
+}
+
+/**
+ * Settings for for field group bundle mapping.
+ *
+ * @param array $form
+ *   The entity to map to.
+ * @param array $form_state
+ *   The target key on $entity to map to.
+ */
+function _og_fields_settings_add_form(array $form, array &$form_state) {
+  $form = array();
+
+  drupal_add_js(drupal_get_path('module', 'og_fields') . '/og_fields.js');
+  drupal_add_css(drupal_get_path('module', 'og_fields') . '/og_fields.css');
+
+  // Settings for Main form.
+  $form['new_field_name'] = array(
+    '#type' => 'textfield',
+    '#title' => t('What is the title for your Field?'),
+    // 32 characters minus the 'field_' prefix.
+    '#size' => 26,
+    '#maxlength' => 26,
+    '#required' => FALSE,
+    '#description' => "Please type your field name",
+    '#attributes' => array('class' => array('name-class')),
+  );
+
+  $name = '_add_new_field';
+  $form['new_field_machine_name'] = array(
+    '#type' => 'machine_name',
+    '#required' => FALSE,
+    '#attributes' => array('class' => array('machine-name-class')),
+    '#title' => t('New field machine name'),
+    '#size' => 15,
+    '#description' => t('A unique machine-readable name containing letters, numbers, and underscores.'),
+    '#maxlength' => 26,
+    '#machine_name' => array(
+      'label' => 'Please type the machine name for this field',
+      'source' => array('fields', $name, 'label'),
+      'exists' => 'og_fields_field_name_exists',
+      'standalone' => FALSE,
+    ),
+  );
+  $form['existing_fieldname'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Add existing field label'),
+    '#size' => 26,
+    '#maxlength' => 26,
+    '#required' => FALSE,
+    '#description' => t('Type in a field name.'),
+    '#attributes' => array('class' => array('name-class')),
+  );
+
+  // Get fields from DB for reusing existing fields form.
+  $query = db_select('og_fields', 'of')
+    ->distinct()
+    ->fields('of', array('field_name', 'field_machine_name'));
+  $result = $query->execute()->fetchAllAssoc('field_machine_name');
+
+  $result_options = array();
+
+  // Add field name next to the machine name in the select box.
+  foreach ($result as $key => $value) {
+    $result_options[] = $value->field_machine_name . " (" . $value->field_name . ")";
+  }
+
+  $form['select_existing'] = array(
+    '#type' => 'select',
+    '#attributes' => array('class' => array('name-class')),
+    '#title' => t('Select existing field'),
+    '#description' => t('Optionaly select a existing field.'),
+    "#options" => array('_none' => '-select item-') + $result_options,
+    '#default_value' => "_none",
+    '#required' => FALSE,
+  );
+  // Get Returns a list of available node type names.
+  $types = array_map('check_plain', node_type_get_names('names'));
+  unset($types['knowledge_centre']);
+  unset($types['newsroom_item']);
+  unset($types['newsroom_selection']);
+  unset($types['newsroom_newsletter_issue']);
+
+  $form['fieldset'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Select one or more content types'),
+  );
+  $form['fieldset']['content_types'][0] = array(
+    '#type' => 'checkboxes',
+    '#options' => $types,
+    '#title' => t('Which content types do you wish to add this field to?'),
+    '#required' => TRUE,
+  );
+
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Save'),
+  );
+  return $form;
+}
+
+/**
+ * Settings for form validation.
+ *
+ * @param array $form
+ *   The entity to map to.
+ * @param array $form_state
+ *   The target key on $entity to map to.
+ */
+function _og_fields_settings_add_form_validate(array $form, array &$form_state) {
+  $a = $form_state['values']['new_field_name'];
+  $b = $form_state['values']['new_field_machine_name'];
+  $c = $form_state['values']['existing_fieldname'];
+  $d = $form_state['values']['select_existing'];
+
+  if (empty($b) && $d == '_none') {
+    form_set_error('form', "You must enter a field name and choose/type its related machine name properly.");
+    return;
+  }
+
+}
+
+/**
+ * Builds fields and fields instances for all bundles selected for OG fields.
+ *
+ * @param array $form
+ *   The entity to map to.
+ * @param array $form_state
+ *   The form state.
+ */
+function _og_fields_settings_add_form_submit(array $form, array &$form_state) {
+  global $user;
+
+  $bundles = isset($form_state['values'][0]) ? $form_state['values'][0] : array();
+  $option = $form_state['values']['select_existing'];
+  // Get the GID from the URL.
+  $get_gid = menu_get_item();
+  $gid = $get_gid['map']['2'];
+
+  foreach ($bundles as $bundle) {
+    if ($bundle != '0') {
+      // In case we want to create a not existent new field, not existing yet.
+      if ($option == '_none') {
+        // Creating a new field.
+        $field_name = check_plain($form_state['values']['new_field_name']);
+        // Get the machine name from the form.
+        $new_field_machine_name = 'field_' . check_plain($form['new_field_machine_name']['#value']);
+        // Return the first 32 charateres only.
+        $new_field_machine_name = preg_replace('/\s+?(\S+)?$/', '', substr($new_field_machine_name, 0, 32));
+        // Checking if the field exist.
+        $field = field_info_field($new_field_machine_name);
+        if (!isset($field)) {
+          field_info_cache_clear();
+          $field = array(
+            'field_name' => $new_field_machine_name,
+            'label' => $field_name,
+            'type' => 'text',
+          );
+          // Create the base instance only once.
+          field_create_field($field);
+        }
+        // Define properly the machine for the next steps.
+        $field_instance = field_info_instance('node', $new_field_machine_name, $bundle);
+        _og_fields_create_field_instance($field_name, $new_field_machine_name, $bundle, $gid);
+        // Set the field_machine_name variable for the group assignment.
+        // We can not use the same variable, because there are two test cases.
+        $field_machine_name = $new_field_machine_name;
+      }
+      else {
+        $field_name = check_plain($form['existing_fieldname']['#value']);
+        // Checking for re-using existing fields select option.
+        $options = $form_state['values']['select_existing'];
+
+        // The field name selected for existing field.
+        $select_existing = $form['select_existing']['#options'][$options];
+        $select_existing = trim(preg_replace('/\(.*\)/', '', $select_existing));
+        // If default option selected, does not re-use and creates a field.
+        // Reusing existing field.
+        $field_reuse = db_select('og_fields', 'fr')
+          ->fields('fr', array('field_machine_name'))
+          ->distinct()
+          ->condition('field_machine_name', $select_existing, '=')
+          ->execute()
+          ->fetchAll();
+
+        $field_existing_machine_name = $field_reuse[0]->field_machine_name;
+        // Define properly the machine for the next steps.
+        $field_instance = field_info_instance('node', $field_existing_machine_name, $bundle);
+        if (!isset($field_instance)) {
+          _og_fields_create_field_instance($field_name, $field_existing_machine_name, $bundle, $gid);
+        }
+        else {
+          form_set_error("form", "The Machine name exist already in $bundle content type.");
+          return;
+        }
+        // Set the field_machine_name variable for the group assignment.
+        // We can not use the same variable, because there are two test cases.
+        $field_machine_name = $field_existing_machine_name;
+      }
+
+      // First we create the field_group.
+      _og_field_group_handle($bundle);
+      // Then we attache the og_field to the field_group.
+      _og_fields_field_attach($field_machine_name, $bundle);
+
+    }
+  }
+  drupal_goto('group/node/' . $gid . '/admin/og_fields_en');
+}
+
+/**
+ * Creates the field instance.
+ *
+ * @param string $field_name
+ *   The field name.
+ * @param string $field_machine_name
+ *   The machine name of the field.
+ * @param string $bundle
+ *   The bundle of the field.
+ * @param string $gid
+ *   The Organic Groups ID.
+ */
+function _og_fields_create_field_instance($field_name, $field_machine_name, $bundle, $gid) {
+
+  if (!isset($field_instance)) {
+    $instance = array(
+      // Field name.
+      'label' => $field_name,
+      'field_name' => $field_machine_name,
+      'entity_type' => 'node',
+      'bundle' => $bundle,
+      'required' => FALSE,
+      'widget' => array(
+        'type' => 'og_fields_widget',
+      ),
+      'display' => array(
+        'default' => array(
+          'label' => t('New field instance'),
+          'type' => 'text_default',
+          'full' => 'visible',
+        ),
+      ),
+    );
+
+    $instance['display']['full']['type'] = 'visible';
+
+    field_create_instance($instance);
+
+    // Create an entry inside the OG field table.
+    $id = db_insert('og_fields')
+      ->fields(array(
+        'field_name' => $field_name,
+        'field_machine_name' => $field_machine_name,
+        'bundle' => $bundle,
+        'gid' => $gid,
+          // 'uid' => $user->uid,.
+        'entity_type' => 'node',
+      ))
+      ->execute();
+  }
+  else {
+    drupal_set_message(t('Field @name already exists.', array('@name' => $field_name)), '');
+  }
+}
+
+/**
+ * Settings for for field group bundle mapping.
+ *
+ * @param string $identifier
+ *   Checks whether group identifier already exists or not.
+ */
+function _og_field_check_group_exists($identifier) {
+  $exists = db_select('field_group', 'fg')
+    ->fields('fg')
+    ->condition('identifier', $identifier, '=')
+    ->execute()
+    ->fetchAssoc();
+
+  if ($exists) {
+    return TRUE;
+  }
+  else {
+    return FALSE;
+  }
+}
+
+/**
+ * Builds the Field Group programmatically for og_fields field.
+ */
+function _og_field_group_handle($bundle) {
+  module_load_include('module', 'field_group');
+  module_load_include('module', 'ctools');
+  ctools_include('export');
+
+  // First check if the group already exist or not.
+  $field_group = _og_field_check_group_exists('group_og_fields|node|' . $bundle . '|form');
+  $identifier = 'group_og_fields|node|' . $bundle . '|form';
+  // The group does NOT Exists already.
+  if ($field_group == FALSE) {
+    // Creating a fieldgroup.
+    $field_group = (object) array(
+      'identifier' => 'group_og_fields|node|' . $bundle . '|form',
+      'group_name' => 'group_og_fields',
+      'entity_type' => 'node',
+      'bundle' => $bundle,
+      'mode' => 'form',
+      'label' => 'Organic Groups fields',
+      'format_type' => 'tab',
+      'parent_name' => 'group_main',
+      'children' => array(),
+      'weight' => '100',
+      'format_settings' => array(
+        'formatter' => 'open',
+        'instance_settings' => array(
+          'description' => '',
+          'classes' => 'group-og-field field-group-tab',
+          'required_fields' => 0,
+        ),
+      ),
+    );
+
+    // Create the field group.
+    ctools_export_crud_save('field_group', $field_group);
+    ctools_export_crud_enable('field_group', $identifier);
+    drupal_set_message(t('FieldGroup created and enabled sucessfully'));
+  }
+  else {
+    ctools_export_crud_enable('field_group', $identifier);
+  }
+}
+
+/**
+ * Loads, sets and saves fields into fieldgroup.
+ *
+ * @param string $field_machine_name
+ *   The entity to map to.
+ * @param string $bundle
+ *   The target key on $entity to map to.
+ */
+function _og_fields_field_attach($field_machine_name, $bundle) {
+  $fieldgroup = field_group_load_field_group('group_og_fields', 'node', $bundle, 'form');
+  $fieldgroup->children[] = $field_machine_name;
+  ctools_export_crud_save('field_group', $fieldgroup);
+}
+
+/**
+ * Hook action to fire after deleting a field.
+ *
+ * @param object $instance
+ *   The field instance.
+ */
+function og_fields_field_delete_instance($instance) {
+
+  $field_machine_name = str_replace(' ', '_', $instance['field_name']);
+
+  if ($field = field_info_instance('node', $field_machine_name, $instance['bundle'])) {
+    field_delete_instance($field);
+  }
+
+  db_delete('og_fields', array('of'))
+    ->condition('field_machine_name', $field_machine_name)
+    ->condition('bundle', $instance['bundle'])
+    ->execute();
+
+  $bundle = str_replace(' ', '_', $instance['bundle']);
+
+  if ($group = field_group_load_field_group('group_og_fields', 'node', $bundle, 'form')) {
+    ctools_include('export');
+    field_group_group_export_delete($group, FALSE);
+    drupal_set_message(t('Your field and fieldgroup has been deleted'));
+  }
+}
+
+/**
+ * Render API callback: Checks if a field machine name is taken.
+ *
+ * @param string $value
+ *   The machine name, not prefixed with 'field_'.
+ *
+ * @return bool
+ *   Whether or not the field machine name is taken.
+ */
+function og_fields_field_name_exists($value) {
+  $field_name = 'field_' . $value;
+  return (bool) field_read_fields(array('field_name' => $field_name), array('include_inactive' => TRUE));
+}
+
+/**
+ * Settings for for field group bundle mapping.
+ *
+ * @param array $form
+ *   The entity to map to.
+ * @param array $form_state
+ *   The target key on $entity to map to.
+ */
+function _og_fields_settings_table_form(array $form, array &$form_state) {
+  $form = array();
+  // Get the actual group ID.
+  $menu = menu_get_item();
+  $groupid = $menu['page_arguments'][1];
+
+  // Create a link to the "Add Field" form.
+  $form['fields'] = array(
+    '#type' => 'link',
+    '#title' => t('Add Organic Group fields'),
+    '#href' => 'group/node/' . $groupid . '/admin/og_fields/add',
+  );
+
+  // First query the og_field tqble to show the existing group fields.
+  $query = db_select('og_fields', 'of')
+    ->fields('of',
+        array('field_name',
+          'uid',
+          'gid',
+          'bundle',
+          'content_type',
+          'field_machine_name',
+        )
+            )
+    ->condition('of.gid', $groupid, '=');
+  $result = $query->execute()->fetchAll();
+
+  // Creating options array for each table row.
+  $options = array();
+
+  $header = array(
+    'field_name' => t('Field name'),
+    'gid' => t('Group ID'),
+    'bundle' => t('Content type'),
+    'machine-name' => t('Machine Name'),
+    'edit' => t('Edit'),
+    'delete' => t('delete'),
+  );
+
+  foreach ($result as $key => $value) {
+    $delete_path = 'admin/structure/types/manage/' . $value->bundle . '/fields/' . $value->field_machine_name . '/delete';
+    $delete_link = l(t('delete'), $delete_path, array('query' => array('destination' => 'group/node/' . $groupid . '/admin/og_fields')));
+    $edit_path = 'admin/structure/types/manage/' . $value->bundle . '/fields/' . $value->field_machine_name . '/edit';
+    $edit_link = l(t('edit'), $edit_path, array('query' => array('destination' => 'group/node/' . $groupid . '/admin/og_fields')));
+    $bundle_path = 'node/add/' . str_replace("_", "-", $value->bundle);
+    $bundle_link = l($value->bundle, $bundle_path, array('query' => array('og_group_ref' => $groupid)));
+    $info = field_info_instance('node', $value->field_machine_name, $value->bundle);
+    // Construct the rows for the Field table.
+    $options[] = array(
+      'field_name' => $label = $info['label'],
+      'gid' => $value->gid,
+      'bundle' => $bundle_link,
+      'machine-name' => $value->field_machine_name,
+      'delete' => $delete_link,
+      'edit' => $edit_link,
+    );
+  }
+
+  // Create the table to show all related group fields.
+  $form['table'] = array(
+    '#type' => 'tableselect',
+    '#header' => $header,
+    '#options' => $options,
+    '#js_select' => TRUE,
+  );
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Delete fields'),
+  );
+
+  return $form;
+}
+
+/**
+ * Function to delete all or selected fieldboxes from table.
+ */
+function _og_fields_settings_table_form_validate(array $form, array &$form_state) {
+
+  // Get the checkboxes array.
+  $checkboxes = $form_state['values']['table'];
+  $get_gid = menu_get_item();
+  $gid = $get_gid['map']['2'];
+  $instance = array();
+
+  foreach ($checkboxes as $checkbox) {
+    if ($checkbox != NULL) {
+      $query = db_select('og_fields', 'of')
+        ->fields('of', array('bundle', 'gid', 'field_machine_name'))
+        ->condition('of.field_machine_name', $form['table']['#options'][$checkbox]['machine-name'], '=')
+        ->condition('of.gid', $gid, '=');
+      $result = $query->execute()->fetch();
+
+      $instance['field_name'] = $result->field_machine_name;
+      $instance['bundle'] = $result->bundle;
+      og_fields_field_delete_instance($instance);
+    }
+  }
+
+}
+
+/**
+ * Implements hook_field_widget_info().
+ */
+function og_fields_field_widget_info() {
+  $widgets['og_fields_widget'] = array(
+    'label' => t('OG fields'),
+    'description' => t('Widget for fields for Organic Groups.'),
+    'field types' => array('text'),
+  );
+  return $widgets;
+}
+
+/**
+ * Implements hook_field_formatter_info().
+ */
+function og_fields_field_formatter_info() {
+  return array(
+    'og_fields_field_formatter' => array(
+      'label' => t('sample formatter'),
+      'field types' => array('og_fields'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_field_validate().
+ *
+ * This hook gives us a chance to validate content that's in our
+ * field. We're really only interested in the $items parameter, since
+ * it holds arrays representing content in the field we've defined.
+ * If the item validates, we do nothing. If it doesn't
+ * validate, we add our own error notification to the $errors parameter.
+ *
+ * @see field_example_field_widget_error()
+ */
+function og_fields_field_validate($entity_type, $entity, $field, $instance, $langcode, $items, &$errors) {
+  foreach ($items as $delta => $item) {
+    if (!empty($item['text'])) {
+      // Ok not empty.
+    }
+  }
+}
+
+/**
+ * Implements hook_og_fields_info().
+ */
+function og_fields_og_fields_info() {
+  $items['og_fields'] = array(
+    'type' => array('group content'),
+    'description' => t('Complex widget to reference taxonomy terms related to accessible groups.'),
+    // Allow multiple OG-vocab fields on the same bundle.
+    'multiple' => TRUE,
+    'field' => array(
+      'settings' => array(
+        'handler' => 'base',
+        'target_type' => 'node',
+        'handler_settings' => array(
+          'target_bundles' => array(),
+          'behaviors' => array(
+            'og_fields' => array('status' => TRUE),
+            // 'taxonomy-index' => array('status' => TRUE),.
+          ),
+        ),
+      ),
+      'field_name' => 'og_fields',
+      'type' => 'text',
+      'cardinality' => FIELD_CARDINALITY_UNLIMITED,
+    ),
+    'instance' => array(
+      'label' => t('OG field'),
+      'widget' => array(
+        'active' => 1,
+        'module' => 'og_fields',
+        'settings' => array(
+          'display_label' => 1,
+        ),
+        'type' => 'og_fields_widget',
+      ),
+      'display' => array(
+        'default' => array(
+          'type' => 'og_fields',
+          'full' => 'visible',
+        ),
+      ),
+    ),
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_field_widget_form().
+ */
+function og_fields_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element) {
+
+  $element = array();
+  $element['value'] = array();
+
+  $element['value'] = array(
+    '#title' => check_plain($instance['label']),
+    '#type' => 'textfield',
+    '#size' => 100,
+    '#default_value' => isset($items[$delta]['value']) ? $items[$delta]['value'] : '',
+  );
+
+  // This case is for "Add content" page.
+  $params = drupal_get_query_parameters();
+  if (!empty($params)) {
+    $query = db_select('og_fields', 'of')
+      ->fields('of', array('field_name', 'field_machine_name'))
+      ->condition('of.gid', $params['og_group_ref'], '=')
+      ->condition('of.bundle', isset($form['type']['#value']) ? $form['type']['#value'] : '', '=');
+    $result = $query->execute()->fetchAll();
+
+    foreach ($result as $key => $value) {
+      if ($value->field_machine_name == $field['field_name']) {
+        return $element;
+      }
+    }
+  }
+  else {
+    // This case if for when "Editing content".
+    $menu = menu_get_item();
+    if (!empty($menu['page_arguments']['1'])) {
+      // Do a query based on the og_group_field.
+      $groupid = $menu['page_arguments']['1']->og_group_ref['und'][0]['target_id'];
+
+      $query = db_select('og_fields', 'of')
+        ->fields('of', array('field_name', 'field_machine_name'))
+        ->condition('of.gid', $groupid, '=')
+        ->condition('of.bundle', isset($form['type']['#value']) ? $form['type']['#value'] : '', '=');
+      $result = $query->execute()->fetchAll();
+
+      foreach ($result as $key => $value) {
+        if ($value->field_machine_name == $field['field_name']) {
+          return $element;
+        }
+      }
+    }
+    else {
+      return FALSE;
+    }
+  }
+}
