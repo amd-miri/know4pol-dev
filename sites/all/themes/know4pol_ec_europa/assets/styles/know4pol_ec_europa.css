@@ -24,6 +24,10 @@ ul li.leaf {
   list-style-image: none;
 }
 
+.ecl-breadcrumbs li a.active { 
+  color:inherit; 
+}
+
 .ecl-date-block {
   float: left;
   margin-right: 1rem;
