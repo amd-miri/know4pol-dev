@@ -36,53 +36,6 @@ function know4pol_ec_europa_menu_link(array $variables) {
   return '<li' . drupal_attributes($element['#attributes']) . '>' . $output . $sub_menu . "</li>\n";
 }
 
-/**
- * Implements hook_preprocess_block().
- */
-function know4pol_ec_europa_preprocess_block(&$variables, $hook) {
-  // Add template suggestion for search pages.
-  if ($variables['elements']['#block']->bid == 'multisite_og_button-og-contextual-links') {
-    $variables['content'] = preg_replace("/class\=\"ecl\-link\"/", "class=\"ecl-link ecl-link--standalone ecl-link-block__link\"", $variables['content']);
-  }
-}
-
-/**
- * Implements hook_preprocess_block__content().
- */
-function know4pol_ec_europa_preprocess_block__content(&$variables, $hook) {
-  // Add template suggestion for search pages.
-  if ($variables['elements']['#block']->bid == 'block-5') {
-    $variables['theme_hook_suggestions'][] = 'block__search_top';
-    _know4pol_ec_europa_preprocess_block__block__search_results($variables, $hook);
-  }
-  // Remove unnecessary ".ecl-editor" class.
-  $variables['atomium']['attributes']['content']['class'] = array();
-}
-
-/**
- * Implements hook_preprocess_block__sidebar_first().
- */
-function know4pol_ec_europa_preprocess_block__sidebar_first(&$variables, $hook) {
-  // Add template suggestion for search pages.
-  if ($variables['elements']['#block']->bid == 'block-4') {
-    $variables['theme_hook_suggestions'][] = 'block__search_options';
-    _know4pol_ec_europa_preprocess_block__solr_related($variables, $hook);
-  }
-}
-
-/**
- * Implements template_preprocess_node().
- */
-function know4pol_ec_europa_preprocess_node(&$variables, $hook) {
-  // For all content types.
-  drupal_add_js('https://visualise.jrc.ec.europa.eu/javascripts/api/viz_v1.js', 'external');
-  // Per node type.
-  switch ($variables['type']) {
-    case 'file':
-      _know4pol_ec_europa_preprocess_node_file($variables);
-      break;
-  }
-}
 
 /**
  * Implements template_preprocess_page().
@@ -174,7 +127,7 @@ function _know4pol_ec_europa_get_date_for_ecl(array $date) {
   $result['day'] = date('j', $date['value']);
   $result['month'] = date('M', $date['value']);
   $result['year'] = date('Y', $date['value']);
-  $result['next_year'] = ($result['year'] > date('Y', $now));
+  if ($result['year'] > date('Y', $now)) $result['next_year'] = TRUE;
 
   if (isset($date['value2']) && $date['value2'] > $date['value']) {
     $result['weekday'] .= '&ndash;' . date('D', $date['value2']);
@@ -191,44 +144,7 @@ function _know4pol_ec_europa_get_date_for_ecl(array $date) {
   return $result;
 }
 
-/**
- * Preprocess node_file.
- *
- * Analyse legacy link content
- * and possible more info to display into the ECL block.
- *
- * @param array $variables
- *   Variables from the original hook.
- */
-function _know4pol_ec_europa_preprocess_node_file(array &$variables) {
-  $node = $variables['elements']['#node'];
 
-  // Is file a link or a file ?
-  $node->file_link = _know4pol_ec_europa_preprocess_node_file__field_file(
-    $node->field_is_legacy_link,
-    $node->field_legacy_link,
-    $node->field_file_file
-  );
-  // Filetype icon.
-  $_icon_css = $node->field_file_type[LANGUAGE_NONE][0]['taxonomy_term']->field_file_type_classname[LANGUAGE_NONE];
-  // Default icon if no type.
-  $node->file_type_css = "." . count($_icon_css) ? $_icon_css[0]['value'] : 'ecl-icon--file';
-
-  // Languages versions.
-  $translations = translation_node_get_translations($node->nid);
-  foreach ($translations as $t) {
-    // Other languages olny.
-    if ($t->nid != $node->nid) {
-      $t_node = node_load($t->nid);
-      $t_node->file_link = _know4pol_ec_europa_preprocess_node_file__field_file(
-        $t_node->field_is_legacy_link,
-        $t_node->field_legacy_link,
-        $t_node->field_file_file
-      );
-      $node->translations->data[] = $t_node;
-    }
-  }
-}
 
 /**
  * Preprocess fields field_file.
@@ -381,72 +297,6 @@ function _know4pol_ec_europa_get_solr_instance() {
     return NULL;
   }
   return $adapter;
-}
-
-/**
- * Preprocess current search options.
- *
- * @param array $variables
- *   Variables from the original hook.
- */
-function _know4pol_ec_europa_preprocess_block__solr_related(array &$variables, $hook) {
-  // Current search ?
-  if (!$adapter = _know4pol_ec_europa_get_solr_instance()) {
-    return;
-  }
-  // Set variables from SolR.
-  $variables['solr'] = array();
-  $variables['solr']['result_count'] = $adapter->getResultCount();
-}
-
-/**
- * Preprocess current search SolR block.
- *
- * @param array $variables
- *   Variables from the original hook.
- */
-function _know4pol_ec_europa_preprocess_block__block__search_results(array &$variables, $hook) {
-  // Current search ?
-  if (!$adapter = _know4pol_ec_europa_get_solr_instance()) {
-    return;
-  }
-
-  $searcher = $adapter->getSearcher();
-  $result_count = $adapter->getResultCount();
-  $per_page = $adapter->getPageLimit();
-  $page = $adapter->getPageNumber();
-  $last_on_page = $page * $per_page;
-
-  // Set variables from SolR.
-  $variables['solr'] = array();
-  $variables['solr']['max_page'] = $adapter->getPageTotal();
-  $variables['solr']['result_count'] = $result_count;
-  $variables['solr']['result_start'] = (($page - 1) * $per_page) + 1;
-  $variables['solr']['result_end'] = $last_on_page > $result_count ? $result_count : $last_on_page;
-
-  // Get all active facets.
-  $facets_used = $adapter->getAllActiveItems();
-  $facets = array();
-
-  // Build collection.
-  foreach ($facets_used as $key => $item) {
-    $fname = $item['facets'][0];
-    if (!isset($facets[$fname])) {
-      $index = array('values' => array());
-      // Get facet name.
-      $index['facet'] = facetapi_facet_load($fname, $searcher);
-      $facets[$fname] = $index;
-    }
-    $facets[$fname]['values'][] = array(
-      'value' => $item['value'],
-      'name' => $adapter->getMappedValue($fname, $item['value']),
-      'removed_url' => _know4pol_ec_europa_build_query_facets(array_keys(array_diff_key($facets_used, array_flip((array) $key)))),
-    );
-  }
-
-  if (count($facets)) {
-    $variables['solr']['facets'] = $facets;
-  }
 }
 
 /**
