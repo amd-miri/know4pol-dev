@@ -24,8 +24,8 @@ ul li.leaf {
   list-style-image: none;
 }
 
-.ecl-breadcrumbs li a.active { 
-  color:inherit; 
+.ecl-breadcrumbs li a.active {
+  color: inherit;
 }
 
 .ecl-date-block {
@@ -36,4 +36,9 @@ ul li.leaf {
 
 .view-mode-apachesolr_page .ecl-u-mt-m {
   clear: both;
+}
+
+.ecl-footer__list-item {
+  font-size: 1rem;
+  line-height: 2rem;
 }

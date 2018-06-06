@@ -6,38 +6,6 @@
  */
 
 /**
- * Implements hook_menu_link().
- */
-function know4pol_ec_europa_menu_link(array $variables) {
-  // Add a class to menu links that link to unpublished nodes.
-  $element = $variables['element'];
-  $sub_menu = '';
-  if ($element['#below']) {
-    $sub_menu = drupal_render($element['#below']);
-    $sub_menu = str_replace('<ul class="', '<ul class="dropdown-menu ', $sub_menu);
-  }
-  if (preg_match('@^node/(\d+)$@', $element['#href'], $matches)) {
-    $node = node_load((int) $matches[1]);
-    if ($node && $node->status == NODE_NOT_PUBLISHED) {
-      // There appear to be some inconsistency.
-      // Sometimes the classes come through
-      // As an array and sometimes as a string.
-      if (empty($element['#localized_options']['attributes']['class'])) {
-        $element['#localized_options']['attributes']['class'] = array();
-      }
-      elseif (is_string($element['#localized_options']['attributes']['class'])) {
-        $element['#localized_options']['attributes']['class'] = explode(' ', $element['#localized_options']['attributes']['class']);
-      }
-      $element['#localized_options']['attributes']['class'][] = 'menu-node-unpublished';
-    }
-  }
-  $output = l($element['#title'], $element['#href'], $element['#localized_options']);
-  $output = html_entity_decode($output);
-  return '<li' . drupal_attributes($element['#attributes']) . '>' . $output . $sub_menu . "</li>\n";
-}
-
-
-/**
  * Implements template_preprocess_page().
  */
 function know4pol_ec_europa_preprocess_page(&$variables, $hook) {
@@ -127,7 +95,9 @@ function _know4pol_ec_europa_get_date_for_ecl(array $date) {
   $result['day'] = date('j', $date['value']);
   $result['month'] = date('M', $date['value']);
   $result['year'] = date('Y', $date['value']);
-  if ($result['year'] > date('Y', $now)) $result['next_year'] = TRUE;
+  if ($result['year'] > date('Y', $now)) {
+    $result['next_year'] = TRUE;
+  }
 
   if (isset($date['value2']) && $date['value2'] > $date['value']) {
     $result['weekday'] .= '&ndash;' . date('D', $date['value2']);
@@ -143,8 +113,6 @@ function _know4pol_ec_europa_get_date_for_ecl(array $date) {
   }
   return $result;
 }
-
-
 
 /**
  * Preprocess fields field_file.
