@@ -36,7 +36,6 @@ function know4pol_ec_europa_menu_link(array $variables) {
   return '<li' . drupal_attributes($element['#attributes']) . '>' . $output . $sub_menu . "</li>\n";
 }
 
-
 /**
  * Implements template_preprocess_page().
  */
@@ -127,7 +126,9 @@ function _know4pol_ec_europa_get_date_for_ecl(array $date) {
   $result['day'] = date('j', $date['value']);
   $result['month'] = date('M', $date['value']);
   $result['year'] = date('Y', $date['value']);
-  if ($result['year'] > date('Y', $now)) $result['next_year'] = TRUE;
+  if ($result['year'] > date('Y', $now)) {
+    $result['next_year'] = TRUE;
+  }
 
   if (isset($date['value2']) && $date['value2'] > $date['value']) {
     $result['weekday'] .= '&ndash;' . date('D', $date['value2']);
@@ -143,8 +144,6 @@ function _know4pol_ec_europa_get_date_for_ecl(array $date) {
   }
   return $result;
 }
-
-
 
 /**
  * Preprocess fields field_file.

@@ -5,7 +5,6 @@
  * Contains component file.
  */
 
-
 /**
  * Implements template_preprocess_node().
  */

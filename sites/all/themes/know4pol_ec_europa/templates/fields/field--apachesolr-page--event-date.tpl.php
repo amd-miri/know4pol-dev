@@ -8,7 +8,7 @@
 <!-- Default event -->
 <div class="ecl-date-block
   <?php if (isset($ecl_date['type'])): ?>
-    <?php print ' ecl-date-block--' . $ecl_date['type']; ?> 
+    <?php print ' ecl-date-block--' . $ecl_date['type']; ?>
   <?php endif; ?>">
   <div class="ecl-date-block__body">
     <?php if(!(isset($ecl_date['type']) && $ecl_date['type'] == 'past')): ?>
