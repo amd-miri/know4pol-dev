@@ -586,32 +586,35 @@ function know4pol_core_block_view($delta = '') {
  *   Generated menu array.
  */
 function _know4pol_core_get_ks_admin_menu($menu_name) {
-  $loaded_menu = menu_tree_all_data($menu_name);
-  foreach ($loaded_menu as $loaded_menu_parent_item) {
-    $child_items = $loaded_menu_parent_item['below'];
-    if (!empty($child_items)) {
-      foreach ($child_items as $child_item) {
-        $attributes = array(
-          'attributes' =>
-            array(
-              'class' =>
-                array(
-                  'ecl-link',
-                  'ecl-link--standalone',
-                  'ecl-link-block__link',
-                ),
-            ),
-        );
-        $links[] = l($child_item['link']['link_title'], $child_item['link']['href'], $attributes);
+  $loaded_menu = menu_tree_page_data($menu_name);
+  $output = array();
+  if (!empty($loaded_menu)) {
+    foreach ($loaded_menu as $loaded_menu_parent_item) {
+      $child_items = $loaded_menu_parent_item['below'];
+      if (!empty($child_items)) {
+        foreach ($child_items as $child_item) {
+          $attributes = array(
+            'attributes' =>
+              array(
+                'class' =>
+                  array(
+                    'ecl-link',
+                    'ecl-link--standalone',
+                    'ecl-link-block__link',
+                  ),
+              ),
+          );
+          $links[] = l($child_item['link']['link_title'], $child_item['link']['href'], $attributes);
+        }
       }
+      else {
+        $links = '';
+      }
+      $output[$loaded_menu_parent_item['link']['link_title']]['title'] = $loaded_menu_parent_item['link']['link_title'];
+      $output[$loaded_menu_parent_item['link']['link_title']]['link'] = '<a class="ecl-button ecl-button--primary" href="' . url($loaded_menu_parent_item['link']['href']) . '">' . $loaded_menu_parent_item['link']['link_title'] . '</a>';
+      $output[$loaded_menu_parent_item['link']['link_title']]['links'] = $links;
+      unset($links);
     }
-    else {
-      $links = '';
-    }
-    $output[$loaded_menu_parent_item['link']['link_title']]['title'] = $loaded_menu_parent_item['link']['link_title'];
-    $output[$loaded_menu_parent_item['link']['link_title']]['link'] = '<a class="ecl-button ecl-button--primary" href="' . url($loaded_menu_parent_item['link']['href']) . '">' . $loaded_menu_parent_item['link']['link_title'] . '</a>';
-    $output[$loaded_menu_parent_item['link']['link_title']]['links'] = $links;
-    unset($links);
   }
   return $output;
 }
@@ -941,19 +944,4 @@ function _know4pol_core_unassign_ks_action($entity, array $context) {
   }
   $entity->og_group_ref[LANGUAGE_NONE] = array_values($og_array);
   node_save($entity);
-}
-
-/**
- * Implements hook_og_ui_get_group_admin().
- */
-function know4pol_core_og_ui_get_group_admin($group_type, $gid) {
-  $items = array();
-  if (og_user_access($group_type, $gid, 'assign publication to ks')) {
-    $items['publication_assignment'] = array(
-      'title' => t('Assign publication'),
-      'description' => t('Assign publications to your Knowledge Service'),
-      'href' => 'admin/publication-assignment',
-    );
-  }
-  return $items;
 }

@@ -398,7 +398,7 @@ function know4pol_mainsearch_form($form, $form_state) {
  */
 function know4pol_mainsearch_form_submit(&$form, &$form_state) {
   global $base_url;
-  $keyword = preg_replace('/[^A-Za-z0-9 \-\']/', '', $form_state['values']['keyword']);
+  $keyword = preg_replace('/[^A-Za-z0-9\- \']/', '', $form_state['values']['keyword']);
   $solr_search_page = $form_state['values']['solr_search_page'];
   // Building search url, containing list of numbered solr search parameters.
   $output = $base_url . '/' . $solr_search_page . '/' . $keyword;
