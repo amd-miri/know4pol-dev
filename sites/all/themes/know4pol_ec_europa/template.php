@@ -6,48 +6,6 @@
  */
 
 /**
- * Implements hook_menu_link().
- */
-function know4pol_ec_europa_menu_link(array $variables) {
-  // Add a class to menu links that link to unpublished nodes.
-  $element = $variables['element'];
-  $sub_menu = '';
-  if ($element['#below']) {
-    $sub_menu = drupal_render($element['#below']);
-    $sub_menu = str_replace('<ul class="', '<ul class="dropdown-menu ', $sub_menu);
-  }
-  if (preg_match('@^node/(\d+)$@', $element['#href'], $matches)) {
-    $node = node_load((int) $matches[1]);
-    if ($node && $node->status == NODE_NOT_PUBLISHED) {
-      // There appear to be some inconsistency.
-      // Sometimes the classes come through
-      // As an array and sometimes as a string.
-      if (empty($element['#localized_options']['attributes']['class'])) {
-        $element['#localized_options']['attributes']['class'] = array();
-      }
-      elseif (is_string($element['#localized_options']['attributes']['class'])) {
-        $element['#localized_options']['attributes']['class'] = explode(' ', $element['#localized_options']['attributes']['class']);
-      }
-      $element['#localized_options']['attributes']['class'][] = 'menu-node-unpublished';
-    }
-  }
-  $output = l($element['#title'], $element['#href'], $element['#localized_options']);
-  $output = html_entity_decode($output);
-  return '<li' . drupal_attributes($element['#attributes']) . '>' . $output . $sub_menu . "</li>\n";
-}
-
-/**
- * Implements template_preprocess_page().
- */
-function know4pol_ec_europa_preprocess_page(&$variables, $hook) {
-  // If this is a search page, add wrapper to results.
-  if (isset($variables['page']['content']['system_main']['search_results'])) {
-    $variables['page']['content']['system_main']['search_results']['search_results']['#prefix'] = '<ul class="ecl-list ecl-list--unstyled ecl-u-mv-m">';
-    $variables['page']['content']['system_main']['search_results']['search_results']['#suffix'] = '</ul>';
-  }
-}
-
-/**
  * Implements template_preprocess_field().
  */
 function know4pol_ec_europa_preprocess_field(&$variables) {
@@ -113,7 +71,7 @@ function _know4pol_ec_europa_get_date_for_ecl(array $date) {
   $now = strtotime('today midnight');
 
   if ($date['value'] == $now || (
-    isset($date['value2']) && ($date['value1'] > $now  && $date['value2'] <= $now))) {
+    isset($date['value2']) && ($date['value2'] > $now  && $date['value2'] <= $now))) {
     $result['type'] = 'ongoing';
   }
   elseif ($date['value'] < $now &&
@@ -259,18 +217,6 @@ function _know4pol_ec_europa_file_size_human($size, $i = 0, $base = 1024) {
   // Return rounded number and unit.
   return round($size, $i > 0 ? 2 : 0) . ' ' .
     ["bytes", "KB", "MB", "GB", "TB", "PB", "><"][$i];
-}
-
-/**
- * Implements template_preprocess_form_element().
- */
-function know4pol_ec_europa_preprocess_form_element(&$variables) {
-  // Add theme suggestions so facets can be distinguished.
-  if (isset($variables['element']['#name'])) {
-    $variables['theme_hook_suggestions'][] = 'form_item__' . $variables['element']['#name'];
-    $variables['theme_hook_suggestions'][] = 'form_item__' . $variables['element']['#id'] .
-      '__' . $variables['element']['#name'];
-  }
 }
 
 /**
