@@ -6,17 +6,6 @@
  */
 
 /**
- * Implements template_preprocess_page().
- */
-function know4pol_ec_europa_preprocess_page(&$variables, $hook) {
-  // If this is a search page, add wrapper to results.
-  if (isset($variables['page']['content']['system_main']['search_results'])) {
-    $variables['page']['content']['system_main']['search_results']['search_results']['#prefix'] = '<ul class="ecl-list ecl-list--unstyled ecl-u-mv-m">';
-    $variables['page']['content']['system_main']['search_results']['search_results']['#suffix'] = '</ul>';
-  }
-}
-
-/**
  * Implements template_preprocess_field().
  */
 function know4pol_ec_europa_preprocess_field(&$variables) {
@@ -82,7 +71,7 @@ function _know4pol_ec_europa_get_date_for_ecl(array $date) {
   $now = strtotime('today midnight');
 
   if ($date['value'] == $now || (
-    isset($date['value2']) && ($date['value1'] > $now  && $date['value2'] <= $now))) {
+    isset($date['value2']) && ($date['value2'] > $now  && $date['value2'] <= $now))) {
     $result['type'] = 'ongoing';
   }
   elseif ($date['value'] < $now &&
@@ -228,18 +217,6 @@ function _know4pol_ec_europa_file_size_human($size, $i = 0, $base = 1024) {
   // Return rounded number and unit.
   return round($size, $i > 0 ? 2 : 0) . ' ' .
     ["bytes", "KB", "MB", "GB", "TB", "PB", "><"][$i];
-}
-
-/**
- * Implements template_preprocess_form_element().
- */
-function know4pol_ec_europa_preprocess_form_element(&$variables) {
-  // Add theme suggestions so facets can be distinguished.
-  if (isset($variables['element']['#name'])) {
-    $variables['theme_hook_suggestions'][] = 'form_item__' . $variables['element']['#name'];
-    $variables['theme_hook_suggestions'][] = 'form_item__' . $variables['element']['#id'] .
-      '__' . $variables['element']['#name'];
-  }
 }
 
 /**

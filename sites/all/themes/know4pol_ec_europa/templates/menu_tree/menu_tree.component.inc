@@ -6,48 +6,77 @@
  */
 
 /**
- * Implements template_preprocess_menu_tree().
+ * Implements hook_preprocess_hook().
  */
-function know4pol_ec_europa_preprocess_menu_tree__menu_nexteuropa_site_links__menu__menu_nexteuropa_site_links__footer__page(&$variables, $hook) {
-  _know4pol_ec_europa_preprocess_menu_tree__footer__page($variables);
+function know4pol_ec_europa_preprocess_menu_tree__menu_nexteuropa_service_links(array &$variables, $hook) {
+  _know4pol_ec_europa_preprocess_menu_tree__footer($variables, TRUE);
 }
 
 /**
- * Implements template_preprocess_menu_tree().
+ * Implements hook_preprocess_hook().
  */
-function know4pol_ec_europa_preprocess_menu_tree__menu_nexteuropa_social_media__menu__menu_nexteuropa_social_media__footer__page(&$variables, $hook) {
-  _know4pol_ec_europa_preprocess_menu_tree__footer__page($variables);
-  $variables['atomium']['attributes']['wrapper']->append(
-    'class',
-    array(
-      'ecl-list--inline',
-      'ecl-footer__list--inline',
-      'ecl-footer__social-links',
-    )
-  );
+function know4pol_ec_europa_preprocess_menu_tree__menu_service_tools(array &$variables, $hook) {
+  _know4pol_ec_europa_preprocess_menu_tree__footer($variables, TRUE);
 }
 
 /**
- * Implements template_preprocess_menu_tree().
+ * Implements hook_preprocess_hook().
  */
-function know4pol_ec_europa_preprocess_menu_tree__menu_nexteuropa_inst_links__menu__menu_nexteuropa_inst_links__footer__page(&$variables, $hook) {
-  _know4pol_ec_europa_preprocess_menu_tree__footer__page($variables);
+function know4pol_ec_europa_preprocess_menu_tree__nexteuropa_site_social_media(array &$variables, $hook) {
+  _know4pol_ec_europa_preprocess_menu_tree__footer($variables, TRUE);
+  $variables['atomium']['attributes']['wrapper']->append('class', 'ecl-footer__social-links');
 }
 
 /**
- * Common preproces for menu_trees.
+ * Implements hook_preprocess_hook().
+ */
+function know4pol_ec_europa_preprocess_menu_tree__menu_nexteuropa_social_media(&$variables, $hook) {
+  _know4pol_ec_europa_preprocess_menu_tree__footer($variables, TRUE);
+  $variables['atomium']['attributes']['wrapper']->append('class', 'ecl-footer__social-links');
+}
+
+/**
+ * Implements hook_preprocess_hook().
+ */
+function know4pol_ec_europa_preprocess_menu_tree__nexteuropa_site_custom_links(array &$variables, $hook) {
+  _know4pol_ec_europa_preprocess_menu_tree__footer($variables);
+}
+
+/**
+ * Implements hook_preprocess_hook().
+ */
+function know4pol_ec_europa_preprocess_menu_tree__menu_nexteuropa_site_links(array &$variables, $hook) {
+  _know4pol_ec_europa_preprocess_menu_tree__footer($variables);
+}
+
+/**
+ * Implements hook_preprocess_hook().
+ */
+function know4pol_ec_europa_preprocess_menu_tree__menu_nexteuropa_inst_links(array &$variables, $hook) {
+  _know4pol_ec_europa_preprocess_menu_tree__footer($variables);
+}
+
+/**
+ * Common preproces for menu_trees in footer region.
  *
  * @param array $variables
  *   Variables from the original hook.
+ * @param bool $inline
+ *   Inline links switch, default no.
  */
-function _know4pol_ec_europa_preprocess_menu_tree__footer__page(array &$variables) {
-
+function _know4pol_ec_europa_preprocess_menu_tree__footer(array &$variables, $inline = FALSE) {
   $variables['atomium']['attributes']['wrapper']->append(
     'class',
-    array(
-      'ecl-footer__list',
-      'ecl-list',
-      'ecl-list--unstyled',
+    array_merge(
+      array(
+        'ecl-footer__list',
+        'ecl-list',
+        'ecl-list--unstyled',
+      ),
+      $inline ? array(
+        'ecl-list--inline',
+        'ecl-footer__list--inline',
+      ) : array()
     )
   );
 }
