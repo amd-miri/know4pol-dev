@@ -171,11 +171,34 @@ function know4pol_core_update_7009() {
 }
 
 /**
- * Enable better_watchdog_ui modules.
+ * Enable cacheflush module.
  */
 function know4pol_core_update_7010() {
-  module_enable(array('better_watchdog_ui',
-    'better_watchdog_ui_entity',
-    'better_watchdog_ui_rules',
+  module_enable(array(
+    'cacheflush',
+    'cacheflush_advanced',
+    'cacheflush_entity',
+    'cacheflush_rules',
+    'cacheflush_ui',
   ), TRUE);
+}
+
+/**
+ * Enable better_watchdog_ui modules.
+ */
+function know4pol_core_update_7011() {
+  module_enable(array('better_watchdog_ui'), TRUE);
+}
+
+/**
+ * Enable needed modules for the new Atomium theme.
+ */
+function know4pol_core_update_7012() {
+  module_enable(array(
+    'xautoload',
+    'registryonsteroids',
+    'registryonsteroids_alter',
+    'nexteuropa_ecl_migrate',
+  ), TRUE);
+  _nexteuropa_ecl_migrate_dt_menus();
 }

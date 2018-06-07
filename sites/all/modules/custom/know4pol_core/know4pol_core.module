@@ -6,6 +6,17 @@
  */
 
 /**
+ * Implements hook_views_pre_build().
+ */
+function know4pol_core_views_pre_build(&$view) {
+  // For all views, if they use the og_vocabulary.
+  if (isset($view->argument['og_vocabulary_target_id'])) {
+    $node = menu_get_item();
+    $view->args[] = $node['page_arguments'][0]->og_vocabulary[LANGUAGE_NONE][0]['target_id'];
+  }
+}
+
+/**
  * Implements hook_form_FORM_ID_alter().
  */
 function know4pol_core_form_user_admin_permissions_alter(&$form, &$form_state, $form_id) {
@@ -212,7 +223,7 @@ function know4pol_core_form_node_form_alter(&$form, &$form_state, $form_id) {
 function know4pol_core_og_vocab_get_accessible_vocabs_alter(&$result) {
   $gids = array();
   $node = menu_get_object();
-  if (!empty($node)) {
+  if (!empty($node->og_group_ref)) {
     foreach ($node->og_group_ref[LANGUAGE_NONE] as $gid) {
       $gids[] = $gid['target_id'];
     }
@@ -222,7 +233,7 @@ function know4pol_core_og_vocab_get_accessible_vocabs_alter(&$result) {
     // We are in a "Add content" page.
     $node = menu_get_item();
     $url_parameters = drupal_get_query_parameters();
-    if ($url_parameters['og_group_ref']) {
+    if (!empty($url_parameters)) {
       $gids[] = $url_parameters['og_group_ref'];
     }
     $result = _know4pol_core_get_accessible_vocabs($node['page_arguments'][0], $gids);
@@ -658,29 +669,32 @@ function _know4pol_core_theme_ks_admin_menu(array $menuarray) {
  */
 function _know4pol_core_freetext_search_form($form, &$form_state, $keys = '') {
   $form = array();
-  $form['#id'] = 'search-form';
+  $form['#id'] = 'freetext-search-form';
   $form['#attributes']['class'][] = 'ecl-search-form';
   $form['#attributes']['class'][] = 'ecl-search-form--internal';
   $form['#attributes']['class'][] = 'ecl-u-mb-l';
 
-  $form['basic'] = array(
-    '#type' => 'container',
-    '#attributes' => array(
-      'class' => array('ecl-row', 'ecl-col', 'ecl-u-ma-none', 'ecl-u-pa-none'),
-    ),
-  );
-
-  $form['basic']['keys'] = array(
+  $form['keys'] = array(
     '#type' => 'textfield',
     '#default_value' => $keys,
     '#size' => 20,
     '#maxlength' => 255,
-    '#attributes' => array('class' => array('ecl-text-input', 'ecl-search-form__textfield')),
+    '#attributes' => array(
+      'class' => array('ecl-text-input',
+        'ecl-search-form__textfield',
+      ),
+    ),
   );
 
-  $form['basic']['submit'] = array(
+  $form['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Search'),
+    '#attributes' => array(
+      'class' => array('ecl-button',
+        'ecl-button--form-primary',
+        'ecl-search-form__button',
+      ),
+    ),
   );
 
   return $form;
