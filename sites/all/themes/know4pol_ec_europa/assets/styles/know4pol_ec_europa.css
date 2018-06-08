@@ -40,7 +40,7 @@ ul li.leaf {
 
 /* Missing from the ECL css in theme ec_europa */
 .ecl-footer__list {
-    margin: 0;
-    max-width: none;
-    font-size: .9rem;
+  margin: 0;
+  max-width: none;
+  font-size: .9rem;
 }

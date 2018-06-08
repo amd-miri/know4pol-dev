@@ -640,14 +640,18 @@ function _know4pol_core_get_ks_admin_menu($menu_name) {
  *   Generated menu.
  */
 function _know4pol_core_theme_ks_admin_menu(array $menuarray) {
-
+  $output = "";
   foreach ($menuarray as $parent) {
     if ($parent['links']) {
-      $output .= '<div class="element"><div class="ecl-dropdown">
-<button class="ecl-button ecl-button--default ecl-expandable__button" aria-controls="' . $parent['title'] . '-button-dropdown" aria-expanded="false" id="' . $parent['title'] . '-expandable-button" type="button">' . $parent['title'] . '</button>
-<div class="ecl-link-block ecl-dropdown__body" id="' . $parent['title'] . '-button-dropdown" aria-labelledby="' . $parent['title'] . '-expandable-button" aria-hidden="true">
-    <ul class="ecl-link-block__list">';
-
+      $output = '<div class="element">
+                  <div class="ecl-dropdown">
+                    <button class="ecl-button ecl-button--default ecl-expandable__button"
+                            aria-controls="' . $parent['title'] . '-button-dropdown" aria-expanded="false"
+                            id="' . $parent['title'] . '-expandable-button"
+                            type="button">' . $parent['title'] . '
+                    </button>
+                  <div class="ecl-link-block ecl-dropdown__body" id="' . $parent['title'] . '-button-dropdown" aria-labelledby="' . $parent['title'] . '-expandable-button" aria-hidden="true">
+                  <ul class="ecl-link-block__list">';
       foreach ($parent['links'] as $link) {
         $output .= '<li class="ecl-link-block__item">' . $link . '</li>';
       }
@@ -657,7 +661,6 @@ function _know4pol_core_theme_ks_admin_menu(array $menuarray) {
       $output .= '<p>' . $parent['link'] . '</p>';
     }
   }
-
   return $output;
 }
 

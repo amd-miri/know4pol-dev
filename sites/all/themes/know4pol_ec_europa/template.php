@@ -44,7 +44,6 @@ function know4pol_ec_europa_preprocess_field(&$variables) {
           $variables['theme_hook_suggestions'][] = 'field__' . $variables['element']['#view_mode'] .
               '__event_date';
           $variables['ecl_date'] = _know4pol_ec_europa_get_date_for_ecl($variables['element']['#items'][0]);
-          // =.
         }
     }
   }
