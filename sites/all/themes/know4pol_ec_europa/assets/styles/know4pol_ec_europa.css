@@ -1,41 +1,41 @@
 .ecl-list li.view-mode-apachesolr_page:last-child hr {
-  display: none;
+    display: none;
 }
 
 .region-sidebar-first .block-facetapi {
-  margin-top: 1.66rem;
+    margin-top: 1.66rem;
 }
 
 .region-sidebar-first .block-facetapi ul.facetapi-facetapi-checkbox-links {
-  margin-top: 1rem;
-  list-style-type: none;
+    margin-top: 1rem;
+    list-style-type: none;
 }
 
 .region-sidebar-first .block-facetapi ul.facetapi-know4pol-core-ogvocab-list li.ecl-form-label {
-  margin-top: 1rem;
+    margin-top: 1rem;
 }
 
 .region-sidebar-first .ecl-form .form-item-facets.ecl-u-mt-m {
-  margin-top: 1rem;
+    margin-top: 1rem;
 }
 
 ul li.leaf {
-  list-style-type: none;
-  list-style-image: none;
+    list-style-type: none;
+    list-style-image: none;
 }
 
 .ecl-breadcrumbs li a.active {
-  color: inherit;
+    color: inherit;
 }
 
 .ecl-date-block {
-  float: left;
-  margin-right: 1rem;
-  margin-bottom: 1.6rem;
+    float: left;
+    margin-right: 1rem;
+    margin-bottom: 1.6rem;
 }
 
 .view-mode-apachesolr_page .ecl-u-mt-m {
-  clear: both;
+    clear: both;
 }
 
 /* Missing from the ECL css in theme ec_europa */
@@ -43,4 +43,9 @@ ul li.leaf {
     margin: 0;
     max-width: none;
     font-size: .9rem;
+}
+
+.next-content{
+    line-height: 1.66;
+    max-width: 32em;
 }
