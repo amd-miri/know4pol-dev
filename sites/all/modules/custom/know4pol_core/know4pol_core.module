@@ -96,6 +96,10 @@ function know4pol_core_og_permission() {
       'title' => t('Assign publication to KS'),
       'description' => t('Assign publication to the current KS'),
     ),
+    'view group tab' => array(
+      'title' => t('View group tab'),
+      'description' => t('View group tab'),
+    ),
   );
 }
 
@@ -887,6 +891,18 @@ function know4pol_core_quicktabs_renderers() {
 function know4pol_core_menu_alter(&$items) {
   $items['node/add']['access callback'] = '_know4pol_core_node_add_access';
   $items['admin/workbench/create']['access callback'] = '_know4pol_core_node_add_access';
+  $items['node/%/group']['access callback'] = '_know4pol_core_og_group_tab';
+
+}
+
+/**
+ * Access callback: function for viewing group tab.
+ *
+ * @return bool
+ *   TRUE if the user has view permission, otherwise FALSE. *
+ */
+function _know4pol_core_og_group_tab() {
+  return og_user_access('node', arg(1), 'view group tab');
 }
 
 /**
