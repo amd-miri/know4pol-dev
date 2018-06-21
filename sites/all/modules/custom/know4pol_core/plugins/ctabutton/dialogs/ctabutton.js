@@ -1,3 +1,7 @@
+/**
+ * @file
+ */
+
 CKEDITOR.dialog.add('ctabuttonDialog', function (editor) {
     return {
         title: 'Call to action',
@@ -48,8 +52,9 @@ CKEDITOR.dialog.add('ctabuttonDialog', function (editor) {
             this.element.setHtml('<a href="' + enterurl + '" class="ecl-button ecl-button--call ecl-button--caret-right">' + text + '</button>');
             var txt = this.element;
             this.commitContent(txt);
-            if (this.insertMode)
+            if (this.insertMode) {
                 editor.insertElement(txt);
+            }
         }
     };
 });
