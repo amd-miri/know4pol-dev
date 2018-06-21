@@ -58,6 +58,11 @@ settings[ec_europa_site_header_home] = 1
 settings[ec_europa_multilingual] = 1
 settings[allow_css_double_underscores] = 1
 
+; Google verification
+; --------------
+settings[google_site_id_meta] = 0
+settings[google_site_id_key] = undefined
+
 ; Breakpoints
 ; --------------
 breakpoints[wide] = only screen and (min-width: 992px)
