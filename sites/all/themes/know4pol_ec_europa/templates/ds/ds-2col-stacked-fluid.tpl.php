@@ -38,12 +38,15 @@
     <!-- Table with empty heading - enhanced -->
     <table class="ecl-table ecl-table--responsive">
       <thead>
+        <!-- Those contain a hidden special char to avoid ECL bug. Char U+FEFF -->
         <tr>
-          <th scope="col"></th>
-          <th scope="col"></th>
+          <th scope="col">﻿</th>
+          <th scope="col">﻿</th>
         </tr>
       </thead>
-      <?php print $footer; ?>
+      <tbody>
+        <?php print $footer; ?>
+      </tbody>
     </table>
   </<?php print $footer_wrapper ?>>
 

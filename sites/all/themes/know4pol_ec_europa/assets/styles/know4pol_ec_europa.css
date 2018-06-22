@@ -44,3 +44,7 @@ ul li.leaf {
   max-width: none;
   font-size: .9rem;
 }
+
+table.ecl-table--responsive tbody td {
+  line-height: 0;
+}
