@@ -91,10 +91,8 @@ function _know4pol_search_settings_form(array $form, array &$form_state, $kc_gro
   unset($options['newsroom_selection']);
   unset($options['newsroom_newsletter_issue']);
   // Add the list of Newsroom items.
-  // Notice: if we load only once, it returns FALSE (known issue on Drupal.org).
-  // https://www.drupal.org/project/og_vocab/issues/2270529
-  $newsroom_items_vocabulary = taxonomy_vocabulary_machine_name_load('newsroom_item_type');
-  $newsroom_items_vocabulary = taxonomy_vocabulary_machine_name_load('newsroom_item_type');
+  // 'newsroom_item_type' id = 8
+  $newsroom_items_vocabulary = taxonomy_vocabulary_load(8);
   $newsroom_items = taxonomy_get_tree($newsroom_items_vocabulary->vid);
   foreach ($newsroom_items as $value) {
     $options += array(drupal_strtolower($value->name) => $value->name);
