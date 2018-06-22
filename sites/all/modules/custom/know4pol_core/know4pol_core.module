@@ -282,6 +282,8 @@ function know4pol_core_feeds_processor_targets_alter(&$targets, $entity_type, $b
     foreach ($content_type_og_vocabularies as $vocab) {
       $targets['og_vocabulary:' . $vocab->machine_name]['name'] = 'og_vocabulary:' . $vocab->name;
       $targets['og_vocabulary:' . $vocab->machine_name]['callback'] = '_know4pol_core_post_process_callback';
+      $targets['og_vocabulary:' . $vocab->machine_name]['summary_callbacks'] = array('taxonomy_feeds_summary_callback');
+      $targets['og_vocabulary:' . $vocab->machine_name]['form_callbacks'] = array('taxonomy_feeds_form_callback');
     }
   }
 }
