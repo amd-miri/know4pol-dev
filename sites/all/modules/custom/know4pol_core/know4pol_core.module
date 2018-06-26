@@ -973,7 +973,7 @@ function know4pol_core_wysiwyg_plugin($editor, $version) {
           'filename' => 'plugin.js',
           'load' => TRUE,
           'buttons' => array(
-            'know4pol_core' => t('Call to action'),
+            'ctabutton' => t('Call to action'),
           ),
         );
       }
