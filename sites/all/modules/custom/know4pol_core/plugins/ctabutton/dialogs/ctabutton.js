@@ -27,9 +27,7 @@ CKEDITOR.dialog.add('ctabuttonDialog', function (editor) {
                         id: 'protocol',
                         label: 'Protocol',
                         items: [['http://'], ['https://']],
-
                         setup: function (element) {
-                            this.setValue(element.getText());
                         },
                         commit: function (element) {
                         }
@@ -38,9 +36,8 @@ CKEDITOR.dialog.add('ctabuttonDialog', function (editor) {
                         type: 'text',
                         id: 'enterurl',
                         label: 'Enter URL',
-
-                        setup: function (element) {
-                            this.setValue(element.getText());
+                        setup: function (element) {                         
+                            this.setValue(element.getAttribute( "href" ) );
                         },
                         commit: function (element) {
                         }
@@ -48,73 +45,38 @@ CKEDITOR.dialog.add('ctabuttonDialog', function (editor) {
                 ]
 
             }
-//
-//            {
-//                id: 'tab-internal',
-//                label: 'Internal Links',
-//                elements: [
-//                    {
-//                        type: 'text',
-//                        id: 'txtchng',
-//                        label: 'Link Text',
-//                        setup: function (element) {
-//                            this.setValue(element.getText());
-//                        },
-//                        commit: function (element) {
-//                        }
-//                    },
-//                    {
-//                        type: 'text',
-//                        id: 'enterurl',
-//                        label: 'Internal Link',
-//
-//                        setup: function (element) {
-//                            this.setValue(element.getText());
-//                        },
-//                        commit: function (element) {
-//                        }
-//                    }
-//                ]
-//
-//            },
-//            {
-//                id: 'tab-mail',
-//                label: 'Mail Link',
-//                elements: [
-//                    {
-//                        type: 'text',
-//                        id: 'txtchng',
-//                        label: 'Mail Text',
-//                        setup: function (element) {
-//                            this.setValue(element.getText());
-//                        },
-//                        commit: function (element) {
-//                        }
-//                    },
-//                    {
-//                        type: 'mail',
-//                        id: 'enteremail',
-//                        label: 'Enter Email',
-//
-//                        setup: function (element) {
-//                            this.setValue(element.getText());
-//                        },
-//                        commit: function (element) {
-//                        }
-//                    }
-//                ]
-//
-//
-//            }
         ],
-        onShow: function () {
-            var selection = editor.getSelection();
-            var element = selection.getStartElement();
-            this.element = element;
-            this.setupContent(this.element);
 
+		// Invoked when the dialog is loaded.
+		onShow: function() {
 
-        },
+			// Get the selection from the editor.
+			var selection = editor.getSelection();
+
+			// Get the element at the start of the selection.
+			var element = selection.getStartElement();
+
+			// Get the <abbr> element closest to the selection, if it exists.
+			if ( element )
+				element = element.getAscendant( 'a', true );
+
+			 //Create a new <a> element if it does not exist.
+			if ( !element || element.getName() != 'a' ) {
+				element = editor.document.createElement( 'a' );
+
+				// Flag the insertion mode for later use.
+				this.insertMode = true;
+			}
+			else
+				this.insertMode = false;
+
+			// Store the reference to the <abbr> element in an internal property, for later use.
+			this.element = element;
+
+			// Invoke the setup methods of all dialog window elements, so they can load the element attributes.
+			if ( !this.insertMode )
+				this.setupContent( this.element );
+		},
 
         onOk: function () {
             var textObj = this.getContentElement('tab-external', 'txtchng');
