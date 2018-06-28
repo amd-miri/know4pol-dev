@@ -1,3 +1,52 @@
+/* Platform home page */
+.front .view-know4pol-homepage {
+  margin-top: 20px;
+}
+
+/* BKC Glossary view */
+.view-bkc-glossary span.views-summary-unformatted a {
+  display: block;
+  float: left;
+  width: 70px;
+  margin-left: 5px;
+  margin-top: 5px;
+  text-align: center;
+  font-size: 2em;
+  font-weight: 600;
+  color: white;
+  text-decoration: none !important;
+  padding: 10px;
+  background-color: #004494;
+  border-radius: 10px;
+}
+
+.view-bkc-glossary span.views-summary-unformatted a:hover {
+  color: white;
+  text-decoration: underline !important;
+  opacity: 0.8;
+}
+
+/* KS latest content view */
+#block-know4pol-core-know4pol-ks-latest-content {
+  margin: 1em 0;
+}
+
+#block-know4pol-core-know4pol-ks-latest-content .view-ks-latest-content {
+  padding: 0 1rem 0 0;
+}
+
+#block-know4pol-core-know4pol-ks-latest-content .views-row {
+  padding-bottom: 15px;
+}
+
+.ecl-tabs__tabpanel {
+  margin-top: 20px;
+}
+
+ul.ecl-listing--three-columns li {
+  flex-grow: 0 !important;
+}
+
 .ecl-list li.view-mode-apachesolr_page:last-child hr {
   display: none;
 }
@@ -38,13 +87,101 @@ ul li.leaf {
   clear: both;
 }
 
-/* Missing from the ECL css in theme ec_europa */
-.ecl-footer__list {
-  margin: 0;
-  max-width: none;
-  font-size: .9rem;
+/* Missing ECL rule in theme ec_europa */
+.ecl-footer__menu .ecl-footer__menu-item {
+  font-size: .78rem;
+  margin-bottom: .33rem;
 }
 
-table.ecl-table--responsive tbody td {
-  line-height: 0;
+#block-bean-share-buttons {
+  clear: both;
+  margin-top: 10px;
+}
+
+.ecl-message--warning,
+.ecl-message--error {
+  display: none;
+}
+
+.region-utility {
+  display: flex;
+}
+
+.region-utility p {
+  margin: 0 0 0 10px;
+}
+
+li.statistics_counter,
+.webform-back-survey {
+  display: none;
+}
+
+#facetapi-facet-apachesolrsolr-block-sm-og-vocabulary a.facetapi-checkbox {
+  text-transform: lowercase;
+}
+
+.ecl-editor .ecl-button--default:active,
+.ecl-editor .ecl-button--default:focus,
+.ecl-editor .ecl-button--default:hover,
+.ecl-editor .ecl-button--primary {
+  color: #fff !important;
+}
+
+.ecl-editor .ecl-button--primary:active,
+.ecl-editor .ecl-button--primary:focus,
+.ecl-editor .ecl-button--primary:hover {
+  color: #004494 !important;
+}
+
+.ds-2col-stacked-fluid.node .group-footer .field-label-inline {
+  -webkit-box-align: center;
+  align-items: center;
+  display: -webkit-box;
+  display: table-cell !important;
+  margin: .4rem 0;
+}
+
+.ds-2col-stacked-fluid.node .group-footer .ecl-field__label {
+  font-size: .78rem;
+  margin-right: .89rem;
+  text-transform: uppercase;
+  font-weight: normal;
+  width: unset;
+}
+
+.ds-2col-stacked-fluid.node .group-footer .ecl-field__body {
+  font-size: .78rem;
+}
+
+.ds-2col-stacked-fluid.node .group-footer .field-label-inline.field-name-og-vocabulary {
+  margin-top: .5rem;
+}
+
+.ds-2col-stacked-fluid.node .group-footer .field-label-inline.field-name-og-vocabulary .ecl-field__body {
+  margin-left: 2rem;
+  margin-top: .5rem;
+}
+
+.ds-2col-stacked-fluid.node .group-footer .field-label-inline.field-name-og-vocabulary .item-list li {
+  margin: .5rem 0;
+  margin-top: .5rem;
+}
+
+.ds-2col-stacked-fluid.node .group-footer .field-label-inline.field-name-og-vocabulary .item-list ul {
+  margin: 0;
+  list-style-type: none;
+}
+
+.ds-2col-stacked-fluid.node .group-footer .field-type-entityreference a,
+.ds-2col-stacked-fluid.node .group-footer .field-type-taxonomy-term-reference a {
+  background-color: #e3e3e3;
+  border-radius: 5px;
+  border-width: 0;
+  color: #404040;
+  font-family: Arial,sans-serif;
+  font-size: .78rem;
+  font-weight: 400;
+  line-height: 1;
+  margin-right: 1rem;
+  padding: .33rem;
 }
