@@ -11,6 +11,7 @@
 function know4pol_ec_europa_preprocess_field(array &$variables, $hook) {
   $el = &$variables['element'];
   $node = $el['#object'];
+  $menu_item = menu_get_item();
 
   // Check if view_mode is full and if Display Suite is handling the field.
   if ($el['#view_mode'] == 'full' && $node && module_exists('ds')) {
@@ -43,8 +44,6 @@ function know4pol_ec_europa_preprocess_field(array &$variables, $hook) {
         break;
     }
 
-    // Specific to solR page.
-    $menu_item = menu_get_item();
     // Determine which apache solR page is viewed.
     switch ($menu_item['map'][0]) {
       case 'events':
@@ -61,8 +60,20 @@ function know4pol_ec_europa_preprocess_field(array &$variables, $hook) {
   }
 
   // Custom hook for specific fields.
-  if ($el['#field_name'] == 'field_vis_data_url') {
-    _know4pol_ec_europa_preprocess_field__field_vis_data_url__visualisation($variables);
+  switch ($el['#field_name']) {
+    case 'field_vis_data_url':
+      _know4pol_ec_europa_preprocess_field__field_vis_data_url__visualisation($variables);
+      break;
+
+    case 'title':
+      // Check if nid of menu_item is not identical of the redered
+      // title to determine embedding and avoid double H1 in embed nodes.
+      if ($el['#view_mode'] == 'full' && $node &&
+        $el['#object']->nid != $menu_item['map'][1]->nid) {
+        // Disable DS formatting and use template instead.
+        $variables['theme_hook_suggestions'][] = 'field__title_embed';
+        $el['#items'][0][value] = $el['#object']->title;
+      }
   }
 }
 
