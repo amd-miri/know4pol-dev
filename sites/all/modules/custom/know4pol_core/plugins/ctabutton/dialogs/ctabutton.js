@@ -36,8 +36,8 @@ CKEDITOR.dialog.add('ctabuttonDialog', function (editor) {
                         type: 'text',
                         id: 'enterurl',
                         label: 'Enter URL',
-                        setup: function (element) {                         
-                            this.setValue(element.getAttribute( "href" ) );
+                        setup: function (element) {
+                            this.setValue(element.getAttribute("href"));
                         },
                         commit: function (element) {
                         }
@@ -47,36 +47,39 @@ CKEDITOR.dialog.add('ctabuttonDialog', function (editor) {
             }
         ],
 
-		// Invoked when the dialog is loaded.
-		onShow: function() {
+        // Invoked when the dialog is loaded.
+        onShow: function () {
 
-			// Get the selection from the editor.
-			var selection = editor.getSelection();
+            // Get the selection from the editor.
+            var selection = editor.getSelection();
 
-			// Get the element at the start of the selection.
-			var element = selection.getStartElement();
+            // Get the element at the start of the selection.
+            var element = selection.getStartElement();
 
-			// Get the <abbr> element closest to the selection, if it exists.
-			if ( element )
-				element = element.getAscendant( 'a', true );
+            // Get the <abbr> element closest to the selection, if it exists.
+            if (element) {
+                element = element.getAscendant('a', true);
+            }
 
-			 //Create a new <a> element if it does not exist.
-			if ( !element || element.getName() != 'a' ) {
-				element = editor.document.createElement( 'a' );
+             // Create a new <a> element if it does not exist.
+            if (!element || element.getName() != 'a') {
+                element = editor.document.createElement('a');
 
-				// Flag the insertion mode for later use.
-				this.insertMode = true;
-			}
-			else
-				this.insertMode = false;
+                // Flag the insertion mode for later use.
+                this.insertMode = true;
+            }
+            else {
+this.insertMode = false;
+            }
 
-			// Store the reference to the <abbr> element in an internal property, for later use.
-			this.element = element;
+            // Store the reference to the <abbr> element in an internal property, for later use.
+            this.element = element;
 
-			// Invoke the setup methods of all dialog window elements, so they can load the element attributes.
-			if ( !this.insertMode )
-				this.setupContent( this.element );
-		},
+            // Invoke the setup methods of all dialog window elements, so they can load the element attributes.
+            if (!this.insertMode) {
+                this.setupContent(this.element);
+            }
+        },
 
         onOk: function () {
             var textObj = this.getContentElement('tab-external', 'txtchng');
