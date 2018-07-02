@@ -96,6 +96,10 @@ function know4pol_core_og_permission() {
       'title' => t('Assign publication to KS'),
       'description' => t('Assign publication to the current KS'),
     ),
+    'view group tab' => array(
+      'title' => t('View group tab'),
+      'description' => t('View group tab'),
+    ),
   );
 }
 
@@ -282,6 +286,8 @@ function know4pol_core_feeds_processor_targets_alter(&$targets, $entity_type, $b
     foreach ($content_type_og_vocabularies as $vocab) {
       $targets['og_vocabulary:' . $vocab->machine_name]['name'] = 'og_vocabulary:' . $vocab->name;
       $targets['og_vocabulary:' . $vocab->machine_name]['callback'] = '_know4pol_core_post_process_callback';
+      $targets['og_vocabulary:' . $vocab->machine_name]['summary_callbacks'] = array('taxonomy_feeds_summary_callback');
+      $targets['og_vocabulary:' . $vocab->machine_name]['form_callbacks'] = array('taxonomy_feeds_form_callback');
     }
   }
 }
@@ -640,14 +646,18 @@ function _know4pol_core_get_ks_admin_menu($menu_name) {
  *   Generated menu.
  */
 function _know4pol_core_theme_ks_admin_menu(array $menuarray) {
-
+  $output = "";
   foreach ($menuarray as $parent) {
     if ($parent['links']) {
-      $output .= '<div class="element"><div class="ecl-dropdown">
-<button class="ecl-button ecl-button--default ecl-expandable__button" aria-controls="' . $parent['title'] . '-button-dropdown" aria-expanded="false" id="' . $parent['title'] . '-expandable-button" type="button">' . $parent['title'] . '</button>
-<div class="ecl-link-block ecl-dropdown__body" id="' . $parent['title'] . '-button-dropdown" aria-labelledby="' . $parent['title'] . '-expandable-button" aria-hidden="true">
-    <ul class="ecl-link-block__list">';
-
+      $output = '<div class="element">
+                  <div class="ecl-dropdown">
+                    <button class="ecl-button ecl-button--default ecl-expandable__button"
+                            aria-controls="' . $parent['title'] . '-button-dropdown" aria-expanded="false"
+                            id="' . $parent['title'] . '-expandable-button"
+                            type="button">' . $parent['title'] . '
+                    </button>
+                  <div class="ecl-link-block ecl-dropdown__body" id="' . $parent['title'] . '-button-dropdown" aria-labelledby="' . $parent['title'] . '-expandable-button" aria-hidden="true">
+                  <ul class="ecl-link-block__list">';
       foreach ($parent['links'] as $link) {
         $output .= '<li class="ecl-link-block__item">' . $link . '</li>';
       }
@@ -657,7 +667,6 @@ function _know4pol_core_theme_ks_admin_menu(array $menuarray) {
       $output .= '<p>' . $parent['link'] . '</p>';
     }
   }
-
   return $output;
 }
 
@@ -884,6 +893,18 @@ function know4pol_core_quicktabs_renderers() {
 function know4pol_core_menu_alter(&$items) {
   $items['node/add']['access callback'] = '_know4pol_core_node_add_access';
   $items['admin/workbench/create']['access callback'] = '_know4pol_core_node_add_access';
+  $items['node/%/group']['access callback'] = '_know4pol_core_og_group_tab';
+
+}
+
+/**
+ * Access callback: function for viewing group tab.
+ *
+ * @return bool
+ *   TRUE if the user has view permission, otherwise FALSE. *
+ */
+function _know4pol_core_og_group_tab() {
+  return og_user_access('node', arg(1), 'view group tab');
 }
 
 /**
