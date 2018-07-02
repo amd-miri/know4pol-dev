@@ -26,8 +26,8 @@ CKEDITOR.dialog.add('ctabuttonDialog', function (editor) {
               type: 'select',
               id: 'protocol',
               label: 'Protocol',
-              items: [['<other>',''],['http://'], ['https://'],['mailto:'],['ftp://'],['news://']],
-              'default': '<other>',
+              items: [['<other>','/'],['http://'], ['https://'],['mailto:'],['ftp://'],['news://']],
+              'default': '/',
                 setup: function (element) {
                 },
                 commit: function (element) {
