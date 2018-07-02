@@ -980,3 +980,25 @@ function _know4pol_core_unassign_ks_action($entity, array $context) {
   $entity->og_group_ref[LANGUAGE_NONE] = array_values($og_array);
   node_save($entity);
 }
+
+/**
+ * Implements hook_wysiwyg_plugin().
+ */
+function know4pol_core_wysiwyg_plugin($editor, $version) {
+  $plugins = array();
+  switch ($editor) {
+    case 'ckeditor':
+      if ($version > 4) {
+        $plugins['ctabutton'] = array(
+          'path' => drupal_get_path('module', 'know4pol_core') . '/plugins/ctabutton',
+          'filename' => 'plugin.js',
+          'load' => TRUE,
+          'buttons' => array(
+            'ctabutton' => t('Call to action'),
+          ),
+        );
+      }
+      break;
+  }
+  return $plugins;
+}
