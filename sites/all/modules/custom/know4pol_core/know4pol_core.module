@@ -904,7 +904,12 @@ function know4pol_core_menu_alter(&$items) {
  *   TRUE if the user has view permission, otherwise FALSE. *
  */
 function _know4pol_core_og_group_tab() {
-  return og_user_access('node', arg(1), 'view group tab');
+  $menu = menu_get_item();
+  if (user_access('Administer Organic groups permissions') && 
+      $menu[page_arguments][0]->type == 'knowledge_centre') {
+    return TRUE;
+  }
+  return FALSE;
 }
 
 /**
