@@ -96,10 +96,6 @@ function know4pol_core_og_permission() {
       'title' => t('Assign publication to KS'),
       'description' => t('Assign publication to the current KS'),
     ),
-    'view group tab' => array(
-      'title' => t('View group tab'),
-      'description' => t('View group tab'),
-    ),
   );
 }
 
@@ -905,7 +901,7 @@ function know4pol_core_menu_alter(&$items) {
  */
 function _know4pol_core_og_group_tab() {
   $menu = menu_get_item();
-  if (user_access('Administer Organic groups permissions') && 
+  if (user_access('Administer Organic groups permissions') &&
       $menu[page_arguments][0]->type == 'knowledge_centre') {
     return TRUE;
   }
