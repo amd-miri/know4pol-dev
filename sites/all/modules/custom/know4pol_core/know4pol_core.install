@@ -204,7 +204,7 @@ function know4pol_core_update_7012() {
 }
 
 /**
- * Disable unused modules and enable remove_duplicates.
+ * Disable unused modules and enable remove_duplicates/xmlsitemap.
  */
 function know4pol_core_update_7013() {
   module_disable(array(
@@ -221,5 +221,12 @@ function know4pol_core_update_7013() {
   ), FALSE);
   module_enable(array(
     'remove_duplicates',
+    'xmlsitemap',
+    'xmlsitemap_custom',
+    'xmlsitemap_engines',
+    'xmlsitemap_menu',
+    'xmlsitemap_node',
+    'xmlsitemap_taxonomy',
+    'xmlsitemap_user',
   ), TRUE);
 }
