@@ -3,6 +3,17 @@
   margin-top: 20px;
 }
 
+/* Related KS topic view */
+.view-related-ks-topic-content .views-row {
+  margin-top: 1.66rem;
+}
+.view-related-ks-topic-content .views-row:last-child hr {
+  display: none;
+}
+.view-related-ks-topic-content #topic-more-resources-button {
+  margin: 1.66rem 0;
+}
+
 /* BKC Glossary view */
 .view-bkc-glossary span.views-summary-unformatted a {
   display: block;
@@ -87,10 +98,11 @@ ul li.leaf {
   clear: both;
 }
 
-/* Missing ECL rule in theme ec_europa */
-.ecl-footer__menu .ecl-footer__menu-item {
-  font-size: .78rem;
-  margin-bottom: .33rem;
+/* Missing from the ECL css in theme ec_europa */
+.ecl-footer__list {
+  margin: 0;
+  max-width: none;
+  font-size: .9rem;
 }
 
 #block-bean-share-buttons {
@@ -182,6 +194,7 @@ li.statistics_counter,
   font-size: .78rem;
   font-weight: 400;
   line-height: 1;
-  margin-right: 1rem;
-  padding: .33rem;
+  margin: 0.33rem;
+  padding: 0.33rem;
+  display: inline-block;
 }
