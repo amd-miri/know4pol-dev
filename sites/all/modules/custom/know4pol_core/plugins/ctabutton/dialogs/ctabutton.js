@@ -3,6 +3,9 @@
  */
 
 CKEDITOR.dialog.add('ctabuttonDialog', function (editor) {
+    //global variables to identify the protocol and produce array of URL values
+    var protocolelements;
+    var protocol_type;
   return {
     title: 'Call to action',
     minWidth: 400,
@@ -22,28 +25,47 @@ CKEDITOR.dialog.add('ctabuttonDialog', function (editor) {
               commit: function (element) {
               }
             },
-            {
-              type: 'select',
-              id: 'protocol',
-              label: 'Protocol',
-              items: [['<other>','<other>'], ['http://','http://'], ['https://','https://'], ['mailto:'], ['ftp://'], ['news://']],
-              default: '<other>',
+           {
+              type: 'text',
+              id: 'enterurl',
+              label: 'Enter URL',
               setup: function (element) {
+                  //check to if the protocol is mailto
+                      var protocol = element.getAttribute("href");
+                      protocol_type = protocol.split(':');
+              
+                  if (protocol_type[0] === 'mailto'){
+                      protocol = protocol.replace(":",":?");
+                      protocolelements = protocol.split('?');
+                      this.setValue(protocolelements[1]);
+                  }
+                  if (protocol_type[0] === 'https'||protocol_type[0] === 'http'||protocol_type[0] === 'ftp'||protocol_type[0] === 'news'){
+                      protocol = protocol.replace("://","://?");
+                      protocolelements = protocol.split('?');
+                      this.setValue(protocolelements[1]);   
+                  }
+                  else{
+                      protocol  = protocol.replace("/","/?");
+                      protocolelements = protocol.split('?');
+                      this.setValue(protocolelements[1]);
+                  }
               },
               commit: function (element) {
               }
             },
             {
-              type: 'text',
-              id: 'enterurl',
-              label: 'Enter URL',
-              setup: function (element) {
-                this.setValue(element.getAttribute("href"));
-              },
-              commit: function (element) {
-              }
-            }
-          ]
+              type: 'select',
+              id: 'protocol',
+              label: 'Protocol',
+              items: [['<other>','/'],['http://'], ['https://'],['mailto:'],['ftp://'],['news://']],
+              'default': '/',
+                setup: function (element) {
+                   this.setValue(protocolelements[0]);
+                },
+                commit: function (element) {
+                }
+           }
+                ]
         }
       ],
 
