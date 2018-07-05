@@ -202,3 +202,31 @@ function know4pol_core_update_7012() {
   ), TRUE);
   _nexteuropa_ecl_migrate_dt_menus();
 }
+
+/**
+ * Disable unused modules and enable remove_duplicates/xmlsitemap.
+ */
+function know4pol_core_update_7013() {
+  module_disable(array(
+    'expanding_formatter',
+    'hierarchical_select',
+    'og_menu',
+    'og_menu_default_links',
+  ), FALSE);
+  drupal_uninstall_modules(array(
+    'expanding_formatter',
+    'hierarchical_select',
+    'og_menu',
+    'og_menu_default_links',
+  ), FALSE);
+  module_enable(array(
+    'remove_duplicates',
+    'xmlsitemap',
+    'xmlsitemap_custom',
+    'xmlsitemap_engines',
+    'xmlsitemap_menu',
+    'xmlsitemap_node',
+    'xmlsitemap_taxonomy',
+    'xmlsitemap_user',
+  ), TRUE);
+}
