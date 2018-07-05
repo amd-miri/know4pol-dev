@@ -68,26 +68,41 @@
  * @ingroup themeable
  */
 ?>
-<div id="<?php print $id; ?>" class="<?php print $classes ?>"<?php print $attributes; ?>>
+<div id="<?php print $id; ?>" class="<?php print $classes ?> file--image"<?php print $attributes; ?>>
+
+  <?php print render($title_prefix); ?>
+  <?php if (!$page): ?>
+    <h2<?php print $title_attributes; ?>><a href="<?php print $file_url; ?>"><?php print $label; ?></a></h2>
+  <?php endif; ?>
+  <?php print render($title_suffix); ?>
 
   <?php if ($display_submitted): ?>
     <div class="submitted">
       <?php print $submitted; ?>
     </div>
-  <?php endif;?>
+  <?php endif; ?>
 
-  <div class="content"<?php print $content_attributes; ?>>
+  <div class="content file__container"<?php print $content_attributes; ?>>
     <?php
       // We hide the links now so that we can render them later.
       hide($content['links']);
-      hide($content['field_file_image_title_text']);
-      hide($content['field_file_copyright_info']);
-      print render($content); ?>
+      print render($content);
+    ?>
+
+    <?php if(!empty($content['file']['#item']['field_caption']['en'][0]['value']) || !empty($content['file']['#item']['field_newsroom_copyrights']['en'][0]['value'])): ?>
       <span class="below-image-text">
-      <?php if(isset($content['file']['#item']['field_newsroom_copyrights']['en'][0]['value'])): ?>
+      <?php if(!empty($content['file']['#item']['field_caption']['en'][0]['value'])): ?>
+        <br /> <?php print $content['file']['#item']['field_caption']['en'][0]['value']; ?>
+      <?php endif;?>
+
+      <?php if(!empty($content['file']['#item']['field_newsroom_copyrights']['en'][0]['value'])): ?>
         <br /> &copy;<span class="copyright"> <?php print $content['file']['#item']['field_newsroom_copyrights']['en'][0]['value'] ?></span>
       <?php endif;?>
       </span>
+    <?php endif;?>
+
   </div>
+
   <?php print render($content['links']); ?>
+
 </div>
