@@ -8,7 +8,7 @@
 /**
  * Implements hook_preprocess_hook().
  */
-function ec_europa_preprocess_field(&$variables, $hook) {
+function ec_europa_preprocess_field(array &$variables, $hook) {
   $element = &$variables['element'];
 
   if (isset($element['#label'])) {
@@ -46,49 +46,49 @@ function ec_europa_preprocess_field(&$variables, $hook) {
 /**
  * Implements hook_preprocess_hook().
  */
-function ec_europa_preprocess_field__taxonomy_term_reference__taxonomy_term_reference_link(&$variables, $hook) {
+function ec_europa_preprocess_field__taxonomy_term_reference__taxonomy_term_reference_link(array &$variables, $hook) {
   _ec_europa_preprocess_taxonomy_term_reference_link($variables, $hook);
 }
 
 /**
  * Implements hook_preprocess_hook().
  */
-function ec_europa_preprocess_field__taxonomy_term_reference__i18n_taxonomy_term_reference_link(&$variables, $hook) {
+function ec_europa_preprocess_field__taxonomy_term_reference__i18n_taxonomy_term_reference_link(array &$variables, $hook) {
   _ec_europa_preprocess_taxonomy_term_reference_link($variables, $hook);
 }
 
 /**
  * Implements hook_preprocess_hook().
  */
-function ec_europa_preprocess_field__taxonomy_term_reference__taxonomy_term_reference_plain(&$variables, $hook) {
+function ec_europa_preprocess_field__taxonomy_term_reference__taxonomy_term_reference_plain(array &$variables, $hook) {
   _ec_europa_preprocess_taxonomy_term_reference_plain($variables, $hook);
 }
 
 /**
  * Implements hook_preprocess_hook().
  */
-function ec_europa_preprocess_field__taxonomy_term_reference__i18n_taxonomy_term_reference_plain(&$variables, $hook) {
+function ec_europa_preprocess_field__taxonomy_term_reference__i18n_taxonomy_term_reference_plain(array &$variables, $hook) {
   _ec_europa_preprocess_taxonomy_term_reference_plain($variables, $hook);
 }
 
 /**
  * Implements hook_preprocess_hook().
  */
-function ec_europa_preprocess_field__entityreference__ne_tags(&$variables, $hook) {
+function ec_europa_preprocess_field__entityreference__ne_tags(array &$variables, $hook) {
   _ec_europa_preprocess_ne_tags($variables, $hook);
 }
 
 /**
  * Implements hook_preprocess_hook().
  */
-function ec_europa_preprocess_field__link_field__ne_tags(&$variables, $hook) {
+function ec_europa_preprocess_field__link_field__ne_tags(array &$variables, $hook) {
   _ec_europa_preprocess_ne_tags($variables, $hook);
 }
 
 /**
  * Implements hook_preprocess_hook().
  */
-function ec_europa_preprocess_field__taxonomy_term_reference__ne_tags(&$variables, $hook) {
+function ec_europa_preprocess_field__taxonomy_term_reference__ne_tags(array &$variables, $hook) {
   _ec_europa_preprocess_ne_tags($variables, $hook);
 }
 
@@ -97,18 +97,22 @@ function ec_europa_preprocess_field__taxonomy_term_reference__ne_tags(&$variable
  *
  * See nexteuropa_formatters_fields.
  */
-function _ec_europa_preprocess_ne_tags(&$variables, $hook) {
+function _ec_europa_preprocess_ne_tags(array &$variables, $hook) {
   $variables['tags'] = array(
-    '#theme' => _atomium_extend_theme_hook('tags', $variables['theme_hook_original']),
+    '#theme' => 'tags',
     '#label' => $variables['label'],
     '#items' => $variables['items'],
+  );
+  _atomium_extend_theme_property(
+    $variables['tags'],
+    array($variables['theme_hook_original'])
   );
 }
 
 /**
  * Helper function to theme taxonomy term link formatters.
  */
-function _ec_europa_preprocess_taxonomy_term_reference_link(&$variables, $hook) {
+function _ec_europa_preprocess_taxonomy_term_reference_link(array &$variables, $hook) {
   $items = array();
   foreach ($variables['items'] as $item) {
     $items[] = array(
@@ -117,18 +121,22 @@ function _ec_europa_preprocess_taxonomy_term_reference_link(&$variables, $hook) 
     );
   }
   $variables['tags'] = array(
-    '#theme' => _atomium_extend_theme_hook('tags', $variables['theme_hook_original']),
+    '#theme' => 'tags',
     '#label' => $variables['label'],
     '#items' => $items,
+  );
+  _atomium_extend_theme_property(
+    $variables['tags'],
+    array($variables['theme_hook_original'])
   );
 }
 
 /**
  * Helper function to theme taxonomy term plain formatters.
  */
-function _ec_europa_preprocess_taxonomy_term_reference_plain(&$variables, $hook) {
+function _ec_europa_preprocess_taxonomy_term_reference_plain(array &$variables, $hook) {
   $variables['tags'] = array(
-    '#theme' => _atomium_extend_theme_hook('tags', array('facet', $variables['theme_hook_original'])),
+    '#theme' => 'tags',
     '#label' => $variables['label'],
     '#items' => array_map(function ($item) {
       return array(
@@ -137,22 +145,31 @@ function _ec_europa_preprocess_taxonomy_term_reference_plain(&$variables, $hook)
       );
     }, $variables['items']),
   );
+  _atomium_extend_theme_property(
+    $variables['tags'],
+    array('facet', $variables['theme_hook_original'])
+  );
 }
 
 /**
  * Implements hook_preprocess_hook().
  */
-function ec_europa_preprocess_field__list_boolean__list_default__group_access__node__full__community(&$variables, $hook) {
+function ec_europa_preprocess_field__list_boolean__list_default__group_access__node__full__community(array &$variables, $hook) {
   if ($object = $variables['element']['#object']) {
     $wrapper = entity_metadata_wrapper('node', $object);
 
     array_walk($variables['items'], function (&$item) use ($wrapper) {
       $item = array(
+        '#theme' => 'labels',
         '#content' => $item['#markup'],
       );
       // @todo: Should we compute the value from $wrapper for each items ?
       $variant = (0 == $wrapper->group_access->value()) ? 'closed' : 'open';
-      $item['#theme'] = _atomium_extend_theme_hook('labels', $variant);
+
+      _atomium_extend_theme_property(
+        $item,
+        array($variant)
+      );
     });
   }
 }

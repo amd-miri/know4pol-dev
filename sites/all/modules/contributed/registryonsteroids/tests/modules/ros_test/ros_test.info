@@ -1,0 +1,4 @@
+name = Registry On Steroids test module
+description = Registry On Steroids test module
+core = 7.x
+hidden = true

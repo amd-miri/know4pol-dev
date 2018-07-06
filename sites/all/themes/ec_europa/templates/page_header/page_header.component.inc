@@ -35,7 +35,7 @@ function ec_europa_atomium_definition_page_header() {
       'title' => 'Business, Economy, Euro',
       'introduction' => 'EU economy, finance and the euro, and practical information for EU businesses and entrepreneurs on product safety, environmental regulations, trade with non-EU countries and competition rules.',
       'meta' => array(
-        '#theme' => _atomium_extend_theme_hook('meta'),
+        '#theme' => 'meta',
         '#type' => 'News article',
         '#timestamp' => '2015-07-06T17:44:28+02:00',
         '#date' => '6 July 2015',
@@ -53,7 +53,7 @@ function ec_europa_atomium_definition_page_header() {
 /**
  * Implements hook_preprocess_hook().
  */
-function ec_europa_preprocess_page_header(&$variables, $hook) {
+function ec_europa_preprocess_page_header(array &$variables, $hook) {
   $variables['ec_europa_basic_header'] = theme_get_setting('ec_europa_basic_header', 'ec_europa');
   if (module_exists('easy_breadcrumb')) {
     // @TODO: The file includes/easy_breadcrumb.blocks.inc

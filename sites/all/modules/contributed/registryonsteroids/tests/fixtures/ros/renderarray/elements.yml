@@ -1,0 +1,102 @@
+-
+  element:
+    "#theme": node
+    "#theme_wrappers": region
+  suggestions_parts:
+    - NODE
+    - ARTICLE
+    - FULL
+  expected:
+    "#theme": node__node__article__full
+    "#theme_wrappers": region
+
+-
+  element:
+    "#theme":
+      - node
+      - link
+    "#theme_wrappers":
+      - region
+      - container
+  suggestions_parts:
+    - node
+    - article
+    - full
+  expected:
+    "#theme":
+      - node__node__article__full
+      - link__node__article__full
+    "#theme_wrappers":
+      - region__node__article__full
+      - container__node__article__full
+
+-
+  element:
+    "#theme":
+      - node
+      - link
+    "#theme_wrappers":
+      -
+        - wrapper1
+        - wrapper2
+      -
+        - wrapper3
+        - wrapper4
+  suggestions_parts:
+    - node
+    - article
+    - full
+  expected:
+    "#theme":
+      - node__node__article__full
+      - link__node__article__full
+    "#theme_wrappers":
+      -
+        - wrapper1__node__article__full
+        - wrapper2__node__article__full
+      -
+        - wrapper3__node__article__full
+        - wrapper4__node__article__full
+
+-
+  element:
+    "#theme":
+      - node
+      - link
+    "#theme_wrappers":
+      - region
+      - container
+  suggestions_parts:
+    - node
+    - ' '
+    - full
+  expected:
+    "#theme":
+      - node__node__full
+      - link__node__full
+    "#theme_wrappers":
+      - region__node__full
+      - container__node__full
+
+-
+  element:
+    "#theme":
+      - node
+      - link
+    "#theme_wrappers":
+      - region
+      - container
+  suggestions_parts:
+    - 123
+    - _node_
+    - ' '
+    - _full_
+    - '_'
+    - '_'
+  expected:
+    "#theme":
+      - node__123__node__full
+      - link__123__node__full
+    "#theme_wrappers":
+      - region__123__node__full
+      - container__123__node__full

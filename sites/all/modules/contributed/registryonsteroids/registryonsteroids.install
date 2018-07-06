@@ -1,0 +1,69 @@
+<?php
+
+/**
+ * @file
+ * registryonsteroids.install
+ */
+
+/**
+ * Implements hook_uninstall().
+ */
+function registryonsteroids_uninstall() {
+  global $conf;
+
+  foreach (array_keys($conf) as $key) {
+    if (0 === strpos($key, 'registryonsteroids_')) {
+      variable_del($key);
+    }
+  }
+}
+
+/**
+ * Implements hook_enable().
+ */
+function registryonsteroids_enable() {
+  // Set the weight of the module to a high arbitrary value.
+  db_update('system')
+    ->fields(['weight' => 1031])
+    ->condition('name', 'registryonsteroids', '=')
+    ->execute();
+}
+
+/**
+ * Implements hook_requirements().
+ */
+function registryonsteroids_requirements($phase) {
+  if ('runtime' !== $phase) {
+    return [];
+  }
+
+  $requirements = [];
+
+  // Ensure translations don't break during installation.
+  $t = get_t();
+
+  $result = db_select('system', 's')
+    ->fields('s', ['weight'])
+    ->condition('name', 'registryonsteroids', '=')
+    ->execute();
+  $weight = !empty($result) ? $result->fetchField() : 0;
+
+  // Test if the module is properly set
+  // in the module implementations order.
+  $requirements['registryonsteroids'] = [
+    'title' => 'Registry on steroids',
+    'value' => $t('Registry on steroids is properly installed. There is no need to update its current weight of @weight.', ['@weight' => $weight]),
+    'description' => $t('In order to have a proper behavior, it needs to be the last to run its hook implementations.'),
+  ];
+
+  $implementations = module_implements('theme_registry_alter');
+  $first = reset($implementations);
+  $last = end($implementations);
+
+  if ('_registryonsteroids_first' !== $first || '_registryonsteroids_last' !== $last) {
+    $requirements['registryonsteroids']['value'] = $t('Registry on steroids do not have the heaviest weight. It is likely that another module is superseding it. You must update and increase the weight of Registry on steroids in order to be the last to run. The first theme_registry_alter implementation is <em>@first</em> and the last is <em>@last</em>.', ['@first' => $first, '@last' => $last]);
+    $requirements['registryonsteroids']['severity'] = REQUIREMENT_WARNING;
+  }
+
+  return $requirements;
+}
