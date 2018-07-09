@@ -11,7 +11,6 @@
   <<?php print $header_wrapper ?> class="group-header<?php print $header_classes; ?>">
     <?php print $header; ?>
   </<?php print $header_wrapper ?>>
-  
 
   <div class="container-fluid ecl-row ecl-u-z-navigation">
     <div class="ecl-row">
@@ -28,10 +27,9 @@
           <?php print $central; ?>
         </section>
       <?php endif; ?>
-      
     </div>
   </div>
-  
+
   <<?php print $footer_wrapper ?> class="group-footer<?php print $footer_classes; ?>">
     <!-- Table with empty heading - enhanced -->
     <table class="ecl-table ecl-table--responsive">
