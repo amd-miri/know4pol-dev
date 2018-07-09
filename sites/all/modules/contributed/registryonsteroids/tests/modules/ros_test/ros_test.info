@@ -2,3 +2,9 @@ name = Registry On Steroids test module
 description = Registry On Steroids test module
 core = 7.x
 hidden = true
+
+; Information added by Drupal.org packaging script on 2018-07-06
+version = "7.x-1.3"
+core = "7.x"
+project = "registryonsteroids"
+datestamp = "1530888340"
