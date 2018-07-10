@@ -423,6 +423,10 @@ function know4pol_search_block_info() {
     'info' => t('Know4pol KS countries block'),
     'cache' => DRUPAL_NO_CACHE,
   );
+  $blocks['know4pol_ks_all'] = array(
+    'info' => t('Know4pol KS countries plus topics block'),
+    'cache' => DRUPAL_NO_CACHE,
+  );
   return $blocks;
 }
 
@@ -456,20 +460,60 @@ function know4pol_search_block_view($delta = '') {
       $block['subject'] = '<h3 class="ecl-list-item__title ecl-heading ecl-heading--h3">Browse by :</h3>';
       $block['content'] = _know4pol_search_countries_dropdown_list();
       break;
+
+    case 'know4pol_ks_all':
+      $block['subject'] = '<h3 class="ecl-list-item__title ecl-heading ecl-heading--h3">Browse by :</h3>';
+      $block['content'] = _know4pol_search_all_dropdown_list();
+      break;
   }
   return $block;
+}
+
+/**
+ * Returns html code for topic and countries dropdown divs.
+ */
+function _know4pol_search_all_dropdown_list() {
+  $html_topics_list = _know4pol_search_links_into_rows(_know4pol_search_get_topics_list());
+  $html_countries_list = _know4pol_search_links_into_rows(_know4pol_search_get_countries_list());
+  if (!empty($html_topics_list) && !empty($html_countries_list)) {
+    return '<div class="browse-by-block">
+              <button type="button" class="ecl-button ecl-button--primary form-button-submit" id="topic_button">Topics &#9660;</button>
+              <button type="button" class="ecl-button ecl-button--primary form-button-submit" id="country_button">Countries &#9660;</button>
+              <div id="topics-dropdown-list" class="row dropdown-list">
+                <div class="col-sm-12">' . $html_topics_list . '</div>
+              </div>
+              <div id="countries-dropdown-list" class="row dropdown-list">
+                <div class="col-sm-12">' . $html_countries_list . '</div>
+              </div>
+            </div>';
+  }
 }
 
 /**
  * Returns html code for topic dropdown div.
  */
 function _know4pol_search_topics_dropdown_list() {
-  $html_list = _know4pol_search_links_into_rows(_know4pol_search_get_topics_list());
-  if ($html_list != "") {
+  $html_topics_list = _know4pol_search_links_into_rows(_know4pol_search_get_topics_list());
+  if (!empty($html_topics_list)) {
     return '<div class="browse-by-block">
               <button type="button" class="ecl-button ecl-button--primary form-button-submit" id="topic_button">Topics &#9660;</button>
               <div id="topics-dropdown-list" class="row dropdown-list">
-                <div class="col-sm-12">' . $html_list . '</div>
+                <div class="col-sm-12">' . $html_topics_list . '</div>
+              </div>
+            </div>';
+  }
+}
+
+/**
+ * Returns html code for countries dropdown div.
+ */
+function _know4pol_search_countries_dropdown_list() {
+  $html_countries_list = _know4pol_search_links_into_rows(_know4pol_search_get_countries_list());
+  if (!empty($html_countries_list)) {
+    return '<div class="browse-by-block">
+              <button type="button" class="ecl-button ecl-button--primary form-button-submit" id="country_button">Countries &#9660;</button>
+              <div id="countries-dropdown-list" class="row dropdown-list">
+                <div class="col-sm-12">' . $html_countries_list . '</div>
               </div>
             </div>';
   }
@@ -504,42 +548,6 @@ function _know4pol_search_get_topics_list() {
 }
 
 /**
- * Get allowed search pages on homepage.
- *
- * @param array $links
- *   Links to the nodes.
- *
- * @return array
- *   Returns themed html list of links to topic pages.
- */
-function _know4pol_search_links_into_rows(array $links = array()) {
-  $output = "";
-  if (!empty($links)) {
-    $output = '<ul class="ecl-listing ecl-listing--three-columns">';
-    foreach ($links as $link) {
-      $output .= '<li class="ecl-list-item ecl-list-item--three-columns">' . $link . '</li>';
-    }
-    $output .= '</ul>';
-  }
-  return $output;
-}
-
-/**
- * Returns html code for countries dropdown div.
- */
-function _know4pol_search_countries_dropdown_list() {
-  $html_list = _know4pol_search_links_into_rows(_know4pol_search_get_countries_list());
-  if ($html_list != "") {
-    return '<div class="browse-by-block">
-              <button type="button" class="ecl-button ecl-button--primary form-button-submit" id="country_button">Countries &#9660;</button>
-              <div id="countries-dropdown-list" class="row dropdown-list">
-                <div class="col-sm-12">' . $html_list . '</div>
-              </div>
-            </div>';
-  }
-}
-
-/**
  * Get the list of countries related to an OG.
  *
  * @return array
@@ -565,4 +573,25 @@ function _know4pol_search_get_countries_list() {
     $links[] = l($country->title, 'node/' . $country->nid, array('attributes' => array('class' => array('ecl-link', 'ecl-list-item__link'))));
   }
   return $links;
+}
+
+/**
+ * Get allowed search pages on homepage.
+ *
+ * @param array $links
+ *   Links to the nodes.
+ *
+ * @return array
+ *   Returns themed html list of links to topic pages.
+ */
+function _know4pol_search_links_into_rows(array $links = array()) {
+  $output = "";
+  if (!empty($links)) {
+    $output = '<ul class="ecl-listing ecl-listing--three-columns">';
+    foreach ($links as $link) {
+      $output .= '<li class="ecl-list-item ecl-list-item--three-columns">' . $link . '</li>';
+    }
+    $output .= '</ul>';
+  }
+  return $output;
 }
