@@ -14,6 +14,7 @@
         else {
           $(this).html('Topics ▲');
           $("#topics-dropdown-list").slideDown();
+          $("#countries-dropdown-list").slideUp();
         }
       });
       $("button#country_button").click(function () {
@@ -24,6 +25,7 @@
         else {
           $(this).html('Countries ▲');
           $("#countries-dropdown-list").slideDown();
+          $("#topics-dropdown-list").slideUp();
         }
       });
     }
