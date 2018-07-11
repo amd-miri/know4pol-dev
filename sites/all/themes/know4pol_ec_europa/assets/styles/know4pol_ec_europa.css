@@ -105,12 +105,6 @@ ul li.leaf {
   font-size: .9rem;
 }
 
-.ecl-footer__list {
-  margin: 0;
-  max-width: none;
-  font-size: .9rem;
-}
-
 #block-bean-share-buttons {
   clear: both;
   margin-top: 10px;

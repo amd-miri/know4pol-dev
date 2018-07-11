@@ -212,22 +212,12 @@ function know4pol_core_update_7013() {
     'hierarchical_select',
     'og_menu',
     'og_menu_default_links',
-    'cacheflush',
-    'cacheflush_advanced',
-    'cacheflush_entity',
-    'cacheflush_rules',
-    'cacheflush_ui',
   ), FALSE);
   drupal_uninstall_modules(array(
     'expanding_formatter',
     'hierarchical_select',
     'og_menu',
     'og_menu_default_links',
-    'cacheflush',
-    'cacheflush_advanced',
-    'cacheflush_entity',
-    'cacheflush_rules',
-    'cacheflush_ui',
   ), FALSE);
   module_enable(array(
     'remove_duplicates',
