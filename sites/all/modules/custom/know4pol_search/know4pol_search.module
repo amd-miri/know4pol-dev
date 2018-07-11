@@ -477,8 +477,8 @@ function _know4pol_search_all_dropdown_list() {
   $html_countries_list = _know4pol_search_links_into_rows(_know4pol_search_get_countries_list());
   if (!empty($html_topics_list) && !empty($html_countries_list)) {
     return '<div class="browse-by-block">
-              <button type="button" class="ecl-button ecl-button--primary form-button-submit" id="topic_button">Topics &#9660;</button>
-              <button type="button" class="ecl-button ecl-button--primary form-button-submit" id="country_button">Countries &#9660;</button>
+              <button type="button" class="ecl-button ecl-button--default ecl-expandable__button" id="topic_button">Topics &#9660;</button>
+              <button type="button" class="ecl-button ecl-button--default ecl-expandable__button" id="country_button">Countries &#9660;</button>
               <div id="topics-dropdown-list" class="row dropdown-list">
                 <div class="col-sm-12">' . $html_topics_list . '</div>
               </div>
@@ -496,7 +496,7 @@ function _know4pol_search_topics_dropdown_list() {
   $html_topics_list = _know4pol_search_links_into_rows(_know4pol_search_get_topics_list());
   if (!empty($html_topics_list)) {
     return '<div class="browse-by-block">
-              <button type="button" class="ecl-button ecl-button--primary form-button-submit" id="topic_button">Topics &#9660;</button>
+              <button type="button" class="ecl-button ecl-button--default ecl-expandable__button" id="topic_button">Topics &#9660;</button>
               <div id="topics-dropdown-list" class="row dropdown-list">
                 <div class="col-sm-12">' . $html_topics_list . '</div>
               </div>
@@ -511,7 +511,7 @@ function _know4pol_search_countries_dropdown_list() {
   $html_countries_list = _know4pol_search_links_into_rows(_know4pol_search_get_countries_list());
   if (!empty($html_countries_list)) {
     return '<div class="browse-by-block">
-              <button type="button" class="ecl-button ecl-button--primary form-button-submit" id="country_button">Countries &#9660;</button>
+              <button type="button" class="ecl-button ecl-button--default ecl-expandable__button" id="country_button">Countries &#9660;</button>
               <div id="countries-dropdown-list" class="row dropdown-list">
                 <div class="col-sm-12">' . $html_countries_list . '</div>
               </div>
