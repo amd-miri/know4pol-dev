@@ -230,3 +230,7 @@ li.statistics_counter,
 .media-element-container .file-image .below-image-text {
   display: table-caption;
 }
+
+.ecl-button--call {
+    color: #000 !important;
+}
