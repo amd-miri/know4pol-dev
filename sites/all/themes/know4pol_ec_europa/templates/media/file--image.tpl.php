@@ -92,11 +92,11 @@
     <?php if(!empty($content['file']['#item']['field_caption']['en'][0]['value']) || !empty($content['file']['#item']['field_newsroom_copyrights']['en'][0]['value'])): ?>
       <span class="below-image-text">
       <?php if(!empty($content['file']['#item']['field_caption']['en'][0]['value'])): ?>
-        <span class="caption"> <?php print $content['file']['#item']['field_caption']['en'][0]['value']; ?></span>
+        <span class="caption"><?php print $content['file']['#item']['field_caption']['en'][0]['value']; ?></span>
       <?php endif;?>
 
       <?php if(!empty($content['file']['#item']['field_newsroom_copyrights']['en'][0]['value'])): ?>
-        <br /> &copy;<span class="copyright"> <?php print $content['file']['#item']['field_newsroom_copyrights']['en'][0]['value'] ?></span>
+        <br /><span class="copyright">&copy;<?php print $content['file']['#item']['field_newsroom_copyrights']['en'][0]['value'] ?></span>
       <?php endif;?>
       </span>
     <?php endif;?>
