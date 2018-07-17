@@ -1,8 +1,3 @@
-/* Platform home page */
-.front .view-know4pol-homepage {
-  margin-top: 20px;
-}
-
 /* Related KS topic view */
 .view-related-ks-topic-content .views-row {
   margin-top: 1.66rem;
@@ -39,7 +34,7 @@
 
 /* KS latest content view */
 #block-know4pol-core-know4pol-ks-latest-content {
-  margin: 1em 0;
+  margin: 2em 0 1em 0;
 }
 
 #block-know4pol-core-know4pol-ks-latest-content .view-ks-latest-content {
@@ -226,5 +221,5 @@ li.statistics_counter,
 }
 
 .ecl-button--call {
-    color: #000 !important;
+  color: #000 !important;
 }
