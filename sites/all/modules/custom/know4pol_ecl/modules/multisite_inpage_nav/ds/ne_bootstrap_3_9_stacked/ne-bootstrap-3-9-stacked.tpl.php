@@ -14,19 +14,19 @@
   
 
   <div class="container-fluid ecl-row ecl-u-z-navigation">
-      <a id="main-content" tabindex="-1"></a>
-      <?php if ($left): ?>
-        <<?php print $left_wrapper; ?> class="ecl-col-md-3 ecl-u-z-navigation js-stickybit-parent<?php print $left_classes; ?>">
-          <?php print $left; ?>
-        </<?php print $left_wrapper; ?>>
-        <section class="section ecl-col-md-9 <?php print $central_classes; ?>">
-          <?php print $central; ?>
-        </section>
-      <?php else: ?>
-        <section class="section ecl-col-md-12 <?php print $central_classes; ?>">
-          <?php print $central; ?>
-        </section>
-      <?php endif; ?>
+    <a id="main-content" tabindex="-1"></a>
+    <?php if ($left): ?>
+      <<?php print $left_wrapper; ?> class="ecl-col-md-3 ecl-u-z-navigation js-stickybit-parent<?php print $left_classes; ?>">
+        <?php print $left; ?>
+      </<?php print $left_wrapper; ?>>
+      <section class="section ecl-col-md-9 <?php print $central_classes; ?>">
+        <?php print $central; ?>
+      </section>
+    <?php else: ?>
+      <section class="section ecl-col-md-12 <?php print $central_classes; ?>">
+        <?php print $central; ?>
+      </section>
+    <?php endif; ?>
   </div>
   
   <<?php print $footer_wrapper ?> class="group-footer<?php print $footer_classes; ?>">
