@@ -151,29 +151,18 @@ function know4pol_core_workbench_moderation_access_alter(&$access, $op, $node) {
 }
 
 /**
- * Implements hook_entity_property_info_alter().
+ * Implements Implements hook_token_info().
  */
-function know4pol_core_entity_property_info_alter(&$info) {
-  $info['node']['properties']['current-revision-author-username'] = array(
-    'label' => t('Current revision author username'),
-    'type' => 'text',
-    'description' => t('The username of the author of the current revision of the node.'),
-    'computed' => TRUE,
-    'field' => FALSE,
+function know4pol_core_token_info() {
+  $site['know4pol_og_group_ref'] = array(
+    'name' => t('List of knowledge services'),
+    'description' => t('List of knowledge services seperated by plus sign)'),
   );
-  $info['node']['properties']['current-revision-author-realname'] = array(
-    'label' => t('Current revision author realname'),
-    'type' => 'text',
-    'description' => t('The realname of the author of the current revision of the node.'),
-    'computed' => TRUE,
-    'field' => FALSE,
-  );
-  $info['node']['properties']['current-revision-author-mail'] = array(
-    'label' => t('Current revision author email'),
-    'type' => 'text',
-    'description' => t('The email of the author of the current revision of the node.'),
-    'computed' => TRUE,
-    'field' => FALSE,
+
+  return array(
+    'tokens' => array(
+      'site' => $site,
+    ),
   );
 }
 
@@ -182,25 +171,28 @@ function know4pol_core_entity_property_info_alter(&$info) {
  */
 function know4pol_core_tokens($type, $tokens, array $data = array(), array $options = array()) {
   $replacements = array();
-  if ($type == 'entity' && $data['entity_type'] == 'node') {
-    $node = $data['entity'];
-    if (isset($node->revision_uid)) {
-      $revision_author = user_load($node->revision_uid);
-      $sanitize = !empty($options['sanitize']);
-      foreach ($tokens as $name => $original) {
-        switch ($name) {
-          case 'current-revision-author-username':
-            $replacements[$original] = $sanitize ? check_plain($revision_author->name) : $revision_author->name;
-            break;
-
-          case 'current-revision-author-realname':
-            $replacements[$original] = $sanitize ? check_plain($revision_author->realname) : $revision_author->realname;
-            break;
-
-          case 'current-revision-author-mail':
-            $replacements[$original] = $sanitize ? check_plain($revision_author->mail) : $revision_author->mail;
-            break;
-        }
+  if ($type == 'site') {
+    foreach ($tokens as $name => $original) {
+      switch ($name) {
+        case 'know4pol_og_group_ref':
+          $gids = array();
+          $node = menu_get_object();
+          if (!empty($node->og_group_ref)) {
+            // We are editing a node.
+            foreach ($node->og_group_ref[LANGUAGE_NONE] as $gid) {
+              $gids[] = $gid['target_id'];
+            }
+          }
+          else {
+            // We are in a "Add content" page.
+            $node = menu_get_item();
+            $url_parameters = drupal_get_query_parameters();
+            if (!empty($url_parameters)) {
+              $gids[] = $url_parameters['og_group_ref'];
+            }
+          }
+          $replacements[$original] = implode('+', $gids);
+          break;
       }
     }
   }
@@ -902,7 +894,7 @@ function know4pol_core_menu_alter(&$items) {
 function _know4pol_core_og_group_tab() {
   $menu = menu_get_item();
   if (user_access('Administer Organic groups permissions') &&
-      $menu[page_arguments][0]->type == 'knowledge_centre') {
+      $menu['page_arguments'][0]->type == 'knowledge_centre') {
     return TRUE;
   }
   return FALSE;

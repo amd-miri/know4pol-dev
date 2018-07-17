@@ -1,8 +1,3 @@
-/* Platform home page */
-.front .view-know4pol-homepage {
-  margin-top: 20px;
-}
-
 /* Related KS topic view */
 .view-related-ks-topic-content .views-row {
   margin-top: 1.66rem;
@@ -39,7 +34,7 @@
 
 /* KS latest content view */
 #block-know4pol-core-know4pol-ks-latest-content {
-  margin: 1em 0;
+  margin: 2em 0 1em 0;
 }
 
 #block-know4pol-core-know4pol-ks-latest-content .view-ks-latest-content {
@@ -99,12 +94,6 @@ ul li.leaf {
 }
 
 /* Missing from the ECL css in theme ec_europa */
-.ecl-footer__list {
-  margin: 0;
-  max-width: none;
-  font-size: .9rem;
-}
-
 .ecl-footer__list {
   margin: 0;
   max-width: none;
@@ -203,4 +192,34 @@ li.statistics_counter,
   margin: 0.33rem;
   padding: 0.33rem;
   display: inline-block;
+}
+
+/* Images */
+.media-element-container .file-image {
+  display: table;
+  max-width: 100%;
+}
+
+.media-element-container .file-image span {
+  width: inherit;
+  max-width: 100%;
+}
+
+.media-element-container .file-image {
+  line-height: 1em;
+  font-size: .8em;
+  color: #555;
+  border: 1px solid #ddd;
+  padding: 5px;
+  background-color: #fff;
+  box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.25);
+  position: relative;
+}
+
+.media-element-container .file-image .below-image-text {
+  display: table-caption;
+}
+
+.ecl-button--call {
+  color: #000 !important;
 }

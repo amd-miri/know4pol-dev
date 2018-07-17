@@ -8,7 +8,7 @@
 /**
  * Implements hook_preprocess_hook().
  */
-function ec_europa_preprocess_comment_wrapper(&$variables, $hook) {
+function ec_europa_preprocess_comment_wrapper(array &$variables, $hook) {
   $form = &$variables['content']['comment_form'];
   $form['actions']['submit']['#value'] = t('Send');
   unset($form['author']);
@@ -21,7 +21,7 @@ function ec_europa_preprocess_comment_wrapper(&$variables, $hook) {
   }, ARRAY_FILTER_USE_KEY);
 
   $variables['content']['comments']['comments'] = array(
-    '#theme' => _atomium_extend_theme_hook('item_list', $variables['theme_hook_original']),
+    '#theme' => 'item_list',
     '#wrapper' => FALSE,
     '#attributes' => array(
       'class' => array(
@@ -37,5 +37,10 @@ function ec_europa_preprocess_comment_wrapper(&$variables, $hook) {
         'data' => $comment,
       );
     }, $comments),
+  );
+
+  _atomium_extend_theme_property(
+    $variables['content']['comments']['comments'],
+    array($variables['theme_hook_original'])
   );
 }

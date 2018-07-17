@@ -8,7 +8,7 @@
 /**
  * Implements hook_preprocess_hook().
  */
-function ec_europa_preprocess_views_view_table(&$variables, $hook) {
+function ec_europa_preprocess_views_view_table(array &$variables, $hook) {
   $variables['atomium']['attributes']['wrapper']->append('class', $variables['classes_array']);
 
   $i = 0;
@@ -26,10 +26,15 @@ function ec_europa_preprocess_views_view_table(&$variables, $hook) {
   }
 
   $variables['table'] = array(
-    '#theme' => _atomium_extend_theme_hook('table', $variables['theme_hook_original']),
+    '#theme' => 'table',
     '#rows' => $variables['rows'],
     '#header' => $variables['header'],
     '#caption' => $variables['caption'],
     '#atomium' => $variables['atomium'],
+  );
+
+  _atomium_extend_theme_property(
+    $variables['table'],
+    array($variables['theme_hook_original'])
   );
 }

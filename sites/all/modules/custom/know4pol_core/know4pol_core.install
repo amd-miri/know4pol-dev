@@ -230,3 +230,26 @@ function know4pol_core_update_7013() {
     'xmlsitemap_user',
   ), TRUE);
 }
+
+/**
+ * Disable cacheflush and enable know4pol_ecl.
+ */
+function know4pol_core_update_7014() {
+  module_disable(array(
+    'cacheflush_advanced',
+    'cacheflush_rules',
+    'cacheflush_ui',
+    'cacheflush_entity',
+    'cacheflush',
+  ), FALSE);
+  drupal_uninstall_modules(array(
+    'cacheflush_advanced',
+    'cacheflush_rules',
+    'cacheflush_ui',
+    'cacheflush_entity',
+    'cacheflush',
+  ), FALSE);
+  module_enable(array(
+    'know4pol_ecl',
+  ), TRUE);
+}

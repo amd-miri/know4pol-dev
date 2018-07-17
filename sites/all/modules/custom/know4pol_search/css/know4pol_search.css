@@ -1,3 +1,11 @@
+#block-know4pol-search-know4pol-main-search {
+  margin: 2em 0 1em 0;
+}
+
+#block-know4pol-search-know4pol-search {
+  margin: 2em 0;
+}
+
 #know4pol-search-form {
   display: block !important;
   background-color: #ebebeb;

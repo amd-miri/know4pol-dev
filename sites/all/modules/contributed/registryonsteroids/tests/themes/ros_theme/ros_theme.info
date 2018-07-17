@@ -1,0 +1,9 @@
+name = Registry On Steroids test theme
+description = Registry On Steroids test theme
+core = 7.x
+
+; Information added by Drupal.org packaging script on 2018-07-06
+version = "7.x-1.3"
+core = "7.x"
+project = "registryonsteroids"
+datestamp = "1530888340"

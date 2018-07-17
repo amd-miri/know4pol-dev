@@ -3,3 +3,5 @@ description = Provides in-page (or anchor) links to all H2 headings on page via 
 core = 7.x
 dependencies[] = know4pol_ecl
 package = JRC
+php = 5.2.4
+multisite_version = 2.4
