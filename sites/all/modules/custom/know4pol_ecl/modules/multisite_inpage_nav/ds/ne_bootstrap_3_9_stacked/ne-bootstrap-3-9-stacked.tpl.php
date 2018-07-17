@@ -14,7 +14,6 @@
   
 
   <div class="container-fluid ecl-row ecl-u-z-navigation">
-    <div class="ecl-row">
       <a id="main-content" tabindex="-1"></a>
       <?php if ($left): ?>
         <<?php print $left_wrapper; ?> class="ecl-col-md-3 ecl-u-z-navigation js-stickybit-parent<?php print $left_classes; ?>">
@@ -28,8 +27,6 @@
           <?php print $central; ?>
         </section>
       <?php endif; ?>
-      
-    </div>
   </div>
   
   <<?php print $footer_wrapper ?> class="group-footer<?php print $footer_classes; ?>">
