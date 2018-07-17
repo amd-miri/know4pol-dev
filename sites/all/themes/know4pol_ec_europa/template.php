@@ -158,3 +158,24 @@ function _know4pol_ec_europa_build_query_facets(array $active_facets) {
   }
   return implode('&', $active_facets);
 }
+
+/**
+ * Preprocess hook for file entities.
+ */
+function know4pol_ec_europa_preprocess_file_entity(&$variables) {
+
+  $file = file_load($variables['fid']);
+  $image = image_load($file->uri);
+  $content = array(
+    'file' => array(
+      '#theme' => 'image_style',
+      '#style_name' => 'original',
+      '#path' => $image->source,
+      '#width' => $image->info['width'],
+      '#height' => $image->info['height'],
+      '#alt' => $file->field_file_image_alt_text['en'][0]['value'],
+      '#title' => $file->field_file_image_title_text['en'][0]['value'],
+    ),
+  );
+  $variables['image'] = $content;
+}
