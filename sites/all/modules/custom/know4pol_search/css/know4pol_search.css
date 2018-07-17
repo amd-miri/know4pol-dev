@@ -6,6 +6,10 @@
   margin: 2em 0;
 }
 
+#topic_button {
+  margin-right: 1em;
+}
+
 #know4pol-search-form {
   display: block !important;
   background-color: #ebebeb;
