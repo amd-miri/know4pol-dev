@@ -33,9 +33,11 @@ function know4pol_ecl_wysiwyg_plugin($editor, $version) {
 function know4pol_ecl_wysiwyg_editor_settings_alter(&$settings, $context) {
   global $base_url;
 
-  // Only ckeditor configuration;
-  if ($context['profile']->editor != 'ckeditor') return;
-  
+  // Only ckeditor configuration;.
+  if ($context['profile']->editor != 'ckeditor') {
+    return;
+  }
+
   // Apply source formating when viewing html source.
   $settings['apply_source_formatting'] = 1;
   $settings['cleanup_on_startup'] = TRUE;
@@ -61,7 +63,6 @@ function know4pol_ecl_wysiwyg_editor_settings_alter(&$settings, $context) {
   if (!empty($settings['toolbar'])) {
     $new_toolbar = [];
     // These are our desired groupings.
-    
     switch ($context['profile']->format) {
       case 'basic_html':
         $new_toolbar[] = ['Bold', 'Italic', 'Underline', 'SpecialChar'];
@@ -69,16 +70,23 @@ function know4pol_ecl_wysiwyg_editor_settings_alter(&$settings, $context) {
         $new_toolbar[] = ['BulletedList', 'NumberedList'];
         $new_toolbar[] = ['PasteFromWord', 'PasteText', 'RemoveFormat'];
         break;
-        
+
       case 'filtered_html':
         $new_toolbar[] = ['Format'];
-        $new_toolbar[] = ['Bold', 'Italic', 'Underline', 'Subscript', 'Superscript', 'SpecialChar'];
-        
-        $new_toolbar[] = ['Link', 'NextEuropaToken', 'Unlink', 'Anchor'];          
+        $new_toolbar[] = [
+          'Bold',
+          'Italic',
+          'Underline',
+          'Subscript',
+          'Superscript',
+          'SpecialChar',
+        ];
+
+        $new_toolbar[] = ['Link', 'NextEuropaToken', 'Unlink', 'Anchor'];
         $new_toolbar[] = ['BulletedList', 'NumberedList', 'Outdent', 'Indent'];
-        $new_toolbar[] = ['PasteFromWord', 'PasteText', 'RemoveFormat'];  
+        $new_toolbar[] = ['PasteFromWord', 'PasteText', 'RemoveFormat'];
         break;
-        
+
       case 'full_html':
         $new_toolbar[] = ['Format'];
         $new_toolbar[] = [
@@ -90,9 +98,9 @@ function know4pol_ecl_wysiwyg_editor_settings_alter(&$settings, $context) {
           'SpecialChar',
           'HorizontalRule',
         ];
-        $new_toolbar[] = ['Link', 'NextEuropaToken', 'Unlink', 'Anchor'];          
+        $new_toolbar[] = ['Link', 'NextEuropaToken', 'Unlink', 'Anchor'];
         $new_toolbar[] = ['BulletedList', 'NumberedList', 'Outdent', 'Indent'];
-        $new_toolbar[] = ['PasteFromWord', 'PasteText', 'RemoveFormat'];  
+        $new_toolbar[] = ['PasteFromWord', 'PasteText', 'RemoveFormat'];
         $new_toolbar[] = [
           'Table',
           'Blockquote',
@@ -113,11 +121,11 @@ function know4pol_ecl_wysiwyg_editor_settings_alter(&$settings, $context) {
       'lite_ToggleShow',
       'lite_ToggleTracking',
     ];
-    
-    if($context['profile']->format != 'basic_html') {
+
+    if ($context['profile']->format != 'basic_html') {
       $new_toolbar[] = ['ShowBlocks', 'Source'];
     }
-    
+
     $settings['toolbar'] = $new_toolbar;
   }
 
