@@ -2,6 +2,5 @@ name = Multisite ECL component In-Page navigation
 description = Provides in-page (or anchor) links to all H2 headings on page via DS field.
 core = 7.x
 dependencies[] = know4pol_ecl
+dependencies[] = ds
 package = JRC
-php = 5.2.4
-multisite_version = 2.4
