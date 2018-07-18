@@ -471,22 +471,35 @@ function know4pol_search_block_view($delta = '') {
 
 /**
  * Returns html code for topic and countries dropdown divs.
+ *
+ * @return string
+ *   Returns the block html.
  */
 function _know4pol_search_all_dropdown_list() {
   $html_topics_list = _know4pol_search_links_into_rows(_know4pol_search_get_topics_list());
   $html_countries_list = _know4pol_search_links_into_rows(_know4pol_search_get_countries_list());
-  if (!empty($html_topics_list) && !empty($html_countries_list)) {
-    return '<div class="browse-by-block">
-              <button type="button" class="ecl-button ecl-button--default ecl-expandable__button" id="topic_button">Topics &#9660;</button>
-              <button type="button" class="ecl-button ecl-button--default ecl-expandable__button" id="country_button">Countries &#9660;</button>
-              <div id="topics-dropdown-list" class="row dropdown-list">
-                <div class="col-sm-12">' . $html_topics_list . '</div>
-              </div>
-              <div id="countries-dropdown-list" class="row dropdown-list">
-                <div class="col-sm-12">' . $html_countries_list . '</div>
-              </div>
-            </div>';
+  $block_buttons = '';
+  $block_content = '';
+
+  if (!empty($html_topics_list)) {
+    $block_buttons .= '<button type="button" class="ecl-button ecl-button--default ecl-expandable__button" id="topic_button">Topics &#9660;</button>';
+    $block_content .= '<div id="topics-dropdown-list" class="row dropdown-list">
+                         <div class="col-sm-12">' . $html_topics_list . '</div>
+                       </div>';
   }
+  if (!empty($html_countries_list)) {
+    $block_buttons .= '<button type="button" class="ecl-button ecl-button--default ecl-expandable__button" id="country_button">Countries &#9660;</button>';
+    $block_content .= '<div id="countries-dropdown-list" class="row dropdown-list">
+                         <div class="col-sm-12">' . $html_countries_list . '</div>
+                       </div>';
+  }
+
+  // Creating the block now.
+  $block = '<div class="browse-by-block">';
+  $block .= $block_buttons;
+  $block .= $block_content;
+  $block .= '</div>';
+  return $block;
 }
 
 /**
