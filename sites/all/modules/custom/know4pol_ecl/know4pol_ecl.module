@@ -61,87 +61,74 @@ function know4pol_ecl_wysiwyg_editor_settings_alter(&$settings, $context) {
 
   // Make sure the toolbar is there.
   if (!empty($settings['toolbar'])) {
-    $new_toolbar = [];
-    // These are our desired groupings.
-    switch ($context['profile']->format) {
-      case 'basic_html':
-        $new_toolbar[] = ['Bold', 'Italic', 'Underline', 'SpecialChar'];
-        $new_toolbar[] = ['Link', 'NextEuropaToken', 'Unlink'];
-        $new_toolbar[] = ['BulletedList', 'NumberedList'];
-        $new_toolbar[] = ['PasteFromWord', 'PasteText', 'RemoveFormat'];
-        break;
+    $settings['toolbar'] = _know4pol_ecl_get_wysiwyg_toolbar($context['profile']->format);
+  }
+}
 
-      case 'filtered_html':
-        $new_toolbar[] = ['Format'];
-        $new_toolbar[] = [
-          'Bold',
-          'Italic',
-          'Underline',
-          'Subscript',
-          'Superscript',
-          'SpecialChar',
-        ];
 
-        $new_toolbar[] = ['Link', 'NextEuropaToken', 'Unlink', 'Anchor'];
-        $new_toolbar[] = ['BulletedList', 'NumberedList', 'Outdent', 'Indent'];
-        $new_toolbar[] = ['PasteFromWord', 'PasteText', 'RemoveFormat'];
-        break;
+/**
+ * Return ckeditor toolbars settings
+ * 
+ * @param $format
+ *   The format setting string.
+ * 
+ * @return
+ *   An array of toolbars.
+ * 
+ * @see hook_wysiwyg_editor_settings_alter()
+ */
+function _know4pol_ecl_get_wysiwyg_toolbar($format) {
+  $toolbar = [];
+  
+  // These are our desired groupings.
+  switch ($format) {
+    case 'basic_html':
+      $toolbar[] = ['Bold', 'Italic', 'Underline', 'SpecialChar'];
+      $toolbar[] = ['Link', 'NextEuropaToken', 'Unlink'];
+      $toolbar[] = ['BulletedList', 'NumberedList'];
+      $toolbar[] = ['PasteFromWord', 'PasteText', 'RemoveFormat'];
+      break;
 
-      case 'full_html':
-        $new_toolbar[] = ['Format'];
-        $new_toolbar[] = [
-          'Bold',
-          'Italic',
-          'Underline',
-          'Subscript',
-          'Superscript',
-          'SpecialChar',
-          'HorizontalRule',
-        ];
-        $new_toolbar[] = ['Link', 'NextEuropaToken', 'Unlink', 'Anchor'];
-        $new_toolbar[] = ['BulletedList', 'NumberedList', 'Outdent', 'Indent'];
-        $new_toolbar[] = ['PasteFromWord', 'PasteText', 'RemoveFormat'];
-        $new_toolbar[] = [
-          'Table',
-          'Blockquote',
-          'media',
-          'Iframe',
-          'collapse',
-          'ctabutton',
-        ];
-        break;
-    }
+    case 'filtered_html':
+      $toolbar[] = ['Format'];
+      $toolbar[] = ['Bold', 'Italic', 'Underline', 'Subscript', 'Superscript','SpecialChar'];
+      $toolbar[] = ['Link', 'NextEuropaToken', 'Unlink', 'Anchor'];
+      $toolbar[] = ['BulletedList', 'NumberedList', 'Outdent', 'Indent'];
+      $toolbar[] = ['PasteFromWord', 'PasteText', 'RemoveFormat'];
+      break;
 
-    $new_toolbar[] = ['Undo', 'Maximize'];
-    $new_toolbar[] = [
-      'lite_AcceptAll',
-      'lite_RejectAll',
-      'lite_AcceptOne',
-      'lite_RejectOne',
-      'lite_ToggleShow',
-      'lite_ToggleTracking',
-    ];
-
-    if ($context['profile']->format != 'basic_html') {
-      $new_toolbar[] = ['ShowBlocks', 'Source'];
-    }
-
-    $settings['toolbar'] = $new_toolbar;
+    case 'full_html':
+      $toolbar[] = ['Format'];
+      $toolbar[] = [
+        'Bold',
+        'Italic',
+        'Underline',
+        'Subscript',
+        'Superscript',
+        'SpecialChar',
+        'HorizontalRule',
+      ];
+      $toolbar[] = ['Link', 'NextEuropaToken', 'Unlink', 'Anchor'];
+      $toolbar[] = ['BulletedList', 'NumberedList', 'Outdent', 'Indent'];
+      $toolbar[] = ['PasteFromWord', 'PasteText', 'RemoveFormat'];
+      $toolbar[] = ['Table', 'Blockquote', 'media', 'Iframe', 'collapse', 'ctabutton'];
+      break;
   }
 
-  elseif (!empty($settings['toolbar']) && $context['profile']->format == 'filtered') {
-    $new_toolbar[] = [
-      'dt_headings',
-      'Link',
-      'NextEuropaToken',
-      'BulletedList',
-    ];
+  // Common for all formats;
+  $toolbar[] = ['Undo', 'Maximize'];
+  $toolbar[] = [
+    'lite_AcceptAll',
+    'lite_RejectAll',
+    'lite_AcceptOne',
+    'lite_RejectOne',
+    'lite_ToggleShow',
+    'lite_ToggleTracking',
+  ];
 
-    $new_toolbar[] = [
-      'Undo',
-      'Source',
-    ];
-
-    $settings['toolbar'] = $new_toolbar;
+  if ($format != 'basic_html') {
+    $toolbar[] = ['ShowBlocks', 'Source'];
   }
+
+  return $toolbar;
 }
