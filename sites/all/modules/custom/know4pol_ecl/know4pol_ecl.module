@@ -65,21 +65,20 @@ function know4pol_ecl_wysiwyg_editor_settings_alter(&$settings, $context) {
   }
 }
 
-
 /**
- * Return ckeditor toolbars settings
- * 
- * @param $format
+ * Return ckeditor toolbars settings.
+ *
+ * @param string $format
  *   The format setting string.
- * 
- * @return
+ *
+ * @return array
  *   An array of toolbars.
- * 
+ *
  * @see hook_wysiwyg_editor_settings_alter()
  */
 function _know4pol_ecl_get_wysiwyg_toolbar($format) {
   $toolbar = [];
-  
+
   // These are our desired groupings.
   switch ($format) {
     case 'basic_html':
@@ -91,7 +90,14 @@ function _know4pol_ecl_get_wysiwyg_toolbar($format) {
 
     case 'filtered_html':
       $toolbar[] = ['Format'];
-      $toolbar[] = ['Bold', 'Italic', 'Underline', 'Subscript', 'Superscript','SpecialChar'];
+      $toolbar[] = [
+        'Bold',
+        'Italic',
+        'Underline',
+        'Subscript',
+        'Superscript',
+        'SpecialChar',
+      ];
       $toolbar[] = ['Link', 'NextEuropaToken', 'Unlink', 'Anchor'];
       $toolbar[] = ['BulletedList', 'NumberedList', 'Outdent', 'Indent'];
       $toolbar[] = ['PasteFromWord', 'PasteText', 'RemoveFormat'];
@@ -111,11 +117,18 @@ function _know4pol_ecl_get_wysiwyg_toolbar($format) {
       $toolbar[] = ['Link', 'NextEuropaToken', 'Unlink', 'Anchor'];
       $toolbar[] = ['BulletedList', 'NumberedList', 'Outdent', 'Indent'];
       $toolbar[] = ['PasteFromWord', 'PasteText', 'RemoveFormat'];
-      $toolbar[] = ['Table', 'Blockquote', 'media', 'Iframe', 'collapse', 'ctabutton'];
+      $toolbar[] = [
+        'Table',
+        'Blockquote',
+        'media',
+        'Iframe',
+        'collapse',
+        'ctabutton',
+      ];
       break;
   }
 
-  // Common for all formats;
+  // Common for all formats;.
   $toolbar[] = ['Undo', 'Maximize'];
   $toolbar[] = [
     'lite_AcceptAll',
