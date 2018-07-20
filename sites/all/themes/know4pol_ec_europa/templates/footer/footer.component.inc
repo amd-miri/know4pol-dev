@@ -22,7 +22,8 @@ function know4pol_ec_europa_preprocess_footer(&$variables, $hook) {
   
  $nid  = arg(1);
  dpm(current_path());
- if ($nid != '404') {
+ dpm($nid);
+ 
     $node = node_load($nid);
     $group_id = $node->og_group_ref['und'][0]['target_id'];
     $group_node = node_load($group_id);
@@ -30,8 +31,6 @@ function know4pol_ec_europa_preprocess_footer(&$variables, $hook) {
     $variables['blog'] = $group_node->field_blog['und'][0]['value'];
     $variables['about_page'] = $group_node->field_about_page['und'][0]['value'];
     $variables['group_title'] = $group_node->title;
-  }
-  dpm($nid);
 }
 
 /**
