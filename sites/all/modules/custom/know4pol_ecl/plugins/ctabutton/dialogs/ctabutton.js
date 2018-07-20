@@ -15,6 +15,15 @@ CKEDITOR.dialog.add('ctabuttonDialog', function (editor) {
         id: 'tab-external',
         label: 'External Links',
         elements: [
+           {
+            type: 'select',
+            id: 'buttontype',
+            label: 'Button Type',
+            items: [['Default','ecl-button ecl-button--default'],['Primary','ecl-button ecl-button--primary'],['Call To Action','ecl-button ecl-button--call ecl-button--caret-right']],
+            setup: function (element) {
+            },
+            commit: function (element) {}
+          },
           {
             type: 'text',
             id: 'txtchng',
@@ -96,10 +105,12 @@ CKEDITOR.dialog.add('ctabuttonDialog', function (editor) {
       var textObj = this.getContentElement('tab-external', 'txtchng');
       var enterurlObj = this.getContentElement('tab-external', 'enterurl');
       var protocolObj = this.getContentElement('tab-external', 'protocol');
+      var buttontypeObj = this.getContentElement('tab-external', 'buttontype');
       var text = textObj.getValue();
       var enterurl = enterurlObj.getValue();
       var protocol = protocolObj.getValue();
-      this.element.setHtml('<a href="' + protocol + '' + enterurl + '" class="ecl-button ecl-button--call ecl-button--caret-right">' + text + '</button>');
+      var buttontype = buttontypeObj.getValue();
+      this.element.setHtml('<a href="' + protocol + '' + enterurl + '" class="' + buttontype + '">' + text + '</a>');
       var txt = this.element;
       this.commitContent(txt);
       if (this.insertMode) {
