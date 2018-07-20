@@ -21,6 +21,9 @@ CKEDITOR.dialog.add('ctabuttonDialog', function (editor) {
             label: 'Button Type',
             items: [['Default','ecl-button ecl-button--default'],['Primary','ecl-button ecl-button--primary'],['Call To Action','ecl-button ecl-button--call ecl-button--caret-right']],
             setup: function (element) {
+                var test = element.getAttribute("class");
+                console.log(test);
+                
             },
             commit: function (element) {}
           },
