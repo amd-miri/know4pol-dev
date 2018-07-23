@@ -33,7 +33,7 @@ function _know4pol_ec_europa_preprocess_node__file(array &$variables) {
     $node->field_file_file
   );
   // Filetype icon.
-  $_icon_css = $node->field_file_type['LANGUAGE_NONE'][0]['taxonomy_term']->field_file_type_classname[LANGUAGE_NONE];
+  $_icon_css = $node->field_file_type[LANGUAGE_NONE][0]['taxonomy_term']->field_file_type_classname[LANGUAGE_NONE];
   // Default icon if no type.
   $node->file_type_css = "." . count($_icon_css) ? $_icon_css[0]['value'] : 'ecl-icon--file';
   // Languages versions.
