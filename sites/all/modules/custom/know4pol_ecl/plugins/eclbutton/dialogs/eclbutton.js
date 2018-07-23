@@ -2,12 +2,12 @@
  * @file
  */
 
-CKEDITOR.dialog.add('ctabuttonDialog', function (editor) {
+CKEDITOR.dialog.add('eclbuttonDialog', function (editor) {
   // Global variables to identify the protocol and produce array of URL values.
   var protocolelements;
   var protocol_type;
   return {
-    title: 'Call to action',
+    title: 'ECL Button',
     minWidth: 400,
     minHeight: 200,
     contents: [
@@ -20,12 +20,27 @@ CKEDITOR.dialog.add('ctabuttonDialog', function (editor) {
             id: 'buttontype',
             label: 'Button Type',
             items: [['Default','ecl-button ecl-button--default'],['Primary','ecl-button ecl-button--primary'],['Call To Action','ecl-button ecl-button--call ecl-button--caret-right']],
+            'default': 'ecl-button ecl-button--default',
             setup: function (element) {
-//                var test = element.getAttribute("class");
-//                console.log(test);
-                
             },
             commit: function (element) {}
+          },
+          {
+             type : 'html',
+             html : '<div id="ecl-button-text">The default button is used for important links on the page.</div>',
+             setup: function (element) {   
+                 jQuery( "#cke_65_select" ).change(function() {
+                    if (jQuery( "#cke_65_select" ).val() === 'ecl-button ecl-button--default'){
+                        jQuery( "#ecl-button-text" ).text('The default button is used for important links on the page.');   
+                    }
+                    if (jQuery( "#cke_65_select" ).val() === 'ecl-button ecl-button--primary'){
+                         jQuery( "#ecl-button-text" ).text('Used for primary actions in case of forms, to initiate a search query, to apply a filter.');   
+                    }
+                    if (jQuery( "#cke_65_select" ).val() === 'ecl-button ecl-button--call ecl-button--caret-right'){
+                         jQuery( "#ecl-button-text" ).text('Use these buttons sparingly on the most important actions like “Apply for funding” or “Watch live streaming”.');
+                    }
+                 });
+            }
           },
           {
             type: 'text',
@@ -35,6 +50,7 @@ CKEDITOR.dialog.add('ctabuttonDialog', function (editor) {
               this.setValue(element.getText());
             },
             commit: function (element) {
+                this.setValue(element.getText());
             }
           },
           {
@@ -44,7 +60,23 @@ CKEDITOR.dialog.add('ctabuttonDialog', function (editor) {
             items: [['<other>','/'],['http://'], ['https://'],['mailto:'],['ftp://'],['news://']],
             'default': '/',
             setup: function (element) {
-              this.setValue(protocolelements[0]);
+              var protocol = element.getAttribute("href");
+              protocol_type = protocol.split(':');
+              if (protocol_type[0] === 'mailto') {
+                protocol = protocol.replace(":",":?");
+                protocolelements = protocol.split('?');
+                this.setValue(protocolelements[0]);
+              }
+              if (protocol_type[0] === 'https'||protocol_type[0] === 'http'||protocol_type[0] === 'ftp'||protocol_type[0] === 'news') {
+                protocol = protocol.replace("://","://?");
+                protocolelements = protocol.split('?');
+                this.setValue(protocolelements[0]);
+              }
+              else {
+                protocol = protocol.replace("/","/?");
+                protocolelements = protocol.split('?');
+                this.setValue(protocolelements[0]);
+              }
             },
             commit: function (element) {}
           },
@@ -53,24 +85,7 @@ CKEDITOR.dialog.add('ctabuttonDialog', function (editor) {
             id: 'enterurl',
             label: 'Enter URL',
             setup: function (element) {
-              // Check to if the protocol is mailto.
-              var protocol = element.getAttribute("href");
-              protocol_type = protocol.split(':');
-              if (protocol_type[0] === 'mailto') {
-                protocol = protocol.replace(":",":?");
-                protocolelements = protocol.split('?');
                 this.setValue(protocolelements[1]);
-              }
-              if (protocol_type[0] === 'https'||protocol_type[0] === 'http'||protocol_type[0] === 'ftp'||protocol_type[0] === 'news') {
-                protocol = protocol.replace("://","://?");
-                protocolelements = protocol.split('?');
-                this.setValue(protocolelements[1]);
-              }
-              else {
-                protocol = protocol.replace("/","/?");
-                protocolelements = protocol.split('?');
-                this.setValue(protocolelements[1]);
-              }
             },
             commit: function (element) {
             }
@@ -124,4 +139,6 @@ CKEDITOR.dialog.add('ctabuttonDialog', function (editor) {
       editor.getSelection().selectRanges([range]);
      }
   };
+  
+  
 });

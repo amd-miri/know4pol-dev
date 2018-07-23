@@ -13,12 +13,12 @@ function know4pol_ecl_wysiwyg_plugin($editor, $version) {
   switch ($editor) {
     case 'ckeditor':
       if ($version > 4) {
-        $plugins['ctabutton'] = array(
-          'path' => drupal_get_path('module', 'know4pol_ecl') . '/plugins/ctabutton',
+        $plugins['eclbutton'] = array(
+          'path' => drupal_get_path('module', 'know4pol_ecl') . '/plugins/eclbutton',
           'filename' => 'plugin.js',
           'load' => TRUE,
           'buttons' => array(
-            'ctabutton' => t('Call to action'),
+            'eclbutton' => t('ECL Button'),
           ),
         );
       }
@@ -78,7 +78,7 @@ function know4pol_ecl_wysiwyg_editor_settings_alter(&$settings, $context) {
         'media',
         'Iframe',
         'collapse',
-        'ctabutton',
+        'eclbutton',
       ];
 
       $new_toolbar[] = ['Undo', 'Maximize'];
