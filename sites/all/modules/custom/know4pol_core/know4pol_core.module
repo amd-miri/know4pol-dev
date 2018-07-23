@@ -173,7 +173,7 @@ function know4pol_core_tokens($type, $tokens, array $data = array(), array $opti
   $replacements = array();
   if ($type == 'site') {
     foreach ($tokens as $name => $original) {
-      if ($name = 'know4pol_og_group_ref') {
+      if ($name == 'know4pol_og_group_ref') {
         $gids = array();
         $node = menu_get_object();
         if (!empty($node->og_group_ref)) {
