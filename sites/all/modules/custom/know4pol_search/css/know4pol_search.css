@@ -29,6 +29,7 @@
 #know4pol-search-form .ecl-button {
   line-height: inherit !important;
   width: 10%;
+  padding: .89rem;
 }
 
 #know4pol-search-form .ecl-radio__label::before {

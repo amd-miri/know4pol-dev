@@ -253,6 +253,13 @@ function know4pol_search_form($form, $form_state) {
   $form['submit'] = array(
     '#type' => 'submit',
     '#value' => 'Search',
+    '#attributes' => array(
+      'class' => array('ecl-button',
+        'ecl-button--form-primary',
+        'ecl-button--primary',
+        'ecl-search-form__button',
+      ),
+    ),
   );
   // Search content type options.
   $form['type'] = array(
@@ -375,6 +382,13 @@ function know4pol_mainsearch_form($form, $form_state) {
   $form['submit'] = array(
     '#type' => 'submit',
     '#value' => 'Search',
+    '#attributes' => array(
+      'class' => array('ecl-button',
+        'ecl-button--form-primary',
+        'ecl-button--primary',
+        'ecl-search-form__button',
+      ),
+    ),
   );
   // Search solr page type options.
   $form['solr_search_page'] = array(
