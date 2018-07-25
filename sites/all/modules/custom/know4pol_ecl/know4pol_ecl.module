@@ -33,34 +33,79 @@ function know4pol_ecl_wysiwyg_plugin($editor, $version) {
 function know4pol_ecl_wysiwyg_editor_settings_alter(&$settings, $context) {
   global $base_url;
 
-  if ($context['profile']->editor == 'ckeditor') {
-    // Apply source formating when viewing html source.
-    $settings['apply_source_formatting'] = 1;
-    $settings['cleanup_on_startup'] = TRUE;
+  // Only ckeditor configuration;.
+  if ($context['profile']->editor != 'ckeditor') {
+    return;
+  }
 
-    // Available default values: "p;h2;h3;h4;h5;h6".
-    $settings['format_tags'] = "Paragraph;h2;h3;h4;h5;h6";
+  // Apply source formating when viewing html source.
+  $settings['apply_source_formatting'] = 1;
+  $settings['cleanup_on_startup'] = TRUE;
 
-    // Change the default format p.
-    $settings['format_Paragraph']['name'] = 'Paragraph';
-    $settings['format_Paragraph']['element'] = 'p';
+  // Available default values: "p;h2;h3;h4;h5;h6".
+  $settings['format_tags'] = "Paragraph;h2;h3;h4;h5;h6";
 
-    // Settings ckeditor to use theme css.
-    $settings['contentsCss'] = [
-      '0' => $base_url . '/' . drupal_get_path('theme', 'ec_europa') . '/assets/styles/wysiwyg/editor.css',
-      '1' => $base_url . '/' . drupal_get_path('theme', 'ec_europa') . '/assets/styles/europa.css',
-    ];
+  // Change the default format p.
+  $settings['format_Paragraph']['name'] = 'Paragraph';
+  $settings['format_Paragraph']['element'] = 'p';
 
-    $settings['bodyClass'] = 'padding-wysiwyg-body';
+  // Settings ckeditor to use theme css.
+  $settings['contentsCss'] = [
+    '0' => $base_url . '/' . drupal_get_path('theme', 'ec_europa') . '/assets/styles/wysiwyg/editor.css',
+    '1' => $base_url . '/' . drupal_get_path('theme', 'ec_europa') . '/assets/styles/europa.css',
+    '2' => $base_url . '/' . drupal_get_path('theme', 'know4pol_ec_europa') . '/assets/styles/know4pol_ec_europa.css',
+    '3' => $base_url . '/' . drupal_get_path('module', 'know4pol_core') . '/css/know4pol_core.css',
+  ];
 
-    $full_html = ['full_html', 'full_html_track'];
+  $settings['bodyClass'] = 'padding-wysiwyg-body';
 
-    // Make sure the toolbar is there.
-    if (!empty($settings['toolbar']) && in_array($context['profile']->format, $full_html)) {
-      $new_toolbar = [];
-      // These are our desired groupings.
-      $new_toolbar[] = ['Format'];
-      $new_toolbar[] = [
+  // Make sure the toolbar is there.
+  if (!empty($settings['toolbar'])) {
+    $settings['toolbar'] = _know4pol_ecl_get_wysiwyg_toolbar($context['profile']->format);
+  }
+}
+
+/**
+ * Return ckeditor toolbars settings.
+ *
+ * @param string $format
+ *   The format setting string.
+ *
+ * @return array
+ *   An array of toolbars.
+ *
+ * @see hook_wysiwyg_editor_settings_alter()
+ */
+function _know4pol_ecl_get_wysiwyg_toolbar($format) {
+  $toolbar = [];
+
+  // These are our desired groupings.
+  switch ($format) {
+    case 'basic_html':
+      $toolbar[] = ['Bold', 'Italic', 'Underline', 'SpecialChar'];
+      $toolbar[] = ['Link', 'NextEuropaToken', 'Unlink'];
+      $toolbar[] = ['BulletedList', 'NumberedList'];
+      $toolbar[] = ['PasteFromWord', 'PasteText', 'RemoveFormat'];
+      break;
+
+    case 'filtered_html':
+      $toolbar[] = ['Format'];
+      $toolbar[] = [
+        'Bold',
+        'Italic',
+        'Underline',
+        'Subscript',
+        'Superscript',
+        'SpecialChar',
+      ];
+      $toolbar[] = ['Link', 'NextEuropaToken', 'Unlink', 'Anchor'];
+      $toolbar[] = ['BulletedList', 'NumberedList', 'Outdent', 'Indent'];
+      $toolbar[] = ['PasteFromWord', 'PasteText', 'RemoveFormat'];
+      break;
+
+    case 'full_html':
+      $toolbar[] = ['Format'];
+      $toolbar[] = [
         'Bold',
         'Italic',
         'Underline',
@@ -69,10 +114,10 @@ function know4pol_ecl_wysiwyg_editor_settings_alter(&$settings, $context) {
         'SpecialChar',
         'HorizontalRule',
       ];
-      $new_toolbar[] = ['BulletedList', 'NumberedList', 'Outdent', 'Indent'];
-      $new_toolbar[] = ['PasteFromWord', 'PasteText', 'RemoveFormat'];
-      $new_toolbar[] = ['Link', 'NextEuropaToken', 'Unlink', 'Anchor'];
-      $new_toolbar[] = [
+      $toolbar[] = ['Link', 'NextEuropaToken', 'Unlink', 'Anchor'];
+      $toolbar[] = ['BulletedList', 'NumberedList', 'Outdent', 'Indent'];
+      $toolbar[] = ['PasteFromWord', 'PasteText', 'RemoveFormat'];
+      $toolbar[] = [
         'Table',
         'Blockquote',
         'media',
@@ -80,34 +125,23 @@ function know4pol_ecl_wysiwyg_editor_settings_alter(&$settings, $context) {
         'collapse',
         'eclbutton',
       ];
-
-      $new_toolbar[] = ['Undo', 'Maximize'];
-      $new_toolbar[] = [
-        'lite_AcceptAll',
-        'lite_RejectAll',
-        'lite_AcceptOne',
-        'lite_RejectOne',
-        'lite_ToggleShow',
-        'lite_ToggleTracking',
-      ];
-      $new_toolbar[] = ['ShowBlocks', 'Source'];
-      $settings['toolbar'] = $new_toolbar;
-    }
-
-    elseif (!empty($settings['toolbar']) && $context['profile']->format == 'filtered') {
-      $new_toolbar[] = [
-        'dt_headings',
-        'Link',
-        'NextEuropaToken',
-        'BulletedList',
-      ];
-
-      $new_toolbar[] = [
-        'Undo',
-        'Source',
-      ];
-
-      $settings['toolbar'] = $new_toolbar;
-    }
+      break;
   }
+
+  // Common for all formats;.
+  $toolbar[] = ['Undo', 'Maximize'];
+  $toolbar[] = [
+    'lite_AcceptAll',
+    'lite_RejectAll',
+    'lite_AcceptOne',
+    'lite_RejectOne',
+    'lite_ToggleShow',
+    'lite_ToggleTracking',
+  ];
+
+  if ($format != 'basic_html') {
+    $toolbar[] = ['ShowBlocks', 'Source'];
+  }
+
+  return $toolbar;
 }

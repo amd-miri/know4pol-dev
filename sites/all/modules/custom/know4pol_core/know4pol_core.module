@@ -173,26 +173,25 @@ function know4pol_core_tokens($type, $tokens, array $data = array(), array $opti
   $replacements = array();
   if ($type == 'site') {
     foreach ($tokens as $name => $original) {
-      switch ($name) {
-        case 'know4pol_og_group_ref':
-          $gids = array();
-          $node = menu_get_object();
-          if (!empty($node->og_group_ref)) {
-            // We are editing a node.
-            foreach ($node->og_group_ref[LANGUAGE_NONE] as $gid) {
-              $gids[] = $gid['target_id'];
-            }
+      if ($name == 'know4pol_og_group_ref') {
+        $gids = array();
+        $node = menu_get_object();
+        if (!empty($node->og_group_ref)) {
+          // We are editing a node.
+          foreach ($node->og_group_ref[LANGUAGE_NONE] as $gid) {
+            $gids[] = $gid['target_id'];
           }
-          else {
-            // We are in a "Add content" page.
-            $node = menu_get_item();
-            $url_parameters = drupal_get_query_parameters();
-            if (!empty($url_parameters)) {
-              $gids[] = $url_parameters['og_group_ref'];
-            }
+        }
+        else {
+          // We are in a "Add content" page.
+          $node = menu_get_item();
+          $url_parameters = drupal_get_query_parameters();
+          if (!empty($url_parameters)) {
+            $gids[] = $url_parameters['og_group_ref'];
           }
-          $replacements[$original] = implode('+', $gids);
-          break;
+        }
+        $replacements[$original] = implode('+', $gids);
+        break;
       }
     }
   }
@@ -893,7 +892,7 @@ function know4pol_core_menu_alter(&$items) {
  */
 function _know4pol_core_og_group_tab() {
   $menu = menu_get_item();
-  if (user_access('Administer Organic groups permissions') &&
+  if (user_access('administer group') &&
       $menu['page_arguments'][0]->type == 'knowledge_centre') {
     return TRUE;
   }
