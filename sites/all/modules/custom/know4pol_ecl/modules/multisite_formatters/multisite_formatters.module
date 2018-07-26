@@ -237,6 +237,7 @@ function multisite_formatters_field_formatter_prepare_view($entity_type, $entiti
                 // Has a group ?
                 if ($group && isset($item['object']['term']->vid)) {
                   $item['group'] = $item['object']['term']->vid;
+                  // $item[''].
                 }
               }
               else {
@@ -300,6 +301,11 @@ function multisite_formatters_field_formatter_view($entity_type, $entity, $field
               'items' => array(),
               'vocab' => taxonomy_vocabulary_load($vid),
             );
+            $group_voc = og_vocab_relation_get($vid);
+            if ($group_voc) {
+              $group[$vid]['facet_name'] = 'og_group_ref';
+              $group[$vid]['facet_id'] = $group_voc->group_type . ':' . $group_voc->gid;
+            }
           }
           $group[$vid]['items'][] = &$item;
         }
@@ -320,21 +326,32 @@ function multisite_formatters_field_formatter_view($entity_type, $entity, $field
               $query = array($facet_name => $item['facet_id']);
             }
 
-            // Other fields should be passed.
-            foreach (explode(',', $settings['solr_include']) as $value) {
-              $value = trim($value);
-              $facet_name = _multisite_formatters_get_facet($value);
+            // If group has other fileds to pass.
+            if (isset($item['group']) && isset($group[$item['group']]['facet_name'])) {
 
+              $facet_name = _multisite_formatters_get_facet($group[$item['group']]['facet_name']);
               if ($facet_name != NULL) {
-                $field_values = field_get_items($entity_type, $entity, $value);
-                if (count($field_values)) {
-                  // Only take first value, not intended for multiple values.
-                  $facet_added = $field_values[0];
-                  if (isset($facet_added['facet_id'])) {
-                    $query[$facet_name] = $facet_added['facet_id'];
-                  }
-                  else {
-                    $query[$facet_name] = $facet_added[0]['value'];
+                $query[$facet_name] = $group[$item['group']]['facet_id'];
+              }
+            }
+
+            // Other fields should be passed.
+            if (strlen($settings['solr_include'])) {
+              foreach (explode(',', $settings['solr_include']) as $value) {
+                $value = trim($value);
+                $facet_name = _multisite_formatters_get_facet($value);
+
+                if ($facet_name != NULL) {
+                  $field_values = field_get_items($entity_type, $entity, $value);
+                  if (count($field_values)) {
+                    // Only take first value, not intended for multiple values.
+                    $facet_added = $field_values[0];
+                    if (isset($facet_added['facet_id'])) {
+                      $query[$facet_name] = $facet_added['facet_id'];
+                    }
+                    else {
+                      $query[$facet_name] = $facet_added[0]['value'];
+                    }
                   }
                 }
               }
