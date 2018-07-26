@@ -179,21 +179,6 @@ li.statistics_counter,
   list-style-type: none;
 }
 
-.ds-2col-stacked-fluid.node .group-footer .field-type-entityreference a,
-.ds-2col-stacked-fluid.node .group-footer .field-type-taxonomy-term-reference a {
-  background-color: #e3e3e3;
-  border-radius: 5px;
-  border-width: 0;
-  color: #404040;
-  font-family: Arial,sans-serif;
-  font-size: .78rem;
-  font-weight: 400;
-  line-height: 1;
-  margin: 0.33rem;
-  padding: 0.33rem;
-  display: inline-block;
-}
-
 /* Images */
 .media-element-container .file-image {
   display: table;
