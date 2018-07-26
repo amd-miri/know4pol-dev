@@ -179,8 +179,8 @@ li.statistics_counter,
   list-style-type: none;
 }
 
-.ds-2col-stacked-fluid.node .group-footer .field-type-entityreference a,
-.ds-2col-stacked-fluid.node .group-footer .field-type-taxonomy-term-reference a {
+.uids-2col-stacked-fluid.node .group-footer .field-type-entityreference a,
+.uds-2col-stacked-fluid.node .group-footer .field-type-taxonomy-term-reference a {
   background-color: #e3e3e3;
   border-radius: 5px;
   border-width: 0;
