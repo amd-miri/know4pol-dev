@@ -205,6 +205,18 @@ li.statistics_counter,
   display: table-caption;
 }
 
+/* ECL Fixes, waiting to be adresed by theme team. */
+
 .ecl-button--call {
   color: #000 !important;
+}
+
+.ecl-tag {
+  display: block;
+}
+
+.ecl-tag__item {
+  white-space: nowrap;
+  display: inline-block;
+  margin-bottom: .1rem;
 }
