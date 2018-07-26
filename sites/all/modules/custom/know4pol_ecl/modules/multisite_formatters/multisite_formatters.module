@@ -237,6 +237,7 @@ function multisite_formatters_field_formatter_prepare_view($entity_type, $entiti
                 // Has a group ?
                 if ($group && isset($item['object']['term']->vid)) {
                   $item['group'] = $item['object']['term']->vid;
+                  // $item[''].
                 }
               }
               else {
