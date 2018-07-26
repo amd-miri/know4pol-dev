@@ -509,11 +509,13 @@ function _know4pol_search_all_dropdown_list() {
   }
 
   // Creating the block now.
-  $block = '<div class="browse-by-block">';
-  $block .= $block_buttons;
-  $block .= $block_content;
-  $block .= '</div>';
-  return $block;
+  if (!empty($html_countries_list) || !empty($html_topics_list)) {
+    $block = '<div class="browse-by-block">';
+    $block .= $block_buttons;
+    $block .= $block_content;
+    $block .= '</div>';
+    return $block;
+  }
 }
 
 /**
