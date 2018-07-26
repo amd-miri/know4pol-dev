@@ -145,3 +145,19 @@ function _know4pol_ecl_get_wysiwyg_toolbar($format) {
 
   return $toolbar;
 }
+
+/**
+ * Implements hook_quicktabs_renderers().
+ */
+function know4pol_ecl_quicktabs_renderers() {
+  $info = array();
+  $path = drupal_get_path('module', 'know4pol_ecl') . '/plugins/quicktabs/';
+  $info['ecl_tabs'] = array(
+    'path' => $path,
+    'handler' => array(
+      'file' => 'Know4polEclTabs.inc',
+      'class' => 'Know4polEclTabs',
+    ),
+  );
+  return $info;
+}

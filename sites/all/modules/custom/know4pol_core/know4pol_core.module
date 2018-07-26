@@ -859,22 +859,6 @@ function know4pol_core_apachesolr_index_document_build_node(ApacheSolrDocument $
 }
 
 /**
- * Implements hook_quicktabs_renderers().
- */
-function know4pol_core_quicktabs_renderers() {
-  $info = array();
-  $path = drupal_get_path('module', 'know4pol_core') . '/plugins/quicktabs/';
-  $info['ecl_tabs'] = array(
-    'path' => $path,
-    'handler' => array(
-      'file' => 'Know4polCoreEclTabs.inc',
-      'class' => 'Know4polCoreEclTabs',
-    ),
-  );
-  return $info;
-}
-
-/**
  * Implements hook_menu_alter().
  */
 function know4pol_core_menu_alter(&$items) {
