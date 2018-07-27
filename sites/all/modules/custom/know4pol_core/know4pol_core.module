@@ -762,6 +762,33 @@ function know4pol_core_facet_items_alter(&$build, &$settings) {
         unset($build['newsroom_item']);
       }
       break;
+
+    case "sm_field_ks_related_topics":
+      $params = drupal_get_query_parameters();
+      foreach ($params['f'] as $key => $param) {
+        $field = explode(':', $param);
+        if ($field[0] == sm_og_group_ref) {
+          $gid = $field[2];
+        }
+      }
+      if ($gid) {
+        $query = db_select('node', 'n')
+          ->fields('n', array('nid'));
+        $query->join('og_membership', 'ogm', 'ogm.etid = n.nid');
+        $query->condition('ogm.gid', $gid, '=');
+        $query->condition('n.type', 'topic', '=');
+        $ks_topics = $query->execute()->fetchAll();
+        $new_topic_list = array();
+        foreach ($ks_topics as $key => $topic) {
+          $topic_item = 'node:' . $topic->nid;
+          if (in_array('node:4680', array_keys($build))) {
+            $new_topic_list[$topic_item] = $build[$topic_item];
+          }
+        }
+        // Replace the available list by the created one.
+        $build = $new_topic_list;
+      }
+      break;
   }
 }
 

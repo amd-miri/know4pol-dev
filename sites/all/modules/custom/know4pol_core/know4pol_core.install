@@ -253,3 +253,12 @@ function know4pol_core_update_7014() {
     'know4pol_ecl',
   ), TRUE);
 }
+
+/**
+ * Enable multisite_formatters.
+ */
+function know4pol_core_update_7015() {
+  module_enable(array(
+    'multisite_formatters',
+  ), TRUE);
+}
