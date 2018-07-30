@@ -983,3 +983,17 @@ function _know4pol_core_unassign_ks_action($entity, array $context) {
   $entity->og_group_ref[LANGUAGE_NONE] = array_values($og_array);
   node_save($entity);
 }
+
+/**
+ * Implements hook_field_display_alter().
+ */
+function know4pol_core_field_display_alter(&$display, $context) {
+  // Add the <p> tag to the field_ne_body summary, if not available.
+  if ($context['entity']->field_ne_body[LANGUAGE_NONE][0]['summary'] && !preg_match('/\<p\>/', $context['entity']->field_ne_body[LANGUAGE_NONE][0]['summary'])) {
+    $context['entity']->field_ne_body[LANGUAGE_NONE][0]['summary'] = "<p>" . $context['entity']->field_ne_body[LANGUAGE_NONE][0]['summary'] . "</p>";
+  }
+  // Add the <p> tag to the body summary, if not available.
+  if ($context['entity']->body[LANGUAGE_NONE][0]['summary'] && !preg_match('/\<p\>/', $context['entity']->body[LANGUAGE_NONE][0]['summary'])) {
+    $context['entity']->body[LANGUAGE_NONE][0]['summary'] = "<p>" . $context['entity']->body[LANGUAGE_NONE][0]['summary'] . "</p>";
+  }
+}
