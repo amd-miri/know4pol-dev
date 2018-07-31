@@ -1,0 +1,451 @@
+<?php
+
+/**
+ * @file
+ * Defines custom Nexteuropa components field formatters.
+ */
+
+ /**
+  * Implements hook_theme().
+  */
+function multisite_formatters_theme($existing, $type, $theme, $path) {
+  $templates_path = sprintf('%s/templates', $path);
+
+  return array(
+    'tag' => array(
+      'variables' => array(
+        'items' => NULL,
+        'group_label' => NULL,
+      ),
+      'template' => 'tag',
+      'path' => $templates_path,
+    ),
+  );
+}
+
+/**
+ * Implements hook_field_formatter_info().
+ */
+function multisite_formatters_field_formatter_info() {
+  return array(
+    'ecl_tags' => array(
+      'label' => t('ECL tags'),
+      'description' => t('Format as ECL Reference tags.'),
+      'field types' => array(
+        'link_field',
+        'taxonomy_term_reference',
+        'entityreference',
+      ),
+      'settings' => array(
+        'link' => 'default',
+        'link_alias' => TRUE,
+        'solr' => 'default',
+        'solr_include' => '',
+        'rewrite' => '',
+      ),
+    ),
+  );
+}
+
+/**
+ * Implements hook_field_formatter_settings_form().
+ */
+function multisite_formatters_field_formatter_settings_form($field, $instance, $view_mode, $form, &$form_state) {
+  $display = $instance['display'][$view_mode];
+  $settings = $display['settings'];
+  $element = array();
+
+  // Switch for the different formatters.
+  if ($display['type'] == 'ecl_tags') {
+    $element['link'] = array(
+      '#type' => 'select',
+      '#title' => t('Link to'),
+      '#options' => array(
+        'default' => t('Drupal default'),
+        'solr' => t('SolR search page as facet enabled'),
+        'custom' => t('Custom / Rewrite'),
+        'none' => t('No link'),
+      ),
+      '#default_value' => $settings['link'],
+      '#description' => t('Define where the URL of the tag should link. Default is Drupal default behaviour'),
+    );
+    $element['link_alias'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Use path alias if available'),
+      '#default_value' => $settings['link_alias'],
+      '#states' => array(
+        'visible' => array(
+          'select[name="fields[' . $field['field_name'] . '][settings_edit_form][settings][link]"' => array('value' => 'default'),
+        ),
+      ),
+    );
+    // Restrict options for field type link.
+    if ($field['type'] == 'link_field') {
+      unset($element['link']['#options']['solr']);
+      unset($element['link']['#options']['custom']);
+      unset($element['link_alias']);
+    }
+    if (module_exists('apachesolr')) {
+      $solr_pages = array();
+      // Get solr pages to display in select.
+      foreach (apachesolr_search_load_all_search_pages() as $key => $item) {
+        $solr_pages[$key] = $item['description'] != '' ? $item['description'] : $item['page_title'];
+      }
+    }
+    else {
+      $solr_pages = ['Apache solr not installed'];
+    }
+    $element['solr'] = array(
+      '#type' => 'select',
+      '#title' => t('SolR page to link to'),
+      '#options' => $solr_pages,
+      '#default_value' => $settings['solr'],
+      '#description' => t('The Apache SolR page it will link to. (facets will be preselected using machine name)'),
+      '#states' => array(
+        'visible' => array(
+          'select[name="fields[' . $field['field_name'] . '][settings_edit_form][settings][link]"' => array('value' => 'solr'),
+        ),
+      ),
+    );
+    $element['solr_include'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Include other fields as facets'),
+      '#default_value' => $settings['solr_include'],
+      '#description' => t('Specify a comma separated list of fields machine name of the content to pass to the SolR page'),
+      '#token_insert' => TRUE,
+      '#states' => array(
+        'visible' => array(
+          'select[name="fields[' . $field['field_name'] . '][settings_edit_form][settings][link]"' => array('value' => 'solr'),
+        ),
+      ),
+    );
+    $element['rewrite'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Custom URL'),
+      '#default_value' => $settings['rewrite'],
+      '#description' => t('You can rewrite the URL with tokens.'),
+      '#token_insert' => TRUE,
+      '#states' => array(
+        'visible' => array(
+          'select[name="fields[' . $field['field_name'] . '][settings_edit_form][settings][link]"' => array('value' => 'custom'),
+        ),
+      ),
+    );
+  }
+  return $element;
+}
+
+/**
+ * Implements hook_field_formatter_settings_summary().
+ */
+function multisite_formatters_field_formatter_settings_summary($field, $instance, $view_mode) {
+  $display = $instance['display'][$view_mode];
+  $settings = $display['settings'];
+  $summary = array();
+
+  if ($display['type'] == 'ecl_tags') {
+    // Switch for the different cases in the ECL Tags field formatter.
+    switch ($settings['link']) {
+      // The deafult mode chosen by Drupal.
+      case 'default':
+        $summary[] = t('Link to') . ' ' . t('Drupal default') . ($settings['link_alias'] ? ' ' . t('using path alias') : '');
+        break;
+
+      // The ApacheSolr URL replacement.
+      case 'solr':
+        $summary[] = t('Link to SolR search page: @page', array('@page' => $settings['solr']));
+        if (isset($settings['solr_include']) && $settings['solr_include'] != '') {
+          $summary[] = t('with added fields as facets: @solr_include', array(
+            '@solr_include' => $settings['solr_include'],
+          ));
+        }
+        break;
+
+      // The cutom replacement of URLs.
+      case 'custom':
+        if (isset($settings['rewrite'])) {
+          $summary[] = t('Link to custom URL: @rewrite', array(
+            '@rewrite' => $settings['rewrite'],
+          ));
+        }
+        break;
+
+      // The disabled link mode.
+      case 'none':
+        $summary[] = t('No link');
+        break;
+
+      // No URL changes.
+      default:
+        $summary[] = t('Not configured');
+        break;
+    }
+  }
+  $summary = implode('<br />', $summary);
+
+  return $summary;
+}
+
+/**
+ * Implements hook_field_formatter_prepare_view().
+ */
+function multisite_formatters_field_formatter_prepare_view($entity_type, $entities, $field, $instances, $langcode, &$items, $displays) {
+  foreach ($entities as $id => $entity) {
+    $display = $displays[$id];
+
+    // Is the field an OG vocab ?
+    if (module_exists('og') && og_vocab_is_og_vocab_field($entity_type, $field['field_name'], $entity->type)) {
+      $field['type'] = 'og_vocab';
+    }
+
+    switch ($display['type']) {
+
+      // ECL Tags Formatter.
+      case 'ecl_tags':
+        // Load URL into the items.
+        switch ($field['type']) {
+          case 'og_vocab':
+            $column = 'target_id';
+            $group = TRUE;
+            $prefix = 'taxonomy_term:';
+
+          case 'taxonomy_term_reference':
+            // Load all terms.
+            $terms = taxonomy_term_load_multiple($items[$id]);
+            if (!$column) {
+              $column = 'tid';
+            }
+
+            foreach ($items[$id] as &$item) {
+              $tid = $item[$column];
+              if ($terms[$tid]) {
+                $item['drupal_link'] = TRUE;
+                $item['label'] = $terms[$tid]->name;
+                $item['title'] = $terms[$tid]->name;
+                $item['url'] = taxonomy_term_uri($tid)['path'] . $tid;
+                $item['object'] = array('term' => $terms[$tid]);
+                $item['facet_id'] = $prefix . $tid;
+                // Has a group ?
+                if ($group && isset($item['object']['term']->vid)) {
+                  $item['group'] = $item['object']['term']->vid;
+                }
+              }
+              else {
+                unset($items[$id]);
+              }
+            }
+            break;
+
+          case 'entityreference':
+            // Load all entities.
+            $entities = entity_load('node', $items[$id]);
+            foreach ($items[$id] as &$item) {
+              $eid = $item['target_id'];
+              $item['drupal_link'] = TRUE;
+              $item['label'] = $entities[$eid]->title;
+              $item['title'] = t('Browse page : @title', array(
+                '@title' => $entities[$eid]->title,
+              ));
+              $item['url'] = $entities[$eid]->path['source'];
+              $item['object'] = array('node' => $entities[$eid]);
+              $item['facet_id'] = $entities[$eid]->entity_type . ':' . $eid;
+            }
+            break;
+
+          case 'link_field':
+            foreach ($items[$id] as &$item) {
+              $item['label'] = $item['title'];
+            }
+            break;
+        }
+
+        break;
+    }
+  }
+}
+
+/**
+ * Implements hook_field_formatter_view().
+ */
+function multisite_formatters_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
+  $elements = array();
+  $settings = $display['settings'];
+
+  if (!count($items)) {
+    return;
+  }
+
+  if ($display['type'] == 'ecl_tags') {
+    $group = array();
+    foreach ($items as &$item) {
+      // Part of a group ?
+      if (isset($item['object']['term']->vid)) {
+        $vid = $item['object']['term']->vid;
+        // Get vocab info.
+        if (!isset($group[$vid])) {
+          $group[$vid] = array(
+            'items' => array(),
+            'vocab' => taxonomy_vocabulary_load($vid),
+          );
+          $group_voc = og_vocab_relation_get($vid);
+          if ($group_voc) {
+            $group[$vid]['facet_name'] = 'og_group_ref';
+            $group[$vid]['facet_id'] = $group_voc->group_type . ':' . $group_voc->gid;
+          }
+        }
+        $group[$vid]['items'][] = &$item;
+      }
+
+      switch ($settings['link']) {
+        case 'solr':
+          $search_page = apachesolr_search_page_load($settings['solr']);
+          $item['title'] = t('Browse @search for @title', array(
+            '@search' => $search_page['label'],
+            '@title' => $item['title'],
+          ));
+          $item['url'] = base_path() . $search_page['search_path'];
+
+          // Query parameters assuming one value per facet.
+          $query = array();
+          $facet_name = _multisite_formatters_get_facet($field['field_name']);
+          if ($facet_name != NULL) {
+            $query = array($facet_name => $item['facet_id']);
+          }
+
+          // If group has other fileds to pass.
+          if (isset($item['group']) && isset($group[$item['group']]['facet_name'])) {
+
+            $facet_name = _multisite_formatters_get_facet($group[$item['group']]['facet_name']);
+            if ($facet_name != NULL) {
+              $query[$facet_name] = $group[$item['group']]['facet_id'];
+            }
+          }
+
+          // Other fields should be passed.
+          if (strlen($settings['solr_include'])) {
+            foreach (explode(',', $settings['solr_include']) as $value) {
+              $value = trim($value);
+              $facet_name = _multisite_formatters_get_facet($value);
+
+              if ($facet_name != NULL) {
+                $field_values = field_get_items($entity_type, $entity, $value);
+                if (count($field_values)) {
+                  // Only take first value, not intended for multiple values.
+                  $facet_added = $field_values[0];
+                  if (isset($facet_added['facet_id'])) {
+                    $query[$facet_name] = $facet_added['facet_id'];
+                  }
+                  else {
+                    $query[$facet_name] = $facet_added[0]['value'];
+                  }
+                }
+              }
+            }
+          }
+
+          // Generate the URL.
+          $item['url'] .= _multisite_formatters_get_facets_url_params($query);
+          break;
+
+        case 'custom':
+          // Rewrite link.
+          $item['url'] = token_replace($settings['rewrite'], $item['object']);
+          break;
+
+        case 'none':
+          unset($item['url']);
+          break;
+
+        case 'default':
+        default:
+          if (isset($item['drupal_link']) && $item['drupal_link']) {
+            // Druplal alias makes sense only for Drupal content.
+            if (isset($settings['link_alias']) && $settings['link_alias']) {
+              $item['url'] = drupal_get_path_alias($item['url']);
+            }
+            // Create full URL.
+            $item['url'] = base_path() . $item['url'];
+          }
+          break;
+      }
+    }
+
+    // Grouped by vocabulary ? for now only og_vocab
+    // but could be a setting of formatter.
+    if (module_exists('og') && og_vocab_is_og_vocab_field($entity_type, $field['field_name'], $entity->type)) {
+      foreach ($group as $vocab) {
+        $elements[] = array(
+          '#theme' => 'tag',
+          '#items' => $vocab['items'],
+          '#group_label' => $vocab['vocab']->name,
+        );
+      }
+    }
+    else {
+      $elements[0] = array(
+        '#theme' => 'tag',
+        '#items' => $items,
+      );
+    }
+  }
+
+  return $elements;
+}
+
+/**
+ * Get solr facet URL parameter name for a field.
+ *
+ * @param string $field_name
+ *   The machine name of the field.
+ *
+ * @return string
+ *   The name of the facet or null if not found
+ */
+function _multisite_formatters_get_facet($field_name) {
+  // Avoid getting this multiple times.
+  global $_multisite_formatters_facet_list, $_multisite_formatters_field_facet;
+
+  if (!$_multisite_formatters_field_facet) {
+    $_multisite_formatters_field_facet = array();
+  }
+  // If the facet name is known already.
+  if ($_multisite_formatters_field_facet[$field_name]) {
+    return $_multisite_formatters_field_facet[$field_name];
+  }
+
+  // Get the full list of facets.
+  if (!$_multisite_formatters_facet_list) {
+    $searcher = 'apachesolr@' . apachesolr_default_environment();
+    $_multisite_formatters_facet_list = facetapi_get_facet_info($searcher);
+  }
+
+  // Scan the full facet list for the field.
+  foreach ($_multisite_formatters_facet_list as $key => $item) {
+    if ($item['field api name'] == $field_name) {
+      return $_multisite_formatters_field_facet[$field_name] = $key;
+    }
+  }
+
+  // No result.
+  return NULL;
+}
+
+/**
+ * Get solr facet URL parameter name for a field.
+ *
+ * @param array $query
+ *   An keyed array conaining the facet names and values.
+ *
+ * @return string
+ *   The query string to add to the URL.
+ */
+function _multisite_formatters_get_facets_url_params(array $query) {
+  $i = 0;
+  $query_string = [];
+  // Build URL for facets search.
+  foreach ($query as $key => $value) {
+    $query_string[] = sprintf('f[%d]=%s:%s', $i, $key, $value);
+    $i++;
+  }
+  return count($query_string) ? '?' . implode('&', $query_string) : '';
+}

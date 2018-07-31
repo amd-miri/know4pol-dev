@@ -5,7 +5,7 @@
  *
  * Plugin for ecl-tabs.
  */
-class Know4polCoreEclTabs extends QuickRenderer {
+class Know4polEclTabs extends QuickRenderer {
 
   /**
    * The only method that renderer plugins must implement.

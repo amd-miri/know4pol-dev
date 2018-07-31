@@ -13,12 +13,12 @@ function know4pol_ecl_wysiwyg_plugin($editor, $version) {
   switch ($editor) {
     case 'ckeditor':
       if ($version > 4) {
-        $plugins['ctabutton'] = array(
-          'path' => drupal_get_path('module', 'know4pol_ecl') . '/plugins/ctabutton',
+        $plugins['eclbutton'] = array(
+          'path' => drupal_get_path('module', 'know4pol_ecl') . '/plugins/eclbutton',
           'filename' => 'plugin.js',
           'load' => TRUE,
           'buttons' => array(
-            'ctabutton' => t('Call to action'),
+            'eclbutton' => t('ECL Button'),
           ),
         );
       }
@@ -123,7 +123,7 @@ function _know4pol_ecl_get_wysiwyg_toolbar($format) {
         'media',
         'Iframe',
         'collapse',
-        'ctabutton',
+        'eclbutton',
       ];
       break;
   }
@@ -144,4 +144,20 @@ function _know4pol_ecl_get_wysiwyg_toolbar($format) {
   }
 
   return $toolbar;
+}
+
+/**
+ * Implements hook_quicktabs_renderers().
+ */
+function know4pol_ecl_quicktabs_renderers() {
+  $info = array();
+  $path = drupal_get_path('module', 'know4pol_ecl') . '/plugins/quicktabs/';
+  $info['ecl_tabs'] = array(
+    'path' => $path,
+    'handler' => array(
+      'file' => 'Know4polEclTabs.inc',
+      'class' => 'Know4polEclTabs',
+    ),
+  );
+  return $info;
 }

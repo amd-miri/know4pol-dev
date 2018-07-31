@@ -1377,6 +1377,12 @@ function og_vocab_get_accessible_vocabs($entity_type, $bundle, $field_name, $acc
   elseif (in_array($use_context, array('yes', 'no')) && !$gids) {
     $gids = og_get_entity_groups('user', $account);
   }
+  elseif ($use_context == 'custom') {
+    $result = array();
+    // Allow other modules to alter the results.
+    drupal_alter('og_vocab_get_accessible_vocabs', $result);
+    return !empty($result) ? array_keys($result) : FALSE;
+  }
 
   if (!$gids) {
     return;

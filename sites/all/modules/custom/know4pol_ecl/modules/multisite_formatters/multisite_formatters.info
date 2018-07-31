@@ -1,0 +1,5 @@
+name = Multisite Formatters
+description = This module provides ECL components formatters.
+core = 7.x
+dependencies[] = know4pol_ecl
+package = JRC

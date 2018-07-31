@@ -25,5 +25,6 @@ function know4pol_ecl_disable() {
 function know4pol_ecl_install() {
   module_enable(array(
     'multisite_inpage_nav',
+    'multisite_formatters',
   ), TRUE);
 }
