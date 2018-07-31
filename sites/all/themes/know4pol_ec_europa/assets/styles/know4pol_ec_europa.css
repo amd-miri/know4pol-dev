@@ -203,10 +203,10 @@ li.statistics_counter,
 
 .media-element-container .file-image .below-image-text {
   display: table-caption;
+  width: 100%;
 }
 
 /* ECL Fixes, waiting to be adresed by theme team. */
-
 .ecl-button--call {
   color: #000 !important;
 }
@@ -218,5 +218,10 @@ li.statistics_counter,
 .ecl-tag__item {
   white-space: nowrap;
   display: inline-block;
-  margin-bottom: .1rem;
+  margin-bottom: .3rem;
+  margin-right: .7rem;
+}
+
+.field-name-field-vis-image img {
+  width: 100%;
 }
