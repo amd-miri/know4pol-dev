@@ -223,3 +223,7 @@ li.statistics_counter,
 .ecl-button--call {
   color: #000 !important;
 }
+
+.field-name-field-vis-image img{
+    width:100%;
+}
