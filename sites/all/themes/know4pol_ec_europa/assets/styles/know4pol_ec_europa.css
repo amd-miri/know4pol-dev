@@ -211,6 +211,10 @@ li.statistics_counter,
   color: #000 !important;
 }
 
+.field-name-field-vis-image img{
+    width:100%;
+}
+
 .ecl-tag {
   display: block;
 }
