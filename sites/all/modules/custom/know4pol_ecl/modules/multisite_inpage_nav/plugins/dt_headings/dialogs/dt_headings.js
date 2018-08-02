@@ -63,7 +63,9 @@ CKEDITOR.dialog.add('dt_headings', function (editor) {
             this.setValue(element.getText());
           },
           commit: function (element) {
-            element.setText(this.getValue());
+		    // KNOW4POL-256, avoid &nbsp; when more than 1 space.
+  			string = this.getValue().replace(/\s+/ig, ' ');
+            element.setText(string);
           }
         },
         {
@@ -168,7 +170,7 @@ function _dt_headers_check_string(string, context) {
     alert(Drupal.t('Tags are not allowed here!'));
     return false;
   }
-
+  
   if (context == 'id' || context == 'class') {
     var regex = new RegExp(/^[A-Za-z]+[\w\-\:\.]*$/);
 
