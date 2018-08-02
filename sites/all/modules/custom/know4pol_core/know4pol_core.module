@@ -771,7 +771,7 @@ function know4pol_core_facet_items_alter(&$build, &$settings) {
 }
 
 /**
- * Filter the field_ks_related_topics facet in order to only show the related KS topics.
+ * Filter the KS related topics facet (only related KS topics to be shown).
  *
  * @param array $build
  *   The build array of the facet.
@@ -781,7 +781,7 @@ function know4pol_core_facet_items_alter(&$build, &$settings) {
  */
 function _know4pol_core_facet_filter_field_ks_related_topics(array $build) {
   $params = drupal_get_query_parameters();
-  foreach ($params['f'] as $key => $param) {
+  foreach ($params['f'] as $param) {
     $field = explode(':', $param);
     if ($field[0] == sm_og_group_ref) {
       $gid = $field[2];
@@ -795,7 +795,7 @@ function _know4pol_core_facet_filter_field_ks_related_topics(array $build) {
     $query->condition('n.type', 'topic', '=');
     $ks_topics = $query->execute()->fetchAll();
     $new_topic_list = array();
-    foreach ($ks_topics as $key => $topic) {
+    foreach ($ks_topics as $topic) {
       $topic_item = 'node:' . $topic->nid;
       if (in_array($topic_item, array_keys($build))) {
         $new_topic_list[$topic_item] = $build[$topic_item];
