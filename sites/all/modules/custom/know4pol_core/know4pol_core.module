@@ -1010,3 +1010,13 @@ function know4pol_core_field_display_alter(&$display, $context) {
     $context['entity']->body[LANGUAGE_NONE][0]['summary'] = "<p>" . $context['entity']->body[LANGUAGE_NONE][0]['summary'] . "</p>";
   }
 }
+
+/**
+ * Implements hook_preprocess_html().
+ */
+function know4pol_core_preprocess_html(&$variables) {
+  global $theme;
+  if ($theme == 'seven') {
+    drupal_add_css(drupal_get_path('module', 'know4pol_core') . '/css/know4pol_core_admin.css');
+  }
+}
