@@ -3,3 +3,5 @@ description = This module provides ECL components formatters.
 core = 7.x
 dependencies[] = know4pol_ecl
 package = JRC
+php = 5.2.4
+multisite_version = 2.4

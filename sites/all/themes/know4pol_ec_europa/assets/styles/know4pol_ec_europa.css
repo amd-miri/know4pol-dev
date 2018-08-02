@@ -225,3 +225,11 @@ li.statistics_counter,
 .field-name-field-vis-image img {
   width: 100%;
 }
+
+.field-type-link-field {
+  margin-bottom: 1rem !important;
+}
+
+.media {
+  height: auto !important;
+}
