@@ -663,23 +663,6 @@ function _know4pol_core_theme_ks_admin_menu(array $menuarray) {
 function know4pol_core_menu_alter(&$items) {
   $items['node/add']['access callback'] = '_know4pol_core_node_add_access';
   $items['admin/workbench/create']['access callback'] = '_know4pol_core_node_add_access';
-  $items['node/%/group']['access callback'] = '_know4pol_core_og_group_tab';
-
-}
-
-/**
- * Access callback: function for viewing group tab.
- *
- * @return bool
- *   TRUE if the user has view permission, otherwise FALSE. *
- */
-function _know4pol_core_og_group_tab() {
-  $menu = menu_get_item();
-  if (user_access('administer group') &&
-      $menu['page_arguments'][0]->type == 'knowledge_centre') {
-    return TRUE;
-  }
-  return FALSE;
 }
 
 /**
