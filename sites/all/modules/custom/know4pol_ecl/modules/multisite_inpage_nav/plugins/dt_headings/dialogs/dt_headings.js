@@ -63,9 +63,7 @@ CKEDITOR.dialog.add('dt_headings', function (editor) {
             this.setValue(element.getText());
           },
           commit: function (element) {
-            // KNOW4POL-256, avoid &nbsp; when more than 1 space.
-            string = this.getValue().replace(/\s+/ig, ' ');
-            element.setText(string);
+            element.setText(this.getValue());
           }
         },
         {
