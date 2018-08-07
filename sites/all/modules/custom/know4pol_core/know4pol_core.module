@@ -988,17 +988,13 @@ function _know4pol_core_unassign_ks_action($entity, array $context) {
  * Implements hook_views_query_alter().
  */
 function know4pol_core_views_query_alter(&$view, &$query) {
-
-  if ($view->name == 'organisation_links' && $view->current_display == 'block_2') {
-
+  if ($view->name == 'organisation_links' && $view->current_display == 'block_2' ) {
     $result = db_query("SELECT DISTINCT(gid) FROM `field_data_field_related_organisations` fro 
                         INNER JOIN `og_membership` om ON fro.entity_id = om.etid
                         WHERE fro.field_related_organisations_target_id=:nid", array(':nid'=>arg(1)))->fetchAll();
-
     foreach ($result as $row) {
       $tids[] = $row->gid;
     }
-
     $query->add_where(1, 'node.nid', $tids, 'IN');
   }
 }
