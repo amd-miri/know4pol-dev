@@ -18,54 +18,17 @@ function know4pol_search_permission() {
 }
 
 /**
- * Implements hook_og_permission().
- */
-function know4pol_search_og_permission() {
-  return array(
-    'configure OG search block content types' => array(
-      'title' => t('Configure OG search block content types'),
-    ),
-  );
-}
-
-/**
  * Implements hook_menu().
  */
 function know4pol_search_menu() {
   $items['admin/config/know4pol_search_settings'] = array(
-    'title' => 'Know4pol Search settings',
-    'description' => 'Know4pol  search settings',
+    'title' => 'Know4pol search settings',
+    'description' => 'Know4pol search settings',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('_know4pol_search_settings_form'),
     'access arguments' => array('administer know4pol search'),
     'type' => MENU_NORMAL_ITEM,
   );
-  $items['group/node/%/admin/know4pol_search'] = array(
-    'title' => 'Know4pol Search settings',
-    'description' => 'Know4pol  search settings',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('_know4pol_search_settings_form', 2),
-    'access arguments' => array('node', 2,
-      'configure OG search block content types',
-    ),
-    'access callback' => 'og_user_access',
-    'type' => MENU_NORMAL_ITEM,
-  );
-  return $items;
-}
-
-/**
- * Implements hook_og_ui_get_group_admin().
- */
-function know4pol_search_og_ui_get_group_admin($group_type, $gid) {
-  $items = array();
-  if (og_user_access($group_type, $gid, 'configure OG search block content types')) {
-    $items['know4pol_search'] = array(
-      'title' => t('Configure search'),
-      'description' => t('Configure Knowledge for Policy search'),
-      'href' => 'admin/know4pol_search',
-    );
-  }
   return $items;
 }
 
@@ -111,31 +74,6 @@ function _know4pol_search_settings_form(array $form, array &$form_state, $kc_gro
       '#default_value' => $know4pol_search_settings_array[0],
     );
   }
-  // Get all Knowledge Centre nodes.
-  $efq = new EntityFieldQuery();
-  $efq->entityCondition('entity_type', 'node');
-  $efq->entityCondition('bundle', 'knowledge_centre');
-  if ($kc_group_nid) {
-    $efq->propertyCondition('nid', $kc_group_nid);
-  }
-  $efq->propertyOrderBy('title');
-  $result = $efq->execute();
-  $nids = array_keys($result['node']);
-  $nodes = entity_load('node', $nids);
-  // Settings per Knowledge Centre.
-  foreach ($nodes as $node) {
-    $form[$node->title] = array(
-      '#type' => 'fieldset',
-      '#title' => $node->title,
-      '#collapsible' => TRUE,
-      '#collapsed' => TRUE,
-    );
-    $form[$node->title][$node->nid] = array(
-      '#type' => 'checkboxes',
-      '#options' => $options,
-      '#default_value' => $know4pol_search_settings_array[$node->nid],
-    );
-  }
   $form['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Save'),
@@ -172,7 +110,7 @@ function _know4pol_search_settings_form_submit(array $form, array &$form_state) 
  *   Returns content types.
  */
 
-function  _know4pol_search_get_content_types_per_ks($ks_nid) {
+function _know4pol_search_get_content_types_per_ks($ks_nid) {
 
 $result = db_query("SELECT distinct(n.type), nt.name FROM og_membership om INNER JOIN node n ON om.etid = n.nid INNER JOIN node_type nt ON n.type = nt.type WHERE gid =:gid", array(':gid'=>$ks_nid))->fetchAll();
 
@@ -182,7 +120,7 @@ foreach ($result as $row) {
 
 $allowed_options = array_intersect($content_types, _know4pol_search_get_all_searchable_content_types());
 
-if (!empty($allowed_options['newsroom_item'])) { 
+if (!empty($allowed_options['newsroom_item'])) {
   unset($allowed_options['newsroom_item']);
   $allowed_options['news'] = 'News';
   $allowed_options['event'] = 'Events';
