@@ -441,6 +441,10 @@ function know4pol_search_block_info() {
     'info' => t('Know4pol KS countries plus topics block'),
     'cache' => DRUPAL_NO_CACHE,
   );
+  $blocks['apachesolr_freetext_search_block'] = array(
+    'info' => t('Apache Solr Search Block'),
+    'cache' => DRUPAL_NO_CACHE,
+  );
   return $blocks;
 }
 
@@ -455,6 +459,17 @@ function know4pol_search_block_view($delta = '') {
   $searchform = drupal_get_form('know4pol_search_form');
   $mainsearchform = drupal_get_form('know4pol_mainsearch_form');
   switch ($delta) {
+    case 'apachesolr_freetext_search_block':
+      if (arg(0) == 'search' && arg(1) == 'site') {
+        $keys = urldecode(arg(2));
+      }
+      else {
+        $keys = urldecode(arg(1));
+      }
+      $block_content = drupal_get_form('_know4pol_core_freetext_search_form', $keys);
+      $block['content'] = drupal_render($block_content);
+      break;
+
     case 'know4pol_search':
       $block['subject'] = '';
       $block['content'] = drupal_render($searchform);
