@@ -1,0 +1,8 @@
+name = Know4pol Trim
+description = Provides an another robust alternative to "summary or trimmed" textfield format
+core = 7.x
+package = Fields
+
+files[] = know4pol_trim.module
+dependencies[] = filter
+dependencies[] = text
