@@ -729,12 +729,16 @@ function _know4pol_core_unassign_ks_action($entity, array $context) {
  */
 function know4pol_core_field_display_alter(&$display, $context) {
   // Add the <p> tag to the field_ne_body summary, if not available.
-  if ($context['entity']->field_ne_body[LANGUAGE_NONE][0]['summary'] && !preg_match('/\<p\>/', $context['entity']->field_ne_body[LANGUAGE_NONE][0]['summary'])) {
-    $context['entity']->field_ne_body[LANGUAGE_NONE][0]['summary'] = "<p>" . $context['entity']->field_ne_body[LANGUAGE_NONE][0]['summary'] . "</p>";
+  if (isset($context['entity']->field_ne_body[LANGUAGE_NONE][0]['summary']) && !empty($context['entity']->field_ne_body[LANGUAGE_NONE][0]['summary'])) {
+    if (!preg_match('/\<p\>/', $context['entity']->field_ne_body[LANGUAGE_NONE][0]['summary'])) {
+      $context['entity']->field_ne_body[LANGUAGE_NONE][0]['summary'] = "<p>" . $context['entity']->field_ne_body[LANGUAGE_NONE][0]['summary'] . "</p>";
+    }
   }
   // Add the <p> tag to the body summary, if not available.
-  if ($context['entity']->body[LANGUAGE_NONE][0]['summary'] && !preg_match('/\<p\>/', $context['entity']->body[LANGUAGE_NONE][0]['summary'])) {
-    $context['entity']->body[LANGUAGE_NONE][0]['summary'] = "<p>" . $context['entity']->body[LANGUAGE_NONE][0]['summary'] . "</p>";
+  if (isset($context['entity']->body[LANGUAGE_NONE][0]['summary']) && !empty($context['entity']->body[LANGUAGE_NONE][0]['summary'])) {
+    if (!preg_match('/\<p\>/', $context['entity']->body[LANGUAGE_NONE][0]['summary'])) {
+      $context['entity']->body[LANGUAGE_NONE][0]['summary'] = "<p>" . $context['entity']->body[LANGUAGE_NONE][0]['summary'] . "</p>";
+    }
   }
 }
 
@@ -752,7 +756,7 @@ function know4pol_core_preprocess_html(&$variables) {
  * Implements hook_views_query_alter().
  */
 function know4pol_core_views_query_alter(&$view, &$query) {
-  if ($view->name == 'organisation_links' && $view->current_display == 'block_2' ) {
+  if ($view->name == 'organisation_links' && $view->current_display == 'block_2') {
     $dbquery = db_select('field_data_field_related_organisations', 'fro');
     $dbquery->join('og_membership', 'om', ' fro.entity_id = om.etid ');
     $dbquery->distinct();
