@@ -12,7 +12,7 @@
     <?php print $header; ?>
   </<?php print $header_wrapper ?>>
 
-  <div class="container-fluid ecl-row ecl-u-z-navigation">
+  <div class="ecl-row ecl-u-z-navigation">
     <a id="main-content" tabindex="-1"></a>
     <?php if ($left): ?>
       <<?php print $left_wrapper; ?> class="ecl-col-md-3 ecl-u-z-navigation js-stickybit-parent<?php print $left_classes; ?>">
