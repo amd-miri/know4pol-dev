@@ -38,8 +38,10 @@ function atomium_preprocess_html_tag(array &$variables, $hook) {
       $variables['atomium']['attributes'][$attribute]->setAttributes($data);
     }
   }
-  // @Todo: Remove this, it shouldn't be used anymore but it's too early now.
-  $variables['atomium']['attributes']['element']->merge($variables['element']['#attributes']);
+
+  if (isset($variables['element']['#attributes'])) {
+    $variables['atomium']['attributes']['element']->merge($variables['element']['#attributes']);
+  }
 
   $element += array('#value' => '', '#children' => '');
 
