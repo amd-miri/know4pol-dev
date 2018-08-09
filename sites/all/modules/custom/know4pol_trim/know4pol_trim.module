@@ -74,11 +74,15 @@ function know4pol_trim_field_formatter_view($entity_type, $entity, $field, $inst
         // Make the trim, provided we're not showing a full summary
         $shortened = FALSE;
         if ($settings['summary_handler'] != 'full' || empty($item['summary'])) {
+          //get the first paragraph
+          $start = strpos($output, '<p>');
+          $end = strpos($output, '</p>', $start);
+          $output = substr($output, $start, $end-$start+4);
           if ($settings['trim_type'] == 'words') {
             //only bother with this is we have to
             if ($settings['trim_length'] < str_word_count($output)) {
               //use \s or use PREG_CLASS_UNICODE_WORD_BOUNDARY?
-              $words = preg_split('/\s/', $output, NULL, PREG_SPLIT_NO_EMPTY);
+              $words = preg_split('/\s/', $paragraph, NULL, PREG_SPLIT_NO_EMPTY);
               $output2 = implode(" ", array_slice($words, 0,  $settings['trim_length']));
               $output2 = _filter_htmlcorrector($output2);
             }
@@ -188,8 +192,8 @@ function know4pol_trim_field_formatter_settings_form($field, $instance, $view_mo
     '#title' => t('Trim units'),
     '#type' => 'select',
     '#options' => array(
-      'chars' => t("Characters"),
-      'words' => t("Words"),
+      'chars' => t("First paragraph or characters"),
+      'words' => t("First paragraph or words"),
     ),
     '#default_value' => $settings['trim_type'],
   );
@@ -238,7 +242,6 @@ function know4pol_trim_field_formatter_settings_form($field, $instance, $view_mo
     '#type' => 'checkboxes',
     '#options' => array(
       'text' => t('Strip HTML'),
-      'paragraph' => t('Trim on first paragraph'),
     ),
     '#default_value' => empty($settings['trim_options']) ? array() : $settings['trim_options'],
   );
