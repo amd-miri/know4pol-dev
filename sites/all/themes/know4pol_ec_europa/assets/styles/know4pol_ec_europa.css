@@ -233,3 +233,25 @@ li.statistics_counter,
 .media {
   height: auto !important;
 }
+
+/* Some CSS for the KS footer menus */
+section[id*='block-menu-menu-footer-middle-'] .block__title {
+  margin: 0;
+  display: inline-block;
+  font-weight: normal;
+  font-size: 1rem;
+}
+
+section[id*='block-menu-menu-footer-middle-'] .block__content,
+section[id*='block-menu-menu-footer-middle-'] .block__content ul {
+  display: inline-block;
+}
+
+section[id*='block-menu-menu-footer-middle-'] .block__content li {
+  display: inline-block;
+  margin-right: 5px;
+}
+
+section[id*='block-menu-menu-footer-middle-'] .block__content li a::after {
+  position: relative !important;
+}
