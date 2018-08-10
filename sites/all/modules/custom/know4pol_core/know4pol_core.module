@@ -768,11 +768,14 @@ function know4pol_core_preprocess_html(&$variables) {
  */
 function know4pol_core_views_query_alter(&$view, &$query) {
   if ($view->name == 'organisation_links' && $view->current_display == 'block_2' ) {
-    $dbquery = db_select('field_data_field_related_organisations', 'fro');
-    $dbquery->join('og_membership', 'om', ' fro.entity_id = om.etid ');
+    // Get the nid
+    if ($node = menu_get_object()) {
+      $nid = $node->nid;
+    }
+    $dbquery = db_select('og_membership', 'om');
     $dbquery->distinct();
     $dbquery->fields('om', array('gid'));
-    $dbquery->condition('field_related_organisations_target_id', arg(1));
+    $dbquery->condition('etid', $nid);
     $result = $dbquery->execute()->fetchAll();
     foreach ($result as $row) {
       $tids[] = $row->gid;
