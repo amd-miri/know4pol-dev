@@ -640,6 +640,12 @@ function atomium_get_base_hook($hook) {
 function atomium_drupal_get_html_head(array $context = array()) {
   $elements = drupal_add_html_head();
 
+  if (!function_exists('registryonsteroids_alter_recursive_element_children')) {
+    watchdog('Atomium theme', 'The Registry on steroids Alter module is not installed', array(), WATCHDOG_ERROR);
+
+    return $elements;
+  }
+
   registryonsteroids_alter_recursive_element_children(
     $elements,
     function (&$element, $element_key, &$context) {

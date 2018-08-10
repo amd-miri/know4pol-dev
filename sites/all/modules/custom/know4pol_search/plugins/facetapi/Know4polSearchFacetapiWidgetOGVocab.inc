@@ -8,7 +8,7 @@
 /**
  * Facetapi widget that renders facets as list with OG vocab name.
  */
-class Know4polCoreFacetapiWidgetOGVocab extends FacetapiWidgetCheckboxLinks {
+class Know4polSearchFacetapiWidgetOGVocab extends FacetapiWidgetCheckboxLinks {
 
   /**
    * Overrides FacetapiWidget::__construct().
@@ -111,7 +111,7 @@ class Know4polCoreFacetapiWidgetOGVocab extends FacetapiWidgetCheckboxLinks {
       $row['data'] = theme($item['#theme'], $variables);
 
       // Get vid of term.
-      $term = _know4pol_core_facetapi_load_term($item['#indexed_value']);
+      $term = _know4pol_search_facetapi_load_term($item['#indexed_value']);
       // Don't we know this vid already ?
       if (!array_key_exists($term->vid, $vid_enable)) {
         // Is this vocabulary par of the current OG ?

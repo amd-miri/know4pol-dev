@@ -39,7 +39,7 @@
     "drupal/devel": "*",
     "drupal/xautoload": "*",
     "drupal/registryonsteroids": "*",
-    "openeuropa/task-runner": "^0.4"
+    "openeuropa/task-runner": "^0.7"
   },
   "autoload": {
     "psr-4": {

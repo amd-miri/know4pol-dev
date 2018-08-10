@@ -514,10 +514,6 @@ function know4pol_core_feeds_presave(FeedsSource $source, $entity, $item, $entit
  */
 function know4pol_core_block_info() {
   $blocks = array();
-  $blocks['apachesolr_freetext_search_block'] = array(
-    'info' => t('Apache Solr Search Block'),
-    'cache' => DRUPAL_NO_CACHE,
-  );
   $blocks['know4pol_ks_latest_content'] = array(
     'info' => t('Know4pol KS latest content block'),
     'cache' => DRUPAL_NO_CACHE,
@@ -536,17 +532,6 @@ function know4pol_core_block_info() {
 function know4pol_core_block_view($delta = '') {
   $block = array();
   switch ($delta) {
-    case 'apachesolr_freetext_search_block':
-      if (arg(0) == 'search' && arg(1) == 'site') {
-        $keys = urldecode(arg(2));
-      }
-      else {
-        $keys = urldecode(arg(1));
-      }
-      $block_content = drupal_get_form('_know4pol_core_freetext_search_form', $keys);
-      $block['content'] = drupal_render($block_content);
-      break;
-
     case 'know4pol_ks_latest_content':
       $block['content'] = '<ul class="ecl-listing ecl-listing--three-columns">';
       $item = menu_get_item();
@@ -744,12 +729,16 @@ function _know4pol_core_unassign_ks_action($entity, array $context) {
  */
 function know4pol_core_field_display_alter(&$display, $context) {
   // Add the <p> tag to the field_ne_body summary, if not available.
-  if ($context['entity']->field_ne_body[LANGUAGE_NONE][0]['summary'] && !preg_match('/\<p\>/', $context['entity']->field_ne_body[LANGUAGE_NONE][0]['summary'])) {
-    $context['entity']->field_ne_body[LANGUAGE_NONE][0]['summary'] = "<p>" . $context['entity']->field_ne_body[LANGUAGE_NONE][0]['summary'] . "</p>";
+  if (isset($context['entity']->field_ne_body[LANGUAGE_NONE][0]['summary']) && !empty($context['entity']->field_ne_body[LANGUAGE_NONE][0]['summary'])) {
+    if (!preg_match('/\<p\>/', $context['entity']->field_ne_body[LANGUAGE_NONE][0]['summary'])) {
+      $context['entity']->field_ne_body[LANGUAGE_NONE][0]['summary'] = "<p>" . $context['entity']->field_ne_body[LANGUAGE_NONE][0]['summary'] . "</p>";
+    }
   }
   // Add the <p> tag to the body summary, if not available.
-  if ($context['entity']->body[LANGUAGE_NONE][0]['summary'] && !preg_match('/\<p\>/', $context['entity']->body[LANGUAGE_NONE][0]['summary'])) {
-    $context['entity']->body[LANGUAGE_NONE][0]['summary'] = "<p>" . $context['entity']->body[LANGUAGE_NONE][0]['summary'] . "</p>";
+  if (isset($context['entity']->body[LANGUAGE_NONE][0]['summary']) && !empty($context['entity']->body[LANGUAGE_NONE][0]['summary'])) {
+    if (!preg_match('/\<p\>/', $context['entity']->body[LANGUAGE_NONE][0]['summary'])) {
+      $context['entity']->body[LANGUAGE_NONE][0]['summary'] = "<p>" . $context['entity']->body[LANGUAGE_NONE][0]['summary'] . "</p>";
+    }
   }
 }
 
