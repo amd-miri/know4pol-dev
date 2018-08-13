@@ -262,3 +262,13 @@ function know4pol_core_update_7015() {
     'multisite_formatters',
   ), TRUE);
 }
+
+/**
+ * Enable og_menu module.
+ */
+function know4pol_core_update_7016() {
+  module_enable(array(
+    'og_menu',
+    'og_menu_default_links',
+  ), TRUE);
+}

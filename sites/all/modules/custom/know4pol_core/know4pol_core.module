@@ -756,8 +756,8 @@ function know4pol_core_preprocess_html(&$variables) {
  * Implements hook_views_query_alter().
  */
 function know4pol_core_views_query_alter(&$view, &$query) {
-  if ($view->name == 'organisation_links' && $view->current_display == 'block_2' ) {
-    // Get the nid
+  if ($view->name == 'organisation_related_knowledge_services') {
+    // Get the nid.
     if ($node = menu_get_object()) {
       $nid = $node->nid;
     }
