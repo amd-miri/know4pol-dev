@@ -20,26 +20,50 @@ function know4pol_ec_europa_preprocess_footer(&$variables, $hook) {
     $variables[$name] = _atomium_block_get_render_array($data[0], $data[1]);
   }
 
-  // Add dedicated footer menus for each knwoledeg service.
+  // Add dedicated footer menus for each knowledge service.
   $menu = menu_get_item();
+  // First change the site name to KS name on left side.
+  if (isset($menu['page_arguments']['0']->type)) {
+    switch ($menu['page_arguments']['0']->type) {
+      case 'knowledge_centre':
+        $variables['footer_left']['title']['#text'] = $menu['page_arguments']['0']->title;
+        $variables['footer_left']['title']['#path'] = $menu['page_arguments']['0']->path['alias'];
+        break;
+
+      case 'topic':
+      case 'country':
+        $variables['footer_left']['title']['#text'] = $menu['page_arguments']['0']->og_group_ref[LANGUAGE_NONE]['0']['label'];
+        $variables['footer_left']['title']['#path'] = drupal_lookup_path('alias', $menu['page_arguments']['0']->og_group_ref[LANGUAGE_NONE]['0']['url']);
+        break;
+    }
+  }
+  // Then add the KS middle menu links.
   if (isset($menu['page_arguments']['0']->type) &&
       ($menu['page_arguments']['0']->type == 'knowledge_centre' ||
        $menu['page_arguments']['0']->type == 'topic' ||
        $menu['page_arguments']['0']->type == 'country')) {
-    // Add the KS middle menu links.
     // Get first the menu links from the KS menu.
-    $ks_middle_menulinks = _atomium_block_get_render_array('menu', 'menu-footer-middle-' . $menu['page_arguments'][0]->nid);
-    // Replace the theme suggestions from the original menu-footer-middle.
-    $ks_middle_menulinks['#theme_wrappers'] = $variables['footer_middle']['#theme_wrappers'];
-    // Remove the block title.
-    $ks_middle_menulinks['#block']->subject = "Follow us:";
-    // Then replace the middle menu with the KS middle one.
-    $variables['footer_middle'] = $ks_middle_menulinks;
-
-    // Add the KS right menu links programatically.
+    if ($menu['page_arguments']['0']->type == 'knowledge_centre') {
+      $ks_middle_menulinks = _atomium_block_get_render_array('menu', 'menu-footer-middle-' . $menu['page_arguments'][0]->nid);
+    }
+    else {
+      $ks_middle_menulinks = _atomium_block_get_render_array('menu', 'menu-footer-middle-' . $menu['page_arguments'][0]->og_group_ref[LANGUAGE_NONE]['0']['target_id']);
+    }
+    if (!empty($ks_middle_menulinks)) {
+      // Replace the theme suggestions from the original menu-footer-middle.
+      $ks_middle_menulinks['#theme_wrappers'] = $variables['footer_middle']['#theme_wrappers'];
+      // Remove the block title.
+      $ks_middle_menulinks['#block']->subject = "Follow us:";
+      // Then replace the middle menu with the KS middle one.
+      $variables['footer_middle'] = $ks_middle_menulinks;
+    }
+    else {
+      unset($variables['footer_middle']);
+    }
+    // Finally add the KS right menu links programatically.
     // Remove the orginal links.
     foreach ($variables['footer_right'] as $key => $value) {
-      if (!(substr($key, 0, 1) == "#")) {
+      if (!(drupal_substr($key, 0, 1) == "#")) {
         unset($variables['footer_right'][$key]);
       }
     }
