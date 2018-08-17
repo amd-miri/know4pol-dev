@@ -15,3 +15,9 @@
 .wtShareList {
   padding: 0 !important;
 }
+
+div.file__container > img {
+  height: auto;
+  width: 100%;
+  max-width: 100%;
+}
