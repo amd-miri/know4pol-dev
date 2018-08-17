@@ -9,12 +9,12 @@
  * Implements template_preprocess_field().
  */
 function know4pol_ec_europa_preprocess_field(array &$variables, $hook) {
-  $el = &$variables['element'];
+  $el = $variables['element'];
   $node = $el['#object'];
   $menu_item = menu_get_item();
 
   // Check if view_mode is not solr and if Display Suite is handling the field.
-  if ($el['#view_mode'] != 'apachesolr_page' && $node && module_exists('ds')) {
+  if ($el['#view_mode'] != 'apachesolr_page' && isset($node->type) && module_exists('ds')) {
     $layout = ds_get_layout('node', $node->type, $el['#view_mode']);
     if (isset($layout['settings']['fields'][$el['#field_name']])) {
       $variables['theme_hook_suggestions'][] = 'field__ds_region__' . $layout['settings']['fields'][$el['#field_name']];

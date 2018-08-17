@@ -140,6 +140,14 @@ li.statistics_counter,
   color: #004494 !important;
 }
 
+.group-footer .ecl-table {
+  margin-top: 20px;
+}
+
+.group-footer .ecl-table th {
+  font-size: 1.3em;
+}
+
 .ds-2col-stacked-fluid.node .group-footer .field-label-inline {
   -webkit-box-align: center;
   align-items: center;
@@ -244,13 +252,13 @@ li.statistics_counter,
   margin-left: .89rem;
 }
 
-#block-menu-menu-footer-middle li {
+#block-menu-menu-footer-middle .block__content li {
   display: inline-block;
   margin-right: .89rem;
   font-size: .9rem;
 }
 
-#block-menu-menu-footer-right li {
+#block-menu-menu-footer-right .block__content li {
   font-size: .9rem;
 }
 

@@ -80,6 +80,7 @@ function multisite_inpage_nav_ds_layout_info_alter(&$layouts) {
       'header' => t('Header'),
       'left' => t('Left'),
       'central' => t('Middle'),
+      'footer_top' => t('Footer top'),
       'footer' => t('Footer'),
     ],
     'form' => TRUE,

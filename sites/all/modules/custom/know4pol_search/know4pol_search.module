@@ -714,35 +714,7 @@ function know4pol_search_facet_items_alter(&$build, &$settings) {
   switch ($settings->facet) {
     case "bundle":
       if (isset($build['newsroom_item'])) {
-        $nr_facet_name = 'im_field_newsroom_item_type';
-        $solr_pages = apachesolr_search_load_all_search_pages();
-
-        // Split newsroom item in subtypes by getting the term facet.
-        if ($adapter = _know4pol_ec_europa_get_solr_instance()) {
-          $searcher = $adapter->getSearcher();
-          $nr_type = $adapter->getFacet(facetapi_facet_load($nr_facet_name, $searcher));
-
-          foreach ($nr_type->getBuild() as $key => $item) {
-            // Get url for dedicated solR search page.
-            foreach ($solr_pages as $solr_page) {
-              if ($solr_page['label'] == $item['#markup'] || $solr_page['label'] == $item['#markup'] . 's') {
-                $item['#path'] = $solr_page['search_path'];
-                break;
-              }
-            }
-
-            // Remove self since target page is already filtered.
-            // Loop could be avoided if sure that self is always last.
-            foreach ($item['#query']['f'] as $index => $value) {
-              if ($value == $nr_facet_name . ':' . $item['#indexed_value']) {
-                unset($item['#query']['f'][$index]);
-                break;
-              }
-            }
-
-            $build[$key] = $item;
-          }
-        }
+        $build = _know4pol_search_split_newsroom_item($build);
         // Remove original filter anyway.
         unset($build['newsroom_item']);
       }
@@ -753,6 +725,45 @@ function know4pol_search_facet_items_alter(&$build, &$settings) {
       $build = _know4pol_search_facet_filter_field_ks_related_topics($build);
       break;
   }
+}
+
+/**
+ * Split newsroom item in subtypes(News and Events).
+ *
+ * @param array $build
+ *   The build array of the facet.
+ *
+ * @return array
+ *   The new list of items.
+ */
+function _know4pol_search_split_newsroom_item(array $build) {
+  $nr_facet_name = 'im_field_newsroom_item_type';
+  $solr_pages = apachesolr_search_load_all_search_pages();
+
+  // Split newsroom item in subtypes by getting the term facet.
+  if ($adapter = _know4pol_ec_europa_get_solr_instance()) {
+    $searcher = $adapter->getSearcher();
+    $nr_type = $adapter->getFacet(facetapi_facet_load($nr_facet_name, $searcher));
+    foreach ($nr_type->getBuild() as $key => $item) {
+      // Get url for dedicated solR search page.
+      foreach ($solr_pages as $solr_page) {
+        if ($solr_page['label'] == $item['#markup'] || $solr_page['label'] == $item['#markup'] . 's') {
+          $item['#path'] = $solr_page['search_path'];
+          break;
+        }
+      }
+      // Remove self since target page is already filtered.
+      // Loop could be avoided if sure that self is always last.
+      foreach ($item['#query']['f'] as $index => $value) {
+        if ($value == $nr_facet_name . ':' . $item['#indexed_value']) {
+          unset($item['#query']['f'][$index]);
+          break;
+        }
+      }
+      $build[$key] = $item;
+    }
+  }
+  return $build;
 }
 
 /**

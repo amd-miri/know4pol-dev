@@ -772,3 +772,34 @@ function know4pol_core_views_query_alter(&$view, &$query) {
     $query->add_where(1, 'node.nid', $tids, 'IN');
   }
 }
+
+/**
+ * Implements hook_webform_select_options_info().
+ */
+function know4pol_core_webform_select_options_info() {
+  $items = array();
+  $items['states'] = array(
+    'title' => t('Knowledge services'),
+    'options callback' => '_know4pol_core_webform_options_knowledge_services',
+  );
+  return $items;
+}
+
+/**
+ * Get the list of all published KS names.
+ *
+ * @return array
+ *   List of all published Knowledge services.
+ */
+function _know4pol_core_webform_options_knowledge_services() {
+  $query = db_select('node', 'n')
+    ->fields('n', array('nid', 'title'))
+    ->condition('type', 'knowledge_centre')
+    ->condition('status', 1);
+  $knowledge_services = $query->execute()->fetchAllAssoc('nid');
+  $ks_list = array();
+  foreach ($knowledge_services as $nid => $knowledge_service) {
+    $ks_list[$nid] = $knowledge_service->title;
+  }
+  return $ks_list;
+}
