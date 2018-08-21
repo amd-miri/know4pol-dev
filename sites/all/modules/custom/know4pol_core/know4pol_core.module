@@ -186,7 +186,7 @@ function know4pol_core_tokens($type, $tokens, array $data = array(), array $opti
           // We are in a "Add content" page.
           $node = menu_get_item();
           $url_parameters = drupal_get_query_parameters();
-          if (!empty($url_parameters)) {
+          if (isset($url_parameters['og_group_ref']) && !empty($url_parameters['og_group_ref'])) {
             $gids[] = $url_parameters['og_group_ref'];
           }
         }
@@ -406,7 +406,7 @@ function _know4pol_core_post_process_callback(FeedsSource $source, $entity, $tar
        * (as a second pass), we can add this reference then.  (The "Update
        * existing nodes" option must be selected during the second pass.)
        */
-      if ($og_vocabulary_term_ids) {
+      if (isset($og_vocabulary_term_ids)) {
         $existing_target_ids = array();
         foreach (array_values($field[LANGUAGE_NONE]) as $item) {
           $id = array_values($item);
