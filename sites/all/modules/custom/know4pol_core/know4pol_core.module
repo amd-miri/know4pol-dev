@@ -393,8 +393,13 @@ function _know4pol_core_post_process_callback(FeedsSource $source, $entity, $tar
             $info = field_info_field($target);
             $handler = entityreference_get_selection_handler($info);
             $options = $handler->getReferencableEntities($value, '=');
-            $etid = array_keys($options[$match_key]);
-            $entity_id = reset($etid);
+            if (!empty($options[$match_key])) {
+              $etid = array_keys($options[$match_key]);
+            }
+            $entity_id = "";
+            if (!empty($etid)) {
+              $entity_id = reset($etid);
+            }
           }
           break;
       }
