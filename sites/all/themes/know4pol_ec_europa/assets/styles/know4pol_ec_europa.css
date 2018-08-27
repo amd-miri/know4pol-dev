@@ -227,7 +227,16 @@ li.statistics_counter,
   white-space: nowrap;
   display: inline-block;
   margin-bottom: .3rem;
-  margin-right: .7rem;
+  margin-right: .35rem;
+  margin-left: .35rem;
+}
+
+.know4pol-main-resource-meta-link {
+  font-weight: bold;
+}
+
+div.file__container img {
+  width: 100%;
 }
 
 .field-name-field-vis-image img {
