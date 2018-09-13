@@ -917,3 +917,38 @@ function _know4pol_core_create_keyword_content_link($ks_keyword_content_title, $
 function _know4pol_core_add_seperation_bar($content) {
   return '|' . $content;
 }
+
+
+function know4pol_core_webform_submission_presave(&$node, &$submission) {
+  // Feedback form.
+  if($submission->nid == 31016) {
+    // KS field filled && OG module enabled
+    if(module_exists('og') && strlen($submission->data[1][0])) {
+      // Get OG group editors and append mails.
+      foreach (_know4pol_core_get_og_group_members($submission->data[1][0], 'editor member') as $user) {
+        $node->webform['emails'][1]['email'] .= ',' . $user->mail;
+      }
+    }
+  }
+}
+
+function _know4pol_core_get_og_group_members($gid, $roles=Array()) {
+  // Check it's a group and load it
+  if(og_is_group('node', $gid)) {
+    if(!is_array($roles)) $roles = Array($roles);
+    $group = node_load($gid);
+    $members = og_get_group_members_properties($group, array(), 'members__' . OG_STATE_ACTIVE, 'node');
+
+    $users = Array();
+    // No role condition ?
+    if(count($roles) == 0) return user_load_multiple($members);
+    
+    foreach($members as $uid) {
+      // No roles asked or has any of them ?
+      if (count(array_intersect(og_get_user_roles($group->entity_type, $gid, $uid), $roles)) > 0) {
+        $users[] = $uid; 
+      }
+    }
+    return count($users) ? user_load_multiple($users) : NULL;
+  }
+}
