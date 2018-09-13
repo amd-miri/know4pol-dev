@@ -653,6 +653,7 @@ function _know4pol_core_theme_ks_admin_menu(array $menuarray) {
 function know4pol_core_menu_alter(&$items) {
   $items['node/add']['access callback'] = '_know4pol_core_node_add_access';
   $items['admin/workbench/create']['access callback'] = '_know4pol_core_node_add_access';
+  unset($items['node/%/group']);
 }
 
 /**
