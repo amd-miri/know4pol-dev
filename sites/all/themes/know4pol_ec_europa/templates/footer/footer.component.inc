@@ -42,12 +42,12 @@ function know4pol_ec_europa_preprocess_footer(&$variables, $hook) {
        $menu['page_arguments']['0']->type == 'country')) {
     switch ($menu['page_arguments']['0']->type) {
       case 'knowledge_centre':
-        $variables = know4pol_ec_europa_make_footer_links_ks_homepage($variables, $menu);
+        $variables = _know4pol_ec_europa_make_footer_links_ks_homepage($variables, $menu);
         break;
 
       case 'topic':
       case 'country':
-        $variables = know4pol_ec_europa_make_footer_links_on_topic_country($variables, $menu);
+        $variables = _know4pol_ec_europa_make_footer_links_on_topic_country($variables, $menu);
         break;
     }
   }
@@ -64,7 +64,7 @@ function know4pol_ec_europa_preprocess_footer(&$variables, $hook) {
  * @return array
  *   The original variables.
  */
-function know4pol_ec_europa_make_footer_links_ks_homepage(array $variables, array $menu) {
+function _know4pol_ec_europa_make_footer_links_ks_homepage(array $variables, array $menu) {
   // A) First change the site name to KS name on left side.
   $variables['footer_left']['title']['#text'] = $menu['page_arguments']['0']->title;
   $variables['footer_left']['title']['#path'] = $menu['page_arguments']['0']->path['alias'];
@@ -120,7 +120,7 @@ function know4pol_ec_europa_make_footer_links_ks_homepage(array $variables, arra
  * @return array
  *   The original variables.
  */
-function know4pol_ec_europa_make_footer_links_on_topic_country(array $variables, array $menu) {
+function _know4pol_ec_europa_make_footer_links_on_topic_country(array $variables, array $menu) {
   // A) First change the site name to KS name on left side.
   $variables['footer_left']['title']['#text'] = $menu['page_arguments']['0']->og_group_ref[LANGUAGE_NONE]['0']['label'];
   $variables['footer_left']['title']['#path'] = drupal_lookup_path('alias', $menu['page_arguments']['0']->og_group_ref[LANGUAGE_NONE]['0']['url']);

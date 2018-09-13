@@ -34,7 +34,7 @@
       <thead>
         <!-- Those contain a hidden special char to avoid ECL bug. Char U+FEFF -->
         <tr>
-          <th scope="col">Additional information﻿</th>
+          <th scope="col">Get this resource</th>
           <th scope="col">﻿</th>
         </tr>
       </thead>
@@ -49,12 +49,27 @@
       <thead>
         <!-- Those contain a hidden special char to avoid ECL bug. Char U+FEFF -->
         <tr>
-          <th scope="col">Related links﻿</th>
+          <th scope="col">Additional information</th>
           <th scope="col">﻿</th>
         </tr>
       </thead>
       <tbody>
         <?php print $footer; ?>
+      </tbody>
+    </table>
+    <?php endif; ?>
+    <?php if ($footer_bottom): ?>
+    <!-- Table with empty heading - enhanced -->
+    <table class="ecl-table ecl-table--responsive">
+      <thead>
+        <!-- Those contain a hidden special char to avoid ECL bug. Char U+FEFF -->
+        <tr>
+          <th scope="col">Related links</th>
+          <th scope="col">﻿</th>
+        </tr>
+      </thead>
+      <tbody>
+        <?php print $footer_bottom; ?>
       </tbody>
     </table>
     <?php endif; ?>

@@ -22,7 +22,6 @@ function know4pol_ec_europa_preprocess_field(array &$variables, $hook) {
         $layout['settings']['fields'][$el['#field_name']];
     }
   }
-
   // Handle apache solR preproces in a different function.
   elseif ($el['#view_mode'] == 'apachesolr_page') {
     // Add template suggestions for field in the apache solr viewmode.
@@ -61,6 +60,10 @@ function know4pol_ec_europa_preprocess_field(array &$variables, $hook) {
 
   // Custom hook for specific fields.
   switch ($el['#field_name']) {
+    case 'ks_name_topic_specific_taxonomies':
+      $variables['label'] = t('Knowledge service | Topic | Specific keywords');
+      break;
+
     case 'field_vis_data_url':
       _know4pol_ec_europa_preprocess_field__field_vis_data_url__visualisation($variables);
       break;
