@@ -1,0 +1,86 @@
+<?php
+/**
+ * @file
+ * Adds clientside validation support for the webform module
+ */
+
+/**
+ * Implements hook_ctools_plugin_directory().
+ */
+function clientside_validation_webform_validation_ctools_plugin_directory($module, $plugin) {
+  if ($module == 'clientside_validation') {
+    return 'plugins/' . $plugin;
+  }
+}
+
+/**
+ * Retreive webform validation rules
+ */
+function _clientside_validation_webform_validation_webform_validation($nid, $form) {
+  $webform_validation_rules = &drupal_static('clientside_validation_webform_validation_validation_rules', array());
+  $current_page = $form['details']['page_num']['#value'];
+  if (!isset($webform_validation_rules[$nid][$current_page])) {
+    if (module_exists('webform_validation')) {
+      $node_rules = webform_validation_get_node_rules($nid);
+      foreach ($node_rules as $rid => $rule) {
+        foreach ($rule['components'] as $cid => $component) {
+          if ($form['#node']->webform['components'][$component['cid']]['page_num'] != $current_page) {
+            unset($node_rules[$rid]['components'][$cid]);
+            if (empty($node_rules[$rid]['components'])) {
+              unset($node_rules[$rid]);
+            }
+          }
+        }
+      }
+      $webform_validation_rules[$nid][$current_page] = $node_rules;
+      // add element name to arrays
+      clientside_validation_webform_validation_webform_validation_add_names($webform_validation_rules[$nid][$current_page], $form);
+    }
+    else {
+      $webform_validation_rules[$nid][$current_page] = array();
+    }
+  }
+  return $webform_validation_rules[$nid][$current_page];
+}
+
+function _clientside_validation_get_webform_validation_rules($element, $form, $rule_name = NULL) {
+  $element_rules = &drupal_static('clientside_validation_webform_validation_element_validation_rules', array());
+  if (!isset($element_rules[$form['#id']][$element['#name']])) {
+    $element_rules[$form['#id']][$element['#name']] = array();
+    $form_rules = _clientside_validation_webform_validation_webform_validation($element['#webform_component']['nid'], $form);
+    foreach ($form_rules as $rule) {
+      foreach ($rule['components'] as $component) {
+        if ($component['element_name'] == $element['#name']) {
+          $element_rules[$form['#id']][$element['#name']][$rule['validator']] = $rule;
+        }
+      }
+    }
+  }
+  if (!is_null($rule_name)) {
+    return isset($element_rules[$form['#id']][$element['#name']][$rule_name]) ? $element_rules[$form['#id']][$element['#name']][$rule_name] : FALSE;
+  }
+  return $element_rules[$form['#id']][$element['#name']];
+}
+
+function clientside_validation_webform_validation_webform_validation_add_names(&$webform_validation_rules, $form) {
+  if ($children = array_values(element_children($form))) {
+    foreach ($children as $index => $item) {
+      $element = $form[$item];
+      if (isset($element['#title'])) {
+        if (isset($element['#webform_component']['cid'])) {
+          $cid = $element['#webform_component']['cid'];
+          foreach ($webform_validation_rules as $i => $webform_validation_rule) {
+            foreach ($webform_validation_rule['components'] as $k => $component) {
+              // Fieldsets do not have the name attribute.
+              if ($k == $cid && isset($element['#name'])) {
+                $webform_validation_rules[$i]['components'][$k]['element_name'] = $element['#name'];
+                $webform_validation_rules[$i]['components'][$k]['element_title'] = $element['#title'];
+              }
+            }
+          }
+        }
+      }
+      clientside_validation_webform_validation_webform_validation_add_names($webform_validation_rules, $element);
+    }
+  }
+}

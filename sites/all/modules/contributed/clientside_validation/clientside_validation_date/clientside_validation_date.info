@@ -1,0 +1,13 @@
+name = Clientside Validation Date
+description = Adds clientside validation support for date elements.
+core = 7.x
+package = Clientside Validation
+dependencies[] = clientside_validation
+dependencies[] = date
+
+; Information added by Drupal.org packaging script on 2017-09-06
+version = "7.x-2.0-beta2"
+core = "7.x"
+project = "clientside_validation"
+datestamp = "1504678467"
+

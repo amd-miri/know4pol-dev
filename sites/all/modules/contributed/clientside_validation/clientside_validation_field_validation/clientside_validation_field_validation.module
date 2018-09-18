@@ -1,0 +1,13 @@
+<?php
+/**
+ * @file
+ * Add clientside validation support for Field Validation
+ */
+/**
+ * Implements hook_ctools_plugin_directory().
+ */
+function clientside_validation_field_validation_ctools_plugin_directory($module, $plugin) {
+  if ($module == 'clientside_validation') {
+    return 'plugins/' . $plugin;
+  }
+}

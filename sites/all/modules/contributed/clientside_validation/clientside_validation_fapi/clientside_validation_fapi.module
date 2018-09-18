@@ -1,0 +1,45 @@
+<?php
+/**
+ * @file
+ * Add client side validation support for fapi validation
+ */
+
+/**
+ * Implements hook_ctools_plugin_directory().
+ */
+function clientside_validation_fapi_ctools_plugin_directory($module, $plugin) {
+  if ($module == 'clientside_validation') {
+    return 'plugins/' . $plugin;
+  }
+}
+
+/**
+ * Implements hook_menu().
+ */
+function clientside_validation_fapi_menu() {
+  $items = array();
+  $items['clientside_validation/regex-pcre'] = array(
+    'title' => 'Clientside validation regex ajax callback',
+    'page callback' => '_clientside_validation_ajax_regex_pcre',
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+  );
+  return $items;
+}
+
+
+function _clientside_validation_ajax_regex_pcre() {
+  $param = $_POST['param'];
+  $value = $_POST['value'];
+  $result = array();
+  foreach ($param['expressions'] as $key => $regex) {
+    if (!(bool) preg_match($regex, (string) $value)) {
+      $result = array('result' => FALSE, 'message' => $param['messages'][$key]);
+      break;
+    }
+  }
+  if (empty($result)) {
+    $result = array('result' => TRUE);
+  }
+  drupal_json_output($result);
+}

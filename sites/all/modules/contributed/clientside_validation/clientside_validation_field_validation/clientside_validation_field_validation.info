@@ -1,0 +1,15 @@
+name = Clientside Validation Field Validation
+description = Add client side validation support for <a href="http://www.drupal.org/project/field_validation">Field Validation</a>
+core = 7.x
+package = Clientside Validation
+
+files[] = includes/CvFieldValidationValidator.inc
+dependencies[] = clientside_validation
+dependencies[] = field_validation
+
+; Information added by Drupal.org packaging script on 2017-09-06
+version = "7.x-2.0-beta2"
+core = "7.x"
+project = "clientside_validation"
+datestamp = "1504678467"
+

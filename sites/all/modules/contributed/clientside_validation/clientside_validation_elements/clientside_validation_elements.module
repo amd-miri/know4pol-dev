@@ -1,0 +1,14 @@
+<?php
+/**
+ * @file
+ * Add clientside validation support for html5 elements
+ */
+
+/**
+ * Implements hook_ctools_plugin_directory().
+ */
+function clientside_validation_elements_ctools_plugin_directory($module, $plugin) {
+  if ($module == 'clientside_validation') {
+    return 'plugins/' . $plugin;
+  }
+}

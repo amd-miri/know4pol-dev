@@ -1,0 +1,13 @@
+name = Clientside Validation Email
+description = Adds Clientside Validation support for Email fields.
+core = 7.x
+package = Clientside Validation
+dependencies[] = email
+dependencies[] = clientside_validation
+
+; Information added by Drupal.org packaging script on 2017-09-06
+version = "7.x-2.0-beta2"
+core = "7.x"
+project = "clientside_validation"
+datestamp = "1504678467"
+

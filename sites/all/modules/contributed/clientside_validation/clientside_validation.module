@@ -1,0 +1,809 @@
+<?php
+/**
+ * @file
+ * Add client side validation to forms.
+ */
+
+/**
+ * What form ids to validate.
+ */
+define('CLIENTSIDE_VALIDATION_VALIDATE_ALL', 1);
+define('CLIENTSIDE_VALIDATION_VALIDATE_SPECIFIC', 0);
+define('CLIENTSIDE_VALIDATION_VALIDATE_ALL_EXCEPT', 2);
+
+/**
+ * In- or exclude paths from validation.
+ */
+//Add validation on all paths except those specified.
+define('CLIENTSIDE_VALIDATION_EXCLUDE_PATHS', 0);
+//Only add validation on specified paths.
+define('CLIENTSIDE_VALIDATION_INCLUDE_PATHS', 1);
+
+/**
+ * Error placement.
+ */
+define('CLIENTSIDE_VALIDATION_JQUERY_SELECTOR', 0);
+define('CLIENTSIDE_VALIDATION_TOP_OF_FORM', 1);
+define('CLIENTSIDE_VALIDATION_BEFORE_LABEL', 2);
+define('CLIENTSIDE_VALIDATION_AFTER_LABEL', 3);
+define('CLIENTSIDE_VALIDATION_BEFORE_INPUT', 4);
+define('CLIENTSIDE_VALIDATION_AFTER_INPUT', 5);
+define('CLIENTSIDE_VALIDATION_TOP_OF_FIRST_FORM', 6);
+define('CLIENTSIDE_VALIDATION_CUSTOM_ERROR_FUNCTION', 7);
+
+/**
+ * Implements hook_requirements()
+ */
+function clientside_validation_requirements($phase) {
+  $requirements = array();
+  if ($phase == 'runtime' || $phase == 'update') {
+    // Fix dependencies first.
+    if ($phase == 'update' && !module_exists('libraries')) {
+      return $requirements;
+    }
+    $t = get_t();
+    $lib = libraries_detect('jquery.validate');
+    if ($lib['installed']) {
+      $requirements['clientside_validation'] = array(
+        'title' => $t('Clientside Validation'),
+        'value' => $t('jquery.validate found under !path', array('!path' => $lib['library path'] . '/dist/jquery.validate.js')),
+        'severity' => REQUIREMENT_OK,
+      );
+      return $requirements;
+    }
+    $requirements['clientside_validation'] = array(
+      'title' => $t('Clientside Validation'),
+      'value' => isset($lib['error message']) ? $t($lib['error message']) : t('jQuery Validate library was not found. !download the library and place in under sites/all/libraries/jquery.validate, so that the library can be found at sites/all/libraries/jquery.validate/dist/jquery.validate.js.', array('!download' => l(t('Download'), 'https://github.com/jzaefferer/jquery-validation/releases'))),
+      'severity' => REQUIREMENT_ERROR,
+    );
+  }
+  return $requirements;
+}
+
+/**
+ * Implements hook_ctools_plugin_directory().
+ */
+function clientside_validation_ctools_plugin_directory($module, $plugin) {
+  if ($module == 'clientside_validation') {
+    return 'plugins/' . $plugin;
+  }
+}
+
+/**
+ * Implements hook_ctools_plugin_type().
+ */
+function clientside_validation_ctools_plugin_type() {
+  return array(
+    'validator' => array(
+      'use hooks' => TRUE,
+    ),
+  );
+}
+
+/**
+ * Implements hook_libraries_info().
+ */
+function clientside_validation_libraries_info() {
+  $libraries = array();
+
+  $libraries['clientside.validation'] = array(
+    'title' => 'Clientside Validation',
+    'vendor url' => 'http://drupal.org/project/clientside_validation',
+    'version' => '7.x-2.x',
+    'library path' => drupal_get_path('module', 'clientside_validation') . '/js',
+    'files' => array(
+      'js' => array(
+        'clientside_validation.ie8.js' => array(
+          'scope' => 'footer',
+          'weight' => 19,
+          'browsers' => array('IE' => 'lt IE 9', '!IE' => FALSE),
+        ),
+        'clientside_validation.js' => array(
+          'scope' => 'footer',
+          'weight' => 20,
+        ),
+      ),
+    ),
+    'dependencies' => array(
+      'jquery.validate',
+    ),
+  );
+
+  $libraries['jquery.validate'] = array(
+    'name' => 'jQuery Validate',
+    'vendor url' => 'http://jqueryvalidation.org/',
+    'download url' => 'https://github.com/jzaefferer/jquery-validation/releases',
+    'files' => array(
+      'js' => array(
+        'dist/jquery.validate.js',
+        'dist/additional-methods.js',
+      ),
+    ),
+    'version arguments' => array(
+      'file' => 'dist/jquery.validate.js',
+      'pattern' => '/([0-9\.-]+)/',
+      'lines' => 4,
+    ),
+    'callbacks' => array(
+      'pre-load' => array(
+        'clientside_validation_libraries_add_locale',
+      ),
+    ),
+  );
+
+  return $libraries;
+}
+
+/**
+ * Load the localization file to show the messages in the current language.
+ */
+function clientside_validation_libraries_add_locale(&$library) {
+  // Get the current language.
+  global $language;
+  $path = 'dist/localization/messages_' . $language->language . '.js';
+  // Check if we do not use English and there is a translation.
+  if ($language->language != 'en' && file_exists($library['library path'] . '/' . $path)) {
+    // Add the localized language to the files.
+    $library['files']['js'][] = $path;
+  }
+}
+
+/**
+ * Implements hook_menu().
+ */
+function clientside_validation_menu() {
+  $items['admin/config/validation'] = array(
+    'title' => 'Validation',
+    'description' => 'Validation settings.',
+    'position' => 'right',
+    'weight' => -10,
+    'page callback' => 'system_admin_menu_block_page',
+    'access arguments' => array('administer site configuration'),
+    'file' => 'system.admin.inc',
+    'file path' => drupal_get_path('module', 'system'),
+  );
+  $items['admin/config/validation/clientside_validation'] = array(
+    'title' => 'Clientside Validation',
+    'description' => 'Administer clientside validation.',
+    'page callback' => 'system_admin_menu_block_page',
+    'access arguments' => array('administer site configuration'),
+    'file' => 'system.admin.inc',
+    'file path' => drupal_get_path('module', 'system'),
+  );
+  $items['admin/config/validation/clientside_validation/general'] = array(
+    'title' => 'General settings',
+    'description' => 'Edit general settings.',
+    'weight' => -1,
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('clientside_validation_general_settings_form'),
+    'access arguments' => array('administer site configuration'),
+    'file' => 'clientside_validation.admin.inc',
+  );
+  $items['admin/config/validation/clientside_validation/default'] = array(
+    'title' => 'Default settings',
+    'description' => 'Edit default settings.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('clientside_validation_settings_form'),
+    'access arguments' => array('administer site configuration'),
+    'file' => 'clientside_validation.admin.inc',
+    'weight' => 5,
+  );
+  $items['admin/config/validation/clientside_validation/content-types'] = array(
+    'title' => 'Content types',
+    'description' => 'Override settings for content types.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('clientside_validation_settings_overview', 'content-types'),
+    'access arguments' => array('administer site configuration'),
+    'file' => 'clientside_validation.admin.inc',
+    'weight' => 10,
+  );
+  if (module_exists('clientside_validation_webform')) {
+    $items['admin/config/validation/clientside_validation/webforms'] = array(
+      'title' => 'Webforms',
+      'description' => 'Override settings for webforms.',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('clientside_validation_settings_overview', 'webforms'),
+      'access arguments' => array('administer site configuration'),
+      'file' => 'clientside_validation.admin.inc',
+      'weight' => 11,
+    );
+  }
+  $items['admin/config/validation/clientside_validation/custom-forms'] = array(
+    'title' => 'Custom forms',
+    'description' => 'Override settings for custom forms.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('clientside_validation_settings_overview', 'custom-forms'),
+    'access arguments' => array('administer site configuration'),
+    'file' => 'clientside_validation.admin.inc',
+    'weight' => 12,
+  );
+  $items['admin/config/validation/clientside_validation/%/%/edit'] = array(
+    'title' => 'Edit settings',
+    'type' => MENU_CALLBACK,
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('clientside_validation_settings_form', 5, 4),
+    'access arguments' => array('administer site configuration'),
+    'file' => 'clientside_validation.admin.inc',
+  );
+  $items['admin/config/validation/clientside_validation/%/%/disable'] = array(
+    'title' => 'Disable settings',
+    'type' => MENU_CALLBACK,
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('clientside_validation_settings_confirmation_form', 5, 4, 'disable'),
+    'access arguments' => array('administer site configuration'),
+    'file' => 'clientside_validation.admin.inc',
+  );
+  $items['admin/config/validation/clientside_validation/%/%/enable'] = array(
+    'title' => 'Enable settings',
+    'type' => MENU_CALLBACK,
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('clientside_validation_settings_confirmation_form', 5, 4, 'enable'),
+    'access arguments' => array('administer site configuration'),
+    'file' => 'clientside_validation.admin.inc',
+  );
+  $items['admin/config/validation/clientside_validation/%/%/delete'] = array(
+    'title' => 'Delete settings',
+    'type' => MENU_CALLBACK,
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('clientside_validation_settings_confirmation_form', 5, 4, 'delete'),
+    'access arguments' => array('administer site configuration'),
+    'file' => 'clientside_validation.admin.inc',
+  );
+
+  $items['clientside_validation/drupalURL'] = array(
+    'title' => 'Clientside validation validate url callback',
+    'page callback' => '_clientside_validation_url_validation_callback',
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+    'file' => 'clientside_validation.ajax.inc',
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_form_alter().
+ */
+function clientside_validation_form_alter(&$form, &$form_state, $form_id) {
+  if (!clientside_validation_match_form($form_id)) {
+    return;
+  }
+  if (strpos($form_id, 'webform_client_form') !== FALSE) {
+    $definedsettings = clientside_validation_settings_load('webforms', $form['#node']->nid);
+    $form['#clientside_validation_settings'] = $definedsettings;
+    if (isset($form['actions']['previous'])) {
+      $form['actions']['previous']['#attributes']['class'][] = 'cancel';
+    }
+  }
+  else {
+    if (isset($form['#node_edit_form']) && $form['#node_edit_form']) {
+      $definedsettings = clientside_validation_settings_load('content-types', $form['#node']->type);
+    }
+    else {
+      $definedsettings = clientside_validation_settings_load('custom-forms', $form_id);
+    }
+    $form['#clientside_validation_settings'] = $definedsettings;
+    if (isset($form['actions']['delete'])) {
+      $form['actions']['delete']['#attributes']['class'][] = 'cancel';
+    }
+  }
+  $form['#after_build'][] = 'clientside_validation_form_after_build';
+}
+
+function clientside_validation_match_form($form_id) {
+  $page_match = TRUE;
+  $path_filter = variable_get('clientside_validation_path_list', '');
+  $in_or_exclude = variable_get('clientside_validation_filter_paths', CLIENTSIDE_VALIDATION_EXCLUDE_PATHS);
+  if (!empty($path_filter)) {
+    $current_path = current_path();
+    $path = drupal_get_path_alias($current_path);
+    // Compare with the internal and path alias (if any).
+    $page_match = drupal_match_path($path, $path_filter);
+    if ($path != $current_path) {
+      $page_match = $page_match || drupal_match_path($current_path, $path_filter);
+    }
+    // When $in_or_exclude has a value of 0 (CLIENTSIDE_VALIDATION_EXCLUDE_PATHS),
+    // Clientside Validation is added on all pages except those listed in $path_filter.
+    // When set to 1 (CLIENTSIDE_VALIDATION_INCLUDE_PATHS), it is displayed only on
+    // those pages listed in $path_filter.
+    $page_match = !((bool)$in_or_exclude xor $page_match);
+  }
+  if (!$page_match) {
+    return FALSE;
+  }
+  $validate_specific_setting = variable_get('clientside_validation_validate_specific', '');
+  $validate_specific = preg_split('/(\r\n?|\n)/', $validate_specific_setting, -1, PREG_SPLIT_NO_EMPTY);
+  if (variable_get('clientside_validation_validate_all', CLIENTSIDE_VALIDATION_VALIDATE_ALL) == CLIENTSIDE_VALIDATION_VALIDATE_SPECIFIC
+    && !in_array($form_id, $validate_specific)) {
+    return FALSE;
+  }
+  elseif (variable_get('clientside_validation_validate_all', CLIENTSIDE_VALIDATION_VALIDATE_ALL) == CLIENTSIDE_VALIDATION_VALIDATE_ALL_EXCEPT
+    && in_array($form_id, $validate_specific)) {
+    return FALSE;
+  }
+  return TRUE;
+}
+
+/**
+ * Regular form.
+ */
+function clientside_validation_form_after_build(&$form, &$form_state) {
+  clientside_validation_settings_current_form($form['#clientside_validation_settings']);
+  $validation_added = clientside_validation_form_after_build_recurse($form['#id'], $form, $form_state);
+  if ($validation_added) {
+    $settings = array();
+    _clientside_validation_add_general_settings($settings, $form);
+    if (variable_get('clientside_validation_add_js_timing', 0)) {
+      // @see http://remysharp.com/2007/04/20/performance-profiling-javascript/
+      $form['#attached']['js'][] = drupal_get_path('module', 'clientside_validation') . '/js/time.js';
+    }
+    $form['#attached']['libraries_load'][] = array('clientside.validation');
+    $form['#attached']['js'][] = array('data' => $settings, 'type' => 'setting');
+  }
+  return $form;
+}
+
+function clientside_validation_form_after_build_recurse($form_id, &$form, &$form_state) {
+  $validation_added = FALSE;
+  if (($children = element_children($form))) {
+    foreach ($children as $item) {
+      $element = &$form[$item];
+      $validation_added = clientside_validation_add_validation($element, $form_state, $form_id) || $validation_added;
+      if (
+        isset($element['#type'])
+        && $element['#type'] == 'submit'
+        && isset($element['#limit_validation_errors'])
+        && empty($element['#limit_validation_errors'])
+        && $element['#limit_validation_errors'] !== FALSE
+      ) {
+        $element['#attributes']['class'][] = 'cancel';
+      }
+      $validation_added = clientside_validation_form_after_build_recurse($form_id, $element, $form_state) || $validation_added;
+    }
+  }
+  return $validation_added;
+}
+
+function clientside_validation_add_validation(&$element, &$form_state, $form_id) {
+  $form_settings = clientside_validation_settings_current_form();
+  if (clientside_validation_should_validate($element)) {
+    $validators = clientside_validation_get_validators($element, $form_state);
+    foreach ($validators as $validator) {
+      $js_settings = array();
+      switch ($form_settings['validate_options']['rules_type']) {
+        case 'js_settings':
+          $js_settings = $validator->getJavascriptSettings($element, $form_state);
+          break;
+        case 'data_attributes':
+          $validator->setDataAttributes($element, $form_state);
+          $js_settings = $validator->getJavascriptSettings($element, $form_state);
+          unset($js_settings['rules']);
+          unset($js_settings['messages']);
+          break;
+      }
+      $files = $validator->jsFiles($element);
+      if ($js_settings) {
+        $element['#attached']['js'][] = array(
+          'data' => array(
+            'clientsideValidation' => array(
+              'forms' => array(
+                $form_id => $js_settings,
+              ),
+            ),
+          ),
+          'type' => 'setting',
+        );
+      }
+      if ($files) {
+        foreach ($files as $file) {
+          $element['#attached']['js'][] = array(
+            'data' => $file,
+            'type' => 'file',
+            'scope' => 'footer',
+          );
+        }
+      }
+    }
+    return !empty($validators);
+  }
+  return FALSE;
+}
+
+function clientside_validation_should_validate($element) {
+  $instance_info = array();
+  if (isset($element['#instance'])) {
+    $instance_info = $element['#instance'];
+  }
+  elseif (isset($element['#entity_type']) && isset($element['#field_name']) && isset($element['#bundle'])) {
+    $instance_info = field_info_instance($element['#entity_type'], $element['#field_name'], $element['#bundle']);
+  }
+  if (isset($instance_info['exclude_cv']) && $instance_info['exclude_cv'] == '1') {
+    return FALSE;
+  }
+  elseif (isset($element['#exclude_cv']) && $element['#exclude_cv']) {
+    //skip validation if defined so by form element
+    return FALSE;
+  }
+  return TRUE;
+}
+
+function clientside_validation_get_validators($element, &$form_state) {
+  static $plugins = FALSE;
+  ctools_include('plugins');
+  $defaults = array(
+    'validator' => array(
+      'constructor argument' => array(),
+    ),
+  );
+  if (!$plugins) {
+    $plugins = ctools_get_plugins('clientside_validation', 'validator');
+    foreach ($plugins as $plugin_id => $plugin) {
+      $plugin = drupal_array_merge_deep($defaults, $plugin);
+      $plugin['class'] = ctools_plugin_get_class($plugin, 'validator');
+      $plugins[$plugin_id] = $plugin;
+    }
+    uasort($plugins, 'drupal_sort_weight');
+  }
+
+  $form_settings = clientside_validation_settings_current_form();
+  $validators = array();
+  foreach ($plugins as $plugin_id => $plugin) {
+    if ($form_settings['plugins'][$plugin_id]) {
+      if ($plugin['class'] && $instance = clientside_validation_get_validator_instance($plugin['class'], $plugin['validator']['constructor argument'])) {
+        if ($instance->supports($element, $form_state)) {
+          $validators[] = $instance;
+        }
+      }
+    }
+  }
+  return $validators;
+}
+
+function clientside_validation_get_validator_instance($class, $constructor_argument) {
+  $instances = &drupal_static('clientside_validation_validator_instances', array());
+  if (!isset($instances[$class]) && class_exists($class) && is_subclass_of($class, 'ClientsideValidationValidator')) {
+      $instances[$class] = new $class($constructor_argument);
+  }
+  elseif (!isset($instances[$class])) {
+    $instances[$class] = FALSE;
+  }
+  return $instances[$class];
+}
+
+function _clientside_validation_add_general_settings(&$settings, &$form) {
+  $form_id = $form['#id'];
+  $definedsettings = clientside_validation_settings_current_form();
+  // Add a setting for this form if the hidden elements should still be validated
+  $include_hidden_setting = $definedsettings['include_hidden']['include_hidden'];
+  $include_hidden = preg_split('/(\r\n?|\n)/', $include_hidden_setting, -1, PREG_SPLIT_NO_EMPTY);
+  if (isset($form['#form_id']) && in_array($form['#form_id'], $include_hidden) || in_array($form_id, $include_hidden)) {
+    $settings['clientsideValidation']['forms'][$form_id]['includeHidden'] = TRUE;
+  }
+  elseif ($definedsettings['include_hidden']['include_hidden_fields']) {
+    $settings['clientsideValidation']['forms'][$form_id]['includeHidden'] = TRUE;
+  }
+
+  $settings['clientsideValidation']['forms'][$form_id]['errorPlacement'] = $definedsettings['error_placement']['error_placement_default'];
+  switch ($definedsettings['error_placement']['error_placement_default']) {
+    case CLIENTSIDE_VALIDATION_JQUERY_SELECTOR:
+      if (!empty($definedsettings['error_placement']['jquery_selector'])) {
+        $settings['clientsideValidation']['forms'][$form_id]['errorJquerySelector'] = $definedsettings['error_placement']['jquery_selector'];
+      }
+      else {
+        $settings['clientsideValidation']['forms'][$form_id]['errorPlacement'] = CLIENTSIDE_VALIDATION_TOP_OF_FIRST_FORM;
+      }
+      break;
+    case CLIENTSIDE_VALIDATION_CUSTOM_ERROR_FUNCTION:
+      if (!empty($definedsettings['error_placement']['custom_error_function'])) {
+        $settings['clientsideValidation']['forms'][$form_id]['customErrorFunction'] = $definedsettings['error_placement']['custom_error_function'];
+      }
+      else {
+        $settings['clientsideValidation']['forms'][$form_id]['errorPlacement'] = CLIENTSIDE_VALIDATION_TOP_OF_FIRST_FORM;
+      }
+      break;
+  }
+
+  $settings['clientsideValidation']['forms'][$form_id]['general'] = array(
+    "errorClass" => "error", // @TODO: option?
+    "wrapper" => "li", // @TODO: option?
+    "validateTabs" => $definedsettings['include_hidden']['validate_tabs'],
+    "scrollTo" => $definedsettings['error']['scrollto_errormessage'],
+    "scrollSpeed" => $definedsettings['error']['scroll_speed'],
+    "disableHtml5Validation" => $definedsettings['validate_options']['disable_html5'],
+    "validateOnBlur" => $definedsettings['validate_options']['validate_onblur'],
+    "validateOnBlurAlways" => $definedsettings['validate_options']['validate_onblur_always'],
+    "validateOnKeyUp" => $definedsettings['validate_options']['validate_onkeyup'],
+    "validateBeforeAjax" => $definedsettings['validate_options']['validate_before_ajax'],
+    "validateOnSubmit" => $definedsettings['validate_options']['validate_onsubmit'],
+    "showMessages" => $definedsettings['validate_options']['show_messages'],
+    "errorElement" => $definedsettings['error']['error_element'],
+  );
+
+  // add xregxp if choosen and found.
+  if (variable_get('clientside_validation_usexregxp', 0) != 0 && module_exists('xregexp_api')) {
+    $settings['clientsideValidation']['general']['usexregxp'] = clientside_validation_add_xregexp($form);
+  }
+  else {
+    $settings['clientsideValidation']['general']['usexregxp'] = 0;
+  }
+
+  // Provide conversion table between translated month names, both full and abbreviated, and their number.
+  foreach (range(1, 12) as $month_number) {
+    $date = mktime(12, 0, 0, $month_number, 1, 1970);
+    $settings['clientsideValidation']['general']['months'][t(date('F', $date))] = $month_number;
+    $settings['clientsideValidation']['general']['months'][t(date('M', $date))] = $month_number;
+  }
+
+  // Groups.
+  if (!isset($settings['clientsideValidation']['groups'][$form_id])) {
+    $settings['clientsideValidation']['groups'][$form_id] = new stdClass();
+  }
+
+  // Ajax callback: We do not know if only a single field is replaced/added or
+  // an entire form, so add the settings twice.
+  $matches = array();
+  preg_match(' /.*?(--(\d)*)/', $form_id, $matches);
+  if (isset($matches[1])) {
+    $form_id = str_replace($matches[1], '', $form_id);
+  }
+  if ($form_id != $form['#id']) {
+    $settings['clientsideValidation']['forms'][$form_id] = $settings['clientsideValidation']['forms'][$form['#id']];
+  }
+}
+
+/*
+ * Adds xregexp and optional unicode js lib
+ */
+function clientside_validation_add_xregexp(&$form) {
+  $variant = variable_get('clientside_validation_xregxp_variant', '');
+  $lib = libraries_detect('xregexp');
+  if (empty($variant)) {
+    $form['#attached']['libraries_load'][] = array('xregexp');
+    return (!isset($lib['error']) || !$lib['error']) ? 1 : 0;
+  }
+  else {
+    $form['#attached']['libraries_load'][] = array('xregexp', $variant);
+    return (isset($lib['variants'][$variant]) && (!isset($lib['variants'][$variant]['error']) || !$lib['variants'][$variant]['error'])) ? 1 : 0;
+  }
+}
+
+function clientside_validation_settings_delete($cvs_type, $cvs_formid) {
+  if (!db_table_exists('clientside_validation_settings')) {
+    drupal_set_message(
+      t("You need to run the database update script so that Clientside Validation can function properly. Click !here to run the database update script.",
+      array('!here' => l('here', 'update.php')))
+    );
+    return;
+  }
+  db_delete('clientside_validation_settings')
+    ->condition('type', $cvs_type)
+    ->condition('form_id', $cvs_formid)
+    ->execute();
+}
+
+function clientside_validation_settings_enable($cvs_type, $cvs_formid) {
+  if (!db_table_exists('clientside_validation_settings')) {
+    drupal_set_message(
+      t("You need to run the database update script so that Clientside Validation can function properly. Click !here to run the database update script.",
+      array('!here' => l('here', 'update.php')))
+    );
+    return;
+  }
+  db_update('clientside_validation_settings')
+    ->fields(array(
+      'status' => 1,
+    ))
+    ->condition('type', $cvs_type)
+    ->condition('form_id', $cvs_formid)
+    ->execute();
+}
+
+function clientside_validation_settings_disable($cvs_type, $cvs_formid) {
+  if (!db_table_exists('clientside_validation_settings')) {
+    drupal_set_message(
+      t("You need to run the database update script so that Clientside Validation can function properly. Click !here to run the database update script.",
+      array('!here' => l('here', 'update.php')))
+    );
+    return;
+  }
+  db_update('clientside_validation_settings')
+    ->fields(array(
+      'status' => 0,
+    ))
+    ->condition('type', $cvs_type)
+    ->condition('form_id', $cvs_formid)
+    ->execute();
+}
+
+function clientside_validation_settings_add($cvs_type, $cvs_formid, $settings = array(), $enable = FALSE) {
+  if (!db_table_exists('clientside_validation_settings')) {
+    drupal_set_message(
+      t("You need to run the database update script so that Clientside Validation can function properly. Click !here to run the database update script.",
+      array('!here' => l('here', 'update.php')))
+    );
+    return;
+  }
+  db_merge('clientside_validation_settings')
+    ->key(array(
+      'type' => $cvs_type,
+      'form_id' => $cvs_formid,
+    ))
+    ->fields(array(
+      'status' => $enable ? 1 : 0,
+      'settings' => serialize($settings),
+    ))
+    ->execute();
+}
+
+function clientside_validation_settings_update($cvs_type, $cvs_formid, $settings) {
+  if (!db_table_exists('clientside_validation_settings')) {
+    drupal_set_message(
+      t("You need to run the database update script so that Clientside Validation can function properly. Click !here to run the database update script.",
+      array('!here' => l('here', 'update.php')))
+    );
+    return;
+  }
+  db_update('clientside_validation_settings')
+    ->fields(array(
+      'settings' => serialize($settings),
+    ))
+    ->condition('type', $cvs_type)
+    ->condition('form_id', $cvs_formid)
+    ->execute();
+}
+
+function clientside_validation_settings_title($cvs_type, $cvs_formid, $edit = TRUE) {
+  $title = 'Edit settings of %formid';
+  if (!$edit) {
+    $title = 'Create settings for %formid';
+  }
+
+  switch ($cvs_type) {
+    case 'default':
+      return t('Edit default settings');
+      break;
+    case 'content-types':
+      $content_types = node_type_get_types();
+      if (isset($content_types[$cvs_formid])) {
+        return t($title, array('%formid' => t($content_types[$cvs_formid]->name)));
+      }
+      break;
+    case 'webforms':
+      $node = node_load($cvs_formid);
+      if ($node) {
+        return t($title, array('%formid' => $node->title));
+      }
+      break;
+    case 'custom-forms':
+      return t($title, array('%formid' => $cvs_formid));
+      break;
+  }
+  return t($title, array('%formid' => $cvs_type));
+}
+
+function clientside_validation_settings_current_form($settings = NULL) {
+  $current = &drupal_static(__FUNCTION__, array());
+  if (isset($settings)) {
+    $current = $settings;
+  }
+  return $current;
+}
+
+function clientside_validation_settings_load_defaults() {
+  static $defaults = FALSE;
+  if (!$defaults) {
+    $defaults = clientside_validation_settings_load('default');
+  }
+  return $defaults;
+}
+
+function clientside_validation_settings_load($cvs_type = NULL, $cvs_formid = NULL, $include_disabled = FALSE) {
+  $default_settings = array(
+    'validate_options' => array(
+      'rules_type' => 'js_settings',
+      'disable_html5' => 1,
+      'validate_onsubmit' => 1,
+      'validate_onblur' => 1,
+      'validate_onblur_always' => 0,
+      'validate_onkeyup' => 1,
+      'validate_before_ajax' => 0,
+      'show_messages' => 0,
+    ),
+    'error' => array(
+      'scrollto_errormessage' => 1,
+      'scroll_speed' => 1000,
+      'error_element' => 'label',
+    ),
+    'error_placement' => array(
+      'error_placement_default' => CLIENTSIDE_VALIDATION_TOP_OF_FORM,
+      'jquery_selector' => '',
+      'custom_error_function' => '',
+    ),
+    'include_hidden' => array(
+      'include_hidden' => '',
+      'include_hidden_fields' => FALSE,
+      'validate_tabs' => '',
+    ),
+  );
+  ctools_include('plugins');
+  $plugins = ctools_get_plugins('clientside_validation', 'validator');
+  foreach ($plugins as $plugin_id => $plugin) {
+    $default_settings['plugins'][$plugin_id] = 1;
+  }
+  if ($cvs_type == 'default') {
+    $settings = drupal_array_merge_deep($default_settings, variable_get('clientside_validation_default_settings', $default_settings));
+    drupal_alter('clientside_validation_settings', $settings);
+    return $settings;
+  }
+  if (!db_table_exists('clientside_validation_settings')) {
+    drupal_set_message(
+      t("You need to run the database update script so that Clientside Validation can function properly. Click !here to run the database update script.",
+      array('!here' => l('here', 'update.php'))),
+      'error'
+    );
+    $settings = variable_get('clientside_validation_default_settings', $default_settings);
+    drupal_alter('clientside_validation_settings', $settings);
+    return $settings;
+  }
+  $query = db_select('clientside_validation_settings')
+    ->fields('clientside_validation_settings');
+  if (!empty($cvs_type)) {
+    $query->condition('type', $cvs_type);
+  }
+  if (!empty($cvs_formid)) {
+    $query->condition('form_id', $cvs_formid);
+  }
+  if (!$include_disabled) {
+    $query->condition('status', 1);
+  }
+  $result = $query->execute();
+
+  // a single id was given -> one result, so only return one row
+  if (isset($cvs_formid)) {
+    $res = $result->fetchAssoc();
+    if ($res) {
+      $res['settings'] = unserialize($res['settings']);
+      $settings = drupal_array_merge_deep(clientside_validation_settings_load_defaults(), $res['settings']);
+    }
+    else {
+      $settings = clientside_validation_settings_load_defaults();
+    }
+    drupal_alter('clientside_validation_settings', $settings);
+    return $settings;
+  }
+  $res = $result->fetchAllAssoc('form_id');
+  if ($res) {
+    foreach ($res as &$setting) {
+      $setting->settings = unserialize($setting->settings);
+      $setting->settings = drupal_array_merge_deep(clientside_validation_settings_load_defaults(), $setting->settings);
+      drupal_alter('clientside_validation_settings', $setting->settings);
+    }
+  }
+  return $res;
+}
+
+/**
+ * Implementation of hook_library_alter().
+ */
+function clientside_validation_library_alter(&$libraries, $module) {
+  if (variable_get('clientside_validation_override_jquery_form', 0)) {
+    // We are updating just the system module. For all other cases we return.
+    if ($module != 'system') {
+      return;
+    }
+
+    $lib = libraries_detect('jquery.validate');
+
+    // Replace jQuery Form plugin.
+    $libraries['jquery.form']['js']['misc/jquery.form.js']['data'] = $lib['library path'] . '/lib/jquery.form.js';
+
+    $libraries['jquery.form']['version'] = libraries_get_version(
+      $lib,
+      array(
+        'file' => 'lib/jquery.form.js',
+        'pattern' => '/([0-9\.-]+)/',
+        'lines' => 4,
+      )
+    );
+  }
+}

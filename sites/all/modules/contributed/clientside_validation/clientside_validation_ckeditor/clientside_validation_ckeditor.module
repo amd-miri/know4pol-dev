@@ -1,0 +1,19 @@
+<?php
+
+/**
+ * Implements hook_js_alter().
+ */
+ function clientside_validation_ckeditor_js_alter(&$javascript) {
+  $path = drupal_get_path('module', 'clientside_validation_ckeditor') ;
+  if (isset($javascript[drupal_get_path('module', 'clientside_validation') . '/js/clientside_validation.js'])) {
+    $scripts = array_keys($javascript);
+    foreach ($scripts as $script) {
+      if (strpos($script, 'ckeditor') !== FALSE) {
+        $javascript[$path . '/js/clientside_validation_ckeditor.js'] = $javascript[drupal_get_path('module', 'clientside_validation') . '/js/clientside_validation.js'];
+        $javascript[$path . '/js/clientside_validation_ckeditor.js']['weight'] -= 0.001;
+        $javascript[$path . '/js/clientside_validation_ckeditor.js']['data'] = $path . '/js/clientside_validation_ckeditor.js';
+        break;
+      }
+    }
+  }
+ }

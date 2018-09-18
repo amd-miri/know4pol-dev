@@ -1,0 +1,52 @@
+<?php
+
+/**
+ * Implements hook_ctools_plugin_directory().
+ */
+function clientside_validation_phone_ctools_plugin_directory($module, $plugin) {
+  if ($module == 'clientside_validation') {
+    return 'plugins/' . $plugin;
+  }
+}
+
+/**
+ * Implements hook_menu().
+ */
+function clientside_validation_phone_menu() {
+  $items = array();
+  $items['clientside_validation/phone'] = array(
+    'title' => 'Clientside validation ajax callback to validate phone numbers',
+    'page callback' => '_clientside_validation_phone_ajax_phone',
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_field_widget_form_alter().
+ */
+function clientside_validation_phone_field_widget_form_alter(&$element, &$form_state, $context) {
+  switch ($context['field']['type']) {
+    case 'phone':
+      $element['value']['#clientside_validation_type'] = 'phone';
+      break;
+  }
+}
+
+/**
+ * Ajax callback.
+ */
+
+function _clientside_validation_phone_ajax_phone() {
+  $value = check_plain($_POST['value']);
+  $country_code = check_plain($_POST['country_code']);
+  if (function_exists('valid_phone_number') && !empty($country_code)) {
+    $result['result'] = valid_phone_number($country_code, $value);
+  }
+  else {
+    // elements module provides a telfield, but doesn't do any validation
+    $result['result'] = TRUE;
+  }
+  drupal_json_output($result);
+}
