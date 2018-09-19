@@ -816,7 +816,7 @@ function know4pol_core_ds_fields_info($entity_type) {
   $fields = array();
 
   $fields['node']['ks_name_topic_specific_taxonomies'] = array(
-    'title' => t('Knowledge service | Topic | Specific keywords'),
+    'title' => t('Knowledge service | Topics | Specific keywords'),
     'field_type' => DS_FIELD_TYPE_FUNCTION,
     'function' => '_know4pol_core_render_ks_name_topic_specific_taxonomies',
   );
@@ -838,9 +838,9 @@ function _know4pol_core_render_ks_name_topic_specific_taxonomies(array $field) {
   $menu = menu_get_item();
 
   // Let's define the three fields to be shown.
-  $knowledge_services_topics = $menu['page_arguments'][0]->field_ks_related_topics[LANGUAGE_NONE];
-  $knowledge_services_specific_keywords = $menu['page_arguments'][0]->og_vocabulary[LANGUAGE_NONE];
-  $knowledge_services = $menu['page_arguments'][0]->og_group_ref[LANGUAGE_NONE];
+  $knowledge_services_topics = isset($menu['page_arguments'][0]->field_ks_related_topics[LANGUAGE_NONE]) ? $menu['page_arguments'][0]->field_ks_related_topics[LANGUAGE_NONE] : array();
+  $knowledge_services_specific_keywords = isset($menu['page_arguments'][0]->og_vocabulary[LANGUAGE_NONE]) ? $menu['page_arguments'][0]->og_vocabulary[LANGUAGE_NONE] : array();
+  $knowledge_services = isset($menu['page_arguments'][0]->og_group_ref[LANGUAGE_NONE]) ? $menu['page_arguments'][0]->og_group_ref[LANGUAGE_NONE] : array();
 
   // Let's filter topics/specific keywords by knowledge service.
   foreach ($knowledge_services as $knowledge_service) {
@@ -869,15 +869,17 @@ function _know4pol_core_render_ks_name_topic_specific_taxonomies(array $field) {
 function _know4pol_core_get_topic_keywords_fields_by_ks(array $knowledge_services_topics, array $knowledge_services_specific_keywords, array $knowledge_service) {
   $content = "";
   // First add the name of the knowledge service.
-  $ks_name = $knowledge_service['label'];
-  $ks_url_alias = drupal_lookup_path('alias', $knowledge_service['url']);
+  $knowledge_service_node = node_load($knowledge_service['target_id']);
+  $ks_name = $knowledge_service_node->title;
+  $ks_url_alias = $knowledge_service_node->path['alias'];
   $content .= l($ks_name, $ks_url_alias, array('attributes' => array('class' => array('ecl-tag__item', 'know4pol-main-resource-meta-link'))));
 
   // Second create the list of topics per knowledge service.
   $ks_topics_content = "";
   foreach ($knowledge_services_topics as $knowledge_services_topic) {
-    if ($knowledge_services_topic['object']['node']->og_group_ref[LANGUAGE_NONE][0]['target_id'] == $knowledge_service['target_id']) {
-      $ks_topics_content .= _know4pol_core_create_topic_link($knowledge_services_topic);
+    $knowledge_services_topic_term = node_load($knowledge_services_topic['target_id']);
+    if ($knowledge_services_topic_term->og_group_ref[LANGUAGE_NONE][0]['target_id'] == $knowledge_service['target_id']) {
+      $ks_topics_content .= _know4pol_core_create_topic_link($knowledge_services_topic_term->title, $knowledge_services_topic_term->path['alias']);
     }
   }
   if ($ks_topics_content != "") {
@@ -887,7 +889,6 @@ function _know4pol_core_get_topic_keywords_fields_by_ks(array $knowledge_service
   // Third add the list of specific keywords per KS.
   // First get the default vocabulary from the knowledge service content type.
   $ks_keyword_content = "";
-  $knowledge_service_node = node_load($knowledge_service['target_id']);
   $main_ks_keywords_vocab_id = $knowledge_service_node->field_the_main_ks_keywords_vocab[LANGUAGE_NONE][0]['target_id'];
   $ks_terms = array_keys(entity_load('taxonomy_term', FALSE, array('vid' => $main_ks_keywords_vocab_id)));
   foreach ($knowledge_services_specific_keywords as $ks_keyword) {
@@ -904,12 +905,12 @@ function _know4pol_core_get_topic_keywords_fields_by_ks(array $knowledge_service
 /**
  * Create the topic link.
  *
- * @param array $knowledge_services_topic
+ * @param string $ks_topics_content_title
+ *   A knowledge service topic.
+ * @param string $ks_topics_content_path
  *   A knowledge service topic.
  */
-function _know4pol_core_create_topic_link(array $knowledge_services_topic) {
-  $ks_topics_content_title = $knowledge_services_topic['object']['node']->title;
-  $ks_topics_content_path = $knowledge_services_topic['object']['node']->path['alias'];
+function _know4pol_core_create_topic_link($ks_topics_content_title, $ks_topics_content_path) {
   return l($ks_topics_content_title, $ks_topics_content_path, array('attributes' => array('class' => array('ecl-tag__item'))));
 }
 
@@ -923,12 +924,13 @@ function _know4pol_core_create_topic_link(array $knowledge_services_topic) {
  */
 function _know4pol_core_create_keyword_content_link(array $ks_keyword, array $knowledge_service) {
   global $base_url;
-  $ks_keyword_content_title = $ks_keyword['title'];
+  $ks_keyword_term = taxonomy_term_load($ks_keyword['target_id']);
+  $ks_keyword_content_title = $ks_keyword_term->name;
   $ks_keyword_content_path = $base_url . '/search/site';
   return l($ks_keyword_content_title, $ks_keyword_content_path,
                                 array(
                                   'attributes' => array('class' => array('ecl-tag__item')),
-                                  'query' => array('f[0]' => 'sm_og_vocabulary:' . $ks_keyword['facet_id'], 'f[1]' => 'sm_og_group_ref:node:' . $knowledge_service['target_id']),
+                                  'query' => array('f[0]' => 'sm_og_vocabulary:taxonomy_term:' . $ks_keyword_term->tid, 'f[1]' => 'sm_og_group_ref:node:' . $knowledge_service['target_id']),
                                 ));
 }
 
