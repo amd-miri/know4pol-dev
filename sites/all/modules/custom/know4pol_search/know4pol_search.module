@@ -810,27 +810,10 @@ function know4pol_search_facetapi_sort_info() {
     'label' => t('OG vocab taxonomy'),
     'callback' => '_know4pol_search_facetapi_sort_ogvocab',
     'description' => t('Sort by taxonomy created into OG vocab'),
-    'weight' => -50,
+    'weight' => -5,
   );
 
   return $sorts;
-}
-
-/**
- * Parse term_id from facetapi indexed term and load term.
- *
- * @param string $term_info
- *   The indexed_term value from facetapi.
- *
- * @return object
- *   The loaded term by taxonomy_term_load().
- */
-function _know4pol_search_facetapi_load_term($term_info) {
-  // Parse tid from indexed values.
-  if (preg_match('/\:([0-9]+)$/', $term_info, $r) != 1) {
-    return NULL;
-  }
-  return taxonomy_term_load($r[1]);
 }
 
 /**
@@ -838,12 +821,47 @@ function _know4pol_search_facetapi_load_term($term_info) {
  *
  * @see uasort()
  */
-function _know4pol_search_facetapi_sort_ogvocab(array $a, array $b) {
+function _know4pol_search_facetapi_sort_ogvocab(array &$a, array &$b) {
   // Parse tid from indexed values.
-  $a = _know4pol_search_facetapi_load_term($a['#indexed_value']);
-  $b = _know4pol_search_facetapi_load_term($b['#indexed_value']);
+  $a = _know4pol_search_facetapi_load_term($a);
+  $b = _know4pol_search_facetapi_load_term($b);
   // Compare vid.
   return ($a->vid == $b->vid) ? 0 : ($a->vid > $b->vid) ? 1 : -1;
+}
+
+/**
+ * Implements hook_facetapi_filters().
+ */
+function know4pol_search_facetapi_filters() {
+  return array(
+    'exclude_og_vocab' => array(
+      'handler' => array(
+        'label' => t('Exclude specific og vocabularies'),
+        'class' => 'Know4polSearchFacetapiExcludeOGVocab',
+      ),
+    ),
+  );
+}
+
+/**
+ * Parse term_id from facetapi indexed term and load term.
+ *
+ * @param array &$facetapi_term
+ *   The indexed_term value from facetapi.
+ *
+ * @return object
+ *   The stored or loaded term by taxonomy_term_load().
+ */
+function _know4pol_search_facetapi_load_term(array &$facetapi_term) {
+  if (!isset($facetapi_term['term'])) {
+    // Parse tid from indexed value.
+    if (preg_match('/\:([0-9]+)$/', $facetapi_term['#indexed_value'], $r) != 1) {
+      return NULL;
+    }
+    // Load term and store for next usage (performance)
+    $facetapi_term['term'] = taxonomy_term_load($r[1]);
+  }
+  return $facetapi_term['term'];
 }
 
 /**
