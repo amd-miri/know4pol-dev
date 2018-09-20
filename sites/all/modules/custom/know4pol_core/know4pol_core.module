@@ -943,3 +943,55 @@ function _know4pol_core_create_keyword_content_link(array $ks_keyword, array $kn
 function _know4pol_core_add_seperation_bar($content) {
   return '|' . $content;
 }
+
+/**
+ * Implements hook_webform_submission_presave().
+ */
+function know4pol_core_webform_submission_presave(&$node, &$submission) {
+  // Feedback form.
+  if ($submission->nid == 31016) {
+    // KS field filled && OG module enabled.
+    if (module_exists('og') && strlen($submission->data[1][0])) {
+      // Get OG group editors and append mails.
+      foreach (_know4pol_core_get_og_group_members($submission->data[1][0], array('editor member')) as $user) {
+        $node->webform['emails'][1]['email'] .= ',' . $user->mail;
+      }
+    }
+  }
+}
+
+/**
+ * Get users from an og group, with a given role .
+ *
+ * @param int $gid
+ *   The group id.
+ * @param array $roles
+ *   The role(s) the users must have in the group.
+ *
+ * @return array
+ *   An array of users
+ */
+function _know4pol_core_get_og_group_members($gid, array $roles = array()) {
+  // Check it's a group and load it.
+  if (og_is_group('node', $gid)) {
+    if (!is_array($roles)) {
+      $roles = array($roles);
+    }
+    $group = node_load($gid);
+    $members = og_get_group_members_properties($group, array(), 'members__' . OG_STATE_ACTIVE, 'node');
+
+    $users = array();
+    // No role condition ?
+    if (count($roles) == 0) {
+      return user_load_multiple($members);
+    }
+
+    foreach ($members as $uid) {
+      // No roles asked or has any of them ?
+      if (count(array_intersect(og_get_user_roles($group->entity_type, $gid, $uid), $roles)) > 0) {
+        $users[] = $uid;
+      }
+    }
+    return count($users) ? user_load_multiple($users) : NULL;
+  }
+}
