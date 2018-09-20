@@ -927,7 +927,7 @@ function know4pol_core_webform_submission_presave(&$node, &$submission) {
     // KS field filled && OG module enabled.
     if (module_exists('og') && strlen($submission->data[1][0])) {
       // Get OG group editors and append mails.
-      foreach (_know4pol_core_get_og_group_members($submission->data[1][0], 'editor member') as $user) {
+      foreach (_know4pol_core_get_og_group_members($submission->data[1][0], array('editor member')) as $user) {
         $node->webform['emails'][1]['email'] .= ',' . $user->mail;
       }
     }
