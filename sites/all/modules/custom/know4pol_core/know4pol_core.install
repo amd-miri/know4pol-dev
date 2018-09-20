@@ -272,3 +272,14 @@ function know4pol_core_update_7016() {
     'og_menu_default_links',
   ), TRUE);
 }
+
+/**
+ * Enable apachesolr_realtime and field_collection modules.
+ */
+function know4pol_core_update_7017() {
+  module_enable(array(
+    'apachesolr_realtime',
+    'apachesolr_realtime_reports',
+    'field_collection',
+  ), TRUE);
+}
