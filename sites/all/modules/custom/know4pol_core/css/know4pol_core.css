@@ -15,3 +15,7 @@
 .wtShareList {
   padding: 0 !important;
 }
+
+#block-know4pol-core-know4pol-ks-admin-menu .block__content .element {
+  float: left;
+}

@@ -626,7 +626,7 @@ function _know4pol_core_theme_ks_admin_menu(array $menuarray) {
   $output = "";
   foreach ($menuarray as $parent) {
     if ($parent['links']) {
-      $output = '<div class="element">
+      $output .= '<div class="element">
                   <div class="ecl-dropdown">
                     <button class="ecl-button ecl-button--default ecl-expandable__button"
                             aria-controls="' . $parent['title'] . '-button-dropdown" aria-expanded="false"
@@ -641,7 +641,7 @@ function _know4pol_core_theme_ks_admin_menu(array $menuarray) {
       $output .= '</ul></div></div></div>';
     }
     else {
-      $output .= '<p>' . $parent['link'] . '</p>';
+      $output .= '<p class="element">' . $parent['link'] . '</p>';
     }
   }
   return $output;
