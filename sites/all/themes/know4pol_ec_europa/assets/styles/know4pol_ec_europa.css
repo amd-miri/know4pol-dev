@@ -94,6 +94,10 @@ ul li.leaf {
 }
 
 /* Missing from the ECL css in theme ec_europa */
+.field {
+  margin-bottom: 10px;
+}
+
 .ecl-footer__list {
   margin: 0;
   max-width: none;

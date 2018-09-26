@@ -40,15 +40,13 @@ function know4pol_search_menu() {
     'access arguments' => array('administer know4pol search'),
     'type' => MENU_NORMAL_ITEM,
   );
-  $items['group/node/%/admin/know4pol_search'] = array(
+  $items['group/%/%/admin/know4pol_search'] = array(
     'title' => 'Know4pol Search settings',
     'description' => 'Know4pol  search settings',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('_know4pol_search_settings_form', 2),
-    'access arguments' => array('node', 2,
-      'configure OG search block content types',
-    ),
-    'access callback' => 'og_user_access',
+    'access callback' => 'og_ui_user_access_group',
+    'access arguments' => array('add user', 1, 2),
     'type' => MENU_NORMAL_ITEM,
   );
   return $items;

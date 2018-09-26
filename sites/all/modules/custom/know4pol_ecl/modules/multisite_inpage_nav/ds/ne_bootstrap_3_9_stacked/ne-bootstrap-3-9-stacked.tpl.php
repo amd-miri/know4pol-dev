@@ -29,19 +29,8 @@
   </div>
   <<?php print $footer_wrapper ?> class="group-footer<?php print $footer_classes; ?>">
     <?php if ($footer_top): ?>
-    <!-- Table with empty heading - enhanced -->
-    <table class="ecl-table ecl-table--responsive">
-      <thead>
-        <!-- Those contain a hidden special char to avoid ECL bug. Char U+FEFF -->
-        <tr>
-          <th scope="col">Get this resource</th>
-          <th scope="col">﻿</th>
-        </tr>
-      </thead>
-      <tbody>
-        <?php print $footer_top; ?>
-      </tbody>
-    </table>
+      <h3>Get this resource</h3>
+      <?php print $footer_top; ?>
     <?php endif; ?>
     <?php if ($footer): ?>
     <!-- Table with empty heading - enhanced -->
