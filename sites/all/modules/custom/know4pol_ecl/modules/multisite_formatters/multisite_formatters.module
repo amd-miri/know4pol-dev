@@ -5,9 +5,11 @@
  * Defines custom Nexteuropa components field formatters.
  */
 
- /**
-  * Implements hook_theme().
-  */
+ define('MULTISITE_FORMATTERS_NOT_BLOCK_TAGS', '<b><strong><u><span><em><i><br>');
+
+/**
+ * Implements hook_theme().
+ */
 function multisite_formatters_theme($existing, $type, $theme, $path) {
   $templates_path = sprintf('%s/templates', $path);
 
@@ -44,6 +46,27 @@ function multisite_formatters_field_formatter_info() {
         'rewrite' => '',
       ),
     ),
+    'smarter_trim' => array(
+      'label' => t('Smarter trimmed'),
+      'description' => t('Smart trim with extra features.'),
+      'field types' => array(
+        'text',
+        'text_long',
+        'text_with_summary',
+      ),
+      'settings' => array(
+        'summary_handler' => 'full',
+        'trim_type' => 'first_p',
+        'trim_length' => 300,
+        'trim_unit' => 'chars',
+        'trim_suffix' => '&hellip;',
+        'link_content' => 0,
+        'more_link' => FALSE,
+        'more_text' => t('Read more'),
+        'filter_options' => array(),
+        'filter_preserve_tags' => '',
+      ),
+    ),
   );
 }
 
@@ -56,6 +79,7 @@ function multisite_formatters_field_formatter_settings_form($field, $instance, $
   $element = array();
 
   // Switch for the different formatters.
+  // ECL tags.
   if ($display['type'] == 'ecl_tags') {
     $element['link'] = array(
       '#type' => 'select',
@@ -132,6 +156,118 @@ function multisite_formatters_field_formatter_settings_form($field, $instance, $
       ),
     );
   }
+
+  // Smarter trim.
+  elseif ($display['type'] == 'smarter_trim') {
+    if ($field['type'] == 'text_with_summary') {
+      $element['summary_handler'] = array(
+        '#title' => t('Summary'),
+        '#type' => 'select',
+        '#options' => array(
+          'full' => t("Use summary if present, and do not trim"),
+          'trim' => t("Use summary if present, honor trim settings"),
+          'ignore' => t("Do not use summary"),
+        ),
+        '#default_value' => $settings['summary_handler'],
+        '#description' => t('Source of the text that will be processed.'),
+      );
+    }
+
+    $element['trim_type'] = array(
+      '#title' => t('Trim type'),
+      '#type' => 'select',
+      '#options' => array(
+        'first_p' => t("First paragrpah"),
+        'trim' => t("Standard trim"),
+      ),
+      '#default_value' => $settings['trim_type'],
+    );
+
+    $element['trim_length'] = array(
+      '#title' => t('Trim length'),
+      '#type' => 'textfield',
+      '#size' => 10,
+      '#default_value' => $settings['trim_length'],
+      '#element_validate' => array('_element_validate_integer_positive'),
+      '#required' => TRUE,
+      '#states' => array(
+        'visible' => array(
+          'select[name="fields[' . $field['field_name'] . '][settings_edit_form][settings][trim_type]"' => array('value' => 'trim'),
+        ),
+      ),
+    );
+
+    $element['trim_unit'] = array(
+      '#title' => t('Trim units'),
+      '#type' => 'select',
+      '#options' => array(
+        'chars' => t("Characters"),
+        'words' => t("Words"),
+      ),
+      '#default_value' => $settings['trim_unit'],
+      '#states' => array(
+        'visible' => array(
+          'select[name="fields[' . $field['field_name'] . '][settings_edit_form][settings][trim_type]"' => array('value' => 'trim'),
+        ),
+      ),
+    );
+
+    $element['trim_suffix'] = array(
+      '#title' => t('Suffix'),
+      '#type' => 'textfield',
+      '#size' => 10,
+      '#default_value' => $settings['trim_suffix'],
+      '#states' => array(
+        'visible' => array(
+          'select[name="fields[' . $field['field_name'] . '][settings_edit_form][settings][trim_type]"' => array('value' => 'trim'),
+        ),
+      ),
+    );
+
+    $element['link_content'] = array(
+      '#title' => t('Link to content'),
+      '#type' => 'select',
+      '#default_value' => $settings['link_content'],
+      '#description' => t('Linking text to content will only keep @tags tags. Can be ovverided by fiter options', array('@tags' => MULTISITE_FORMATTERS_NOT_BLOCK_TAGS)),
+      '#options' => array(
+        0 => t('No link'),
+        'text' => t('Link the whole text'),
+        'more' => t('Display "more" link'),
+      ),
+    );
+    $element['more_text'] = array(
+      '#title' => t('More link text'),
+      '#type' => 'textfield',
+      '#size' => 20,
+      '#default_value' => $settings['more_text'],
+      '#description' => t('The label of the link that will be appended to the text'),
+      '#states' => array(
+        'visible' => array(
+          'select[name="fields[' . $field['field_name'] . '][settings_edit_form][settings][link_content]"' => array('value' => 'more'),
+        ),
+      ),
+    );
+    $element['filter_options'] = array(
+      '#title' => t('Filter content'),
+      '#type' => 'checkboxes',
+      '#options' => array(
+        'strip_html' => t('Strip HTML tags'),
+      ),
+      '#default_value' => empty($settings['filter_options']) ? array() : $settings['filter_options'],
+    );
+
+    $element['filter_preserve_tags'] = array(
+      '#title' => t('Tags to preserve'),
+      '#description' => t('Which tags to preserve if "Strip HTML" is chosen above. Format as "&lt;p&gt;&lt;a&gt;" to preserve p and a tags.'),
+      '#type' => 'textfield',
+      '#default_value' => $settings['filter_preserve_tags'],
+      '#states' => array(
+        'visible' => array(
+          'input[name="fields[' . $field['field_name'] . '][settings_edit_form][settings][filter_options][strip_html]"' => array('checked' => TRUE),
+        ),
+      ),
+    );
+  }
   return $element;
 }
 
@@ -143,6 +279,8 @@ function multisite_formatters_field_formatter_settings_summary($field, $instance
   $settings = $display['settings'];
   $summary = array();
 
+  // Switch for the different formatters.
+  // ECL tags.
   if ($display['type'] == 'ecl_tags') {
     // Switch for the different cases in the ECL Tags field formatter.
     switch ($settings['link']) {
@@ -181,6 +319,42 @@ function multisite_formatters_field_formatter_settings_summary($field, $instance
         break;
     }
   }
+
+  // Smarter trim.
+  elseif ($display['type'] == 'smarter_trim') {
+    if ($field['type'] == 'text_with_summary') {
+      $summary[] = [
+        'full' => t('Uses summary, no trim'),
+        'trim' => t('Uses summary, perform trim'),
+      ][$settings['summary_handler']];
+    }
+    switch ($settings['trim_type']) {
+      case 'first_p':
+        $summary[] = t("Keep 1st paragraph");
+        break;
+
+      case 'trim':
+        $summary[] =
+            t('Standard trim to') . ' ' .
+            $settings['trim_length'] . ' ' . $settings['trim_unit'] .
+            (drupal_strlen($settings['trim_suffix']) ? (' ' . t('with suffix') . ' ' . $settings['trim_suffix']) : '');
+    }
+    switch ($settings['link_content']) {
+      case 'text':
+        $summary[] = t("Link on text");
+        break;
+
+      case 'more':
+        $summary[] = t('Link after text: "@more"', array('@more' => $settings['more_text']));
+        break;
+
+    }
+    if (isset($settings['filter_options']['strip_html']) && $settings['filter_options']['strip_html'] != '') {
+      $summary[] = t('Strip HTML tags') .
+        (drupal_strlen($settings['filter_preserve_tags']) ? (' ' . t('keeping tags:') . ' ' . $settings['filter_preserve_tags']) : '');
+    }
+  }
+
   $summary = implode('<br />', $summary);
 
   return $summary;
@@ -395,7 +569,147 @@ function multisite_formatters_field_formatter_view($entity_type, $entity, $field
     }
   }
 
+  // Smarter trim.
+  elseif ($display['type'] == 'smarter_trim') {
+    foreach ($items as $delta => $item) {
+      // Get the source text we need to work with.
+      $output = _text_sanitize($instance, $langcode, $item, 'value');
+      $process_trim = TRUE;
+      switch (($field['type'] == 'text_with_summary') ? $settings['summary_handler'] : '') {
+        case 'full':
+          $process_trim = FALSE;
+        case 'trim':
+          // Get summary if present.
+          if (drupal_strlen($item[summary])) {
+            $output = _text_sanitize($instance, $langcode, $item, 'summary');
+          }
+          break;
+      }
+      // First process filter to avoid overtrimming the text.
+      if (isset($settings['filter_options']['strip_html']) && $settings['filter_options']['strip_html'] != '') {
+        $output = strip_tags($output, $settings['filter_preserve_tags']);
+      }
+      if ($process_trim) {
+        switch ($settings['trim_type']) {
+          case 'first_p':
+            if (preg_match('/<p>(.*?)<\/p>/i', $output, $match)) {
+              $output = $match[0];
+            }
+            elseif (preg_match('/.*?\.|\n/i', $output, $match)) {
+              $output = $match[0];
+            }
+            break;
+
+          case 'trim':
+            $output = _multisite_formatters_trim_html_text($output, $settings['trim_length'], $settings['trim_unit'], $settings['trim_suffix']);
+            break;
+        }
+        // $settings['link_content'].
+        if ($settings['link_content'] && $uri = entity_uri($entity_type, $entity)) {
+          switch ($settings['link_content']) {
+            case 'text':
+              // Only keep inline elements excepted links.
+              $output = l(strip_tags($output, MULTISITE_FORMATTERS_NOT_BLOCK_TAGS), $uri['path'], array('html' => TRUE));
+              break;
+
+            case 'more':
+              // Don't add a more link if the field ends in <!--break-->.
+              if (strpos(strrev($output), strrev('<!--break-->')) !== 0) {
+                $output .= '<p>' . l(t('@more_text', array('@more_text' => $settings['more_text'])), $uri['path'], array('html' => TRUE, 'attributes' => array('class' => array('more-link')))) . '</p>';
+              }
+              break;
+          }
+        }
+      }
+
+      $elements[$delta] = array(
+        '#markup' => $output,
+      );
+    }
+  }
+
   return $elements;
+}
+
+/**
+ * Trim html text to a specific number of word/character .
+ *
+ * @param string $html
+ *   The source HTML.
+ * @param int $max_len
+ *   The number of elements to keep.
+ * @param string $type
+ *   The element type to count: word or char.
+ * @param string $suffix
+ *   A suffix to add if cropped.
+ *
+ * @return string
+ *   The trimmed text
+ */
+function _multisite_formatters_trim_html_text($html, $max_len, $type, $suffix) {
+  // Decode html entities to avoid too much trim.
+  $html = html_entity_decode($html);
+
+  // Build index of tags.
+  preg_match_all('/<.*?>/i', $html, $tags, PREG_OFFSET_CAPTURE);
+  // Get only the flat text/words.
+  preg_match_all('/[[:graph:]]+/', strip_tags($html), $text, PREG_OFFSET_CAPTURE);
+
+  $tags = $tags[0];
+  $tag_stack = array();
+  $index_tag = 0;
+  $offset_tags = 0;
+  $last_word = 0;
+  $total_len = 0;
+  $current_pos = 0;
+
+  // Start counting in text.
+  foreach ($text[0] as $index => $word) {
+    $total_len += ($type == 'words' ? 1 : drupal_strlen($word[0]));
+    if ($total_len > $max_len) {
+      break;
+    }
+    // Catch up with the tags length to this word.
+    $current_pos = $word[1] + strlen($word[0]);
+    // Go thought tags with array boundaries as safeguard.
+    while ($tags[$index_tag][1] - $offset_tags <= $current_pos && $index_tag++ < count($tags)) {
+      $tag = $tags[$index_tag - 1];
+      // Minus one as indxed increased in condition. Needed since the continues.
+      $offset_tags += strlen($tag[0]);
+      // Self-ending tag, eg BR or IMG ?
+      if (preg_match('/<(img|hr|br)|\s?\/\s?>$/i', $tag[0])) {
+        continue;
+      }
+      // Starting tag ?
+      if (preg_match('/<([[:alpha:]]+)/i', $tag[0], $match)) {
+        $tag_stack[] = $match[1];
+        continue;
+      }
+      // Ending tag ?
+      if (preg_match('/<\/([[:alpha:]]+)/i', $tag[0])) {
+        // In theory no need to check the tag matches
+        // the stack if the HTML structure is valid.
+        array_pop($tag_stack);
+        continue;
+      }
+      // Weird tag, do nothing.
+    }
+    $last_word = $index;
+  }
+
+  $result = substr($html, 0, $current_pos + $offset_tags);
+
+  // Append suffix if cropped.
+  if ($last_word < count($text[0])) {
+    $result .= filter_xss($suffix);
+  }
+  // Loop trough until opened tags are closed.
+  // Could be done via _filter_htmlcorrector().
+  while (count($tag_stack)) {
+    $result .= '</' . array_pop($tag_stack) . '>';
+  }
+
+  return $result;
 }
 
 /**
@@ -447,7 +761,7 @@ function _multisite_formatters_get_facet($field_name) {
  */
 function _multisite_formatters_get_facets_url_params(array $query) {
   $i = 0;
-  $query_string = [];
+  $query_string = array();
   // Build URL for facets search.
   foreach ($query as $key => $value) {
     $query_string[] = sprintf('f[%d]=%s:%s', $i, $key, $value);
