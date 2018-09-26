@@ -89,56 +89,14 @@ function know4pol_core_permission() {
  */
 function know4pol_core_og_permission() {
   return array(
-    'menu OG view unpublished' => array(
-      'title' => t('View OG unpublished menu links'),
+    'view manage KS content section' => array(
+      'title' => t('View "manage KS content" in admin toolbar'),
     ),
     'assign publication to ks' => array(
       'title' => t('Assign publication to KS'),
       'description' => t('Assign publication to the current KS'),
     ),
   );
-}
-
-/**
- * Implements hook_query_TAG_alter().
- *
- * @see menu_tree_check_access()
- *   Contains the query being altered here.
- *   This is most likely the only query with tag node_access
- *   where the first condition is for the node.status column.
- */
-function know4pol_core_query_node_access_alter(QueryAlterableInterface $query) {
-  // We want to show unpulished menu links to some roles.
-  // First we check if we're in an organic group
-  // if yes, then we get the related group ID.
-  $gid = "";
-  $node = menu_get_object();
-  // We check if we're in a content_type related to OG fields.
-  if (isset($node->og_group_ref)) {
-    // Then we check if the current page is the main page of the sub-site.
-    if (isset($node->group_group[LANGUAGE_NONE][0]['value']) && ($node->group_group[LANGUAGE_NONE][0]['value'] == 1)) {
-      $gid = $node->nid;
-    }
-    // Or if it's a sub-page of the sub-site.
-    elseif (!empty($node->og_group_ref)) {
-      $gid = $node->og_group_ref[LANGUAGE_NONE][0]['target_id'];
-    }
-  }
-  // Then we check
-  // if the current user has the drupal 'menu view unpublished' permission
-  // Or the organic group one which is 'menu OG view unpublished'.
-  if (user_access('menu view unpublished')
-     || (!empty($gid) && (og_user_access('node', $gid, 'menu OG view unpublished')))
-     ) {
-    $c = &$query->conditions();
-    // Remove the status condition if we suspect this query originates from
-    // menu_tree_check_access().
-    if (count($c) == 3 &&
-      is_string($c[0]['field']) && $c[0]['field'] == 'n.status' &&
-      is_string($c[1]['field']) && $c[1]['field'] == 'n.nid' && $c[1]['operator'] == 'IN') {
-      unset($c[0]);
-    }
-  }
 }
 
 /**
@@ -648,11 +606,95 @@ function _know4pol_core_theme_ks_admin_menu(array $menuarray) {
 }
 
 /**
+ * Implements hook_menu().
+ */
+/*function know4pol_core_menu() {
+  $items['group/%/%/admin/content'] = array(
+    'title' => 'View all KS content',
+    'description' => 'Manage all KS content',
+    'access callback' => 'og_ui_user_access_group',
+    'access arguments' => array('add user', 1, 2),
+    'type' => MENU_NORMAL_ITEM,
+  );
+  $items['group/%/%/admin/files'] = array(
+    'title' => t('View all KS files'),
+    'description' => t('Manage all KS files'),
+    'access callback' => 'og_ui_user_access_group',
+    'access arguments' => array('add user', 1, 2),
+    'type' => MENU_NORMAL_ITEM,
+  );
+  $items['group/%/%/admin/publications'] = array(
+    'title' => t('Assign Pubsy publications to KS'),
+    'description' => t('Assign Pubsy publications to KS'),
+    'access callback' => 'og_ui_user_access_group',
+    'access arguments' => array('add user', 1, 2),
+    'type' => MENU_NORMAL_ITEM,
+  );
+  return $items;
+}*/
+
+/**
+ * Implements hook_og_ui_get_group_admin().
+ */
+function know4pol_core_og_ui_get_group_admin($group_type, $gid) {
+  $items = array();
+  if (og_user_access($group_type, $gid, 'add user')) {
+    $items['know4pol_content'] = array(
+      'title' => t('View all KS content'),
+      'description' => t('Manage all KS content'),
+      'href' => 'admin/content',
+      'access callback' => 'og_ui_user_access_group',
+      'access arguments' => array('add user', 1, 2),
+    );
+    $items['know4pol_files'] = array(
+      'title' => t('View all KS files'),
+      'description' => t('Manage all KS files'),
+      'href' => 'admin/files',
+      'access callback' => 'og_ui_user_access_group',
+      'access arguments' => array('add user', 1, 2),
+    );
+    $items['know4pol_publications'] = array(
+      'title' => t('Assign Pubsy publications to KS'),
+      'description' => t('Assign Pubsy publications to KS'),
+      'href' => 'admin/publications',
+      'access callback' => 'og_ui_user_access_group',
+      'access arguments' => array('add user', 1, 2),
+    );
+  }
+  return $items;
+}
+
+/**
  * Implements hook_menu_alter().
  */
 function know4pol_core_menu_alter(&$items) {
   $items['node/add']['access callback'] = '_know4pol_core_node_add_access';
   $items['admin/workbench/create']['access callback'] = '_know4pol_core_node_add_access';
+  $items['group/node/%/admin/content']['access callback'] = '_know4pol_core_get_og_access';
+  $items['group/node/%/admin/content']['access arguments'] = array('view manage KS content section', 'node', 2);
+  $items['group/node/%/admin/files']['access callback'] = '_know4pol_core_get_og_access';
+  $items['group/node/%/admin/files']['access arguments'] = array('view manage KS content section', 'node', 2);
+  $items['group/node/%/admin/publications']['access callback'] = '_know4pol_core_get_og_access';
+  $items['group/node/%/admin/publications']['access arguments'] = array('view manage KS content section', 'node', 2);
+}
+
+/**
+ * Access callback: check if the user has the given OG permission.
+ *
+ * @param string $perm
+ *   The permission to check.
+ * @param string $group_type
+ *   The group type.
+ * @param string $gid
+ *   The group id.
+ */
+function _know4pol_core_get_og_access($perm, $group_type, $gid) {
+  $gid = (int)$gid;
+  if (og_user_access($group_type, $gid, $perm)) {
+    return TRUE;
+  } else {
+    return FALSE;
+  }
 }
 
 /**
