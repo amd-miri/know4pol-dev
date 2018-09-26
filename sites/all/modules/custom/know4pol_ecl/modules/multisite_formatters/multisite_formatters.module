@@ -164,12 +164,12 @@ function multisite_formatters_field_formatter_settings_form($field, $instance, $
         '#title' => t('Summary'),
         '#type' => 'select',
         '#options' => array(
-          'full' => t("Use summary if present, and do not trim"),
-          'trim' => t("Use summary if present, honor trim settings"),
+          'full' => t("Use summary if present not trimmed."),
+          'trim' => t("Use summary if present and honor trim settings"),
           'ignore' => t("Do not use summary"),
         ),
         '#default_value' => $settings['summary_handler'],
-        '#description' => t('Source of the text that will be processed.'),
+        '#description' => t('Usage of summary. Body will always be be trimmed'),
       );
     }
 
@@ -575,15 +575,15 @@ function multisite_formatters_field_formatter_view($entity_type, $entity, $field
       // Get the source text we need to work with.
       $output = _text_sanitize($instance, $langcode, $item, 'value');
       $process_trim = TRUE;
-      switch (($field['type'] == 'text_with_summary') ? $settings['summary_handler'] : '') {
-        case 'full':
-          $process_trim = FALSE;
-        case 'trim':
-          // Get summary if present.
-          if (drupal_strlen($item[summary])) {
+      // Only check summary settings if present.
+      if (drupal_strlen($item[summary])) {
+        switch (($field['type'] == 'text_with_summary') ? $settings['summary_handler'] : '') {
+          case 'full':
+            $process_trim = FALSE;
+          case 'trim':
             $output = _text_sanitize($instance, $langcode, $item, 'summary');
-          }
-          break;
+            break;
+        }
       }
       // First process filter to avoid overtrimming the text.
       if (isset($settings['filter_options']['strip_html']) && $settings['filter_options']['strip_html'] != '') {
