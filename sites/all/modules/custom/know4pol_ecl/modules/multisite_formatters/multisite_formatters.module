@@ -670,12 +670,12 @@ function _multisite_formatters_trim_html_text($html, $max_len, $type, $suffix) {
       break;
     }
     // Catch up with the tags length to this word.
-    $current_pos = $word[1] + strlen($word[0]);
+    $current_pos = $word[1] + drupal_strlen($word[0]);
     // Go thought tags with array boundaries as safeguard.
     while ($tags[$index_tag][1] - $offset_tags <= $current_pos && $index_tag++ < count($tags)) {
       $tag = $tags[$index_tag - 1];
       // Minus one as indxed increased in condition. Needed since the continues.
-      $offset_tags += strlen($tag[0]);
+      $offset_tags += drupal_strlen($tag[0]);
       // Self-ending tag, eg BR or IMG ?
       if (preg_match('/<(img|hr|br)|\s?\/\s?>$/i', $tag[0])) {
         continue;
@@ -697,7 +697,7 @@ function _multisite_formatters_trim_html_text($html, $max_len, $type, $suffix) {
     $last_word = $index;
   }
 
-  $result = substr($html, 0, $current_pos + $offset_tags);
+  $result = drupal_substr($html, 0, $current_pos + $offset_tags);
 
   // Append suffix if cropped.
   if ($last_word < count($text[0])) {

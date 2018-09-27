@@ -606,34 +606,6 @@ function _know4pol_core_theme_ks_admin_menu(array $menuarray) {
 }
 
 /**
- * Implements hook_menu().
- */
-/*function know4pol_core_menu() {
-  $items['group/%/%/admin/content'] = array(
-    'title' => 'View all KS content',
-    'description' => 'Manage all KS content',
-    'access callback' => 'og_ui_user_access_group',
-    'access arguments' => array('add user', 1, 2),
-    'type' => MENU_NORMAL_ITEM,
-  );
-  $items['group/%/%/admin/files'] = array(
-    'title' => t('View all KS files'),
-    'description' => t('Manage all KS files'),
-    'access callback' => 'og_ui_user_access_group',
-    'access arguments' => array('add user', 1, 2),
-    'type' => MENU_NORMAL_ITEM,
-  );
-  $items['group/%/%/admin/publications'] = array(
-    'title' => t('Assign Pubsy publications to KS'),
-    'description' => t('Assign Pubsy publications to KS'),
-    'access callback' => 'og_ui_user_access_group',
-    'access arguments' => array('add user', 1, 2),
-    'type' => MENU_NORMAL_ITEM,
-  );
-  return $items;
-}*/
-
-/**
  * Implements hook_og_ui_get_group_admin().
  */
 function know4pol_core_og_ui_get_group_admin($group_type, $gid) {
@@ -671,11 +643,20 @@ function know4pol_core_menu_alter(&$items) {
   $items['node/add']['access callback'] = '_know4pol_core_node_add_access';
   $items['admin/workbench/create']['access callback'] = '_know4pol_core_node_add_access';
   $items['group/node/%/admin/content']['access callback'] = '_know4pol_core_get_og_access';
-  $items['group/node/%/admin/content']['access arguments'] = array('view manage KS content section', 'node', 2);
+  $items['group/node/%/admin/content']['access arguments'] = array('view manage KS content section',
+    'node',
+    2,
+  );
   $items['group/node/%/admin/files']['access callback'] = '_know4pol_core_get_og_access';
-  $items['group/node/%/admin/files']['access arguments'] = array('view manage KS content section', 'node', 2);
+  $items['group/node/%/admin/files']['access arguments'] = array('view manage KS content section',
+    'node',
+    2,
+  );
   $items['group/node/%/admin/publications']['access callback'] = '_know4pol_core_get_og_access';
-  $items['group/node/%/admin/publications']['access arguments'] = array('view manage KS content section', 'node', 2);
+  $items['group/node/%/admin/publications']['access arguments'] = array('view manage KS content section',
+    'node',
+    2,
+  );
 }
 
 /**
@@ -689,10 +670,11 @@ function know4pol_core_menu_alter(&$items) {
  *   The group id.
  */
 function _know4pol_core_get_og_access($perm, $group_type, $gid) {
-  $gid = (int)$gid;
+  $gid = (int) $gid;
   if (og_user_access($group_type, $gid, $perm)) {
     return TRUE;
-  } else {
+  }
+  else {
     return FALSE;
   }
 }
