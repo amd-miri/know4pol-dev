@@ -17,6 +17,34 @@ function know4pol_core_views_pre_build(&$view) {
 }
 
 /**
+ * Implements hook_views_pre_render().
+ */
+function know4pol_core_views_pre_render(&$view) {
+  // For the organisation_related_knowledge_services view,
+  // we would replace the description field by
+  // the organisation custom KS descripion field,if availaible.
+  if ($view->name == "organisation_related_knowledge_services") {
+    $node = menu_get_item();
+    if (isset($node['page_arguments'][0]->field_org_ks_specific_desc[LANGUAGE_NONE])) {
+      foreach ($node['page_arguments'][0]->field_org_ks_specific_desc[LANGUAGE_NONE] as $item) {
+        $node_field_collection = field_collection_item_load($item['value'], FALSE);
+        $ks_desc_nid = $node_field_collection->field_org_ks_desc_related_ks[LANGUAGE_NONE][0]['target_id'];
+        $ks_desc_new_description = $node_field_collection->field_org_ks_desc_specific_desc[LANGUAGE_NONE][0]['value'];
+        if (isset($view->result) && !empty($view->result) && !empty($ks_desc_new_description)) {
+          foreach ($view->result as $key => $value) {
+            if ($value->nid == $ks_desc_nid) {
+              $view->result[$key]->field_field_short_description[0]['rendered']['#markup'] =
+              $view->result[$key]->field_field_short_description[0]['raw']['value'] =
+              $view->result[$key]->field_field_short_description[0]['raw']['safe_value'] = $ks_desc_new_description;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+/**
  * Implements hook_form_FORM_ID_alter().
  */
 function know4pol_core_form_user_admin_permissions_alter(&$form, &$form_state, $form_id) {
