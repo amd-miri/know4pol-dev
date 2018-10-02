@@ -1,0 +1,14 @@
+<?php
+/**
+ * @file
+ * Clientside Validation support for Form API's #states.
+ */
+
+/**
+ * Implements hook_ctools_plugin_directory().
+ */
+function clientside_validation_states_ctools_plugin_directory($module, $plugin) {
+  if ($module == 'clientside_validation') {
+    return 'plugins/' . $plugin;
+  }
+}

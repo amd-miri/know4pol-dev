@@ -1,0 +1,21 @@
+<?php
+
+/**
+ * Implements hook_ctools_plugin_directory().
+ */
+function clientside_validation_email_ctools_plugin_directory($module, $plugin) {
+  if ($module == 'clientside_validation') {
+    return 'plugins/' . $plugin;
+  }
+}
+
+/**
+ * Implements hook_field_widget_form_alter().
+ */
+function clientside_validation_email_field_widget_form_alter(&$element, &$form_state, $context) {
+  switch ($context['field']['type']) {
+    case 'email':
+      $element['email']['#clientside_validation_type'] = 'email';
+      break;
+  }
+}

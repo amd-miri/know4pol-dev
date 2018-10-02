@@ -1,0 +1,60 @@
+<?php
+/**
+ * @file
+ *
+ */
+
+/**
+ * Implements hook_ctools_plugin_directory().
+ */
+function clientside_validation_ife_ctools_plugin_directory($module, $plugin) {
+  if ($module == 'clientside_validation') {
+    return 'plugins/' . $plugin;
+  }
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function clientside_validation_ife_form_ife_settings_form_alter(&$form) {
+  $form['general_settings']['ife_display']['#options'][] = t('Show error messages through Clientside Validation');
+  foreach (element_children($form['form_ids']) as $child) {
+    $form['form_ids'][$child]['display']['#options'][] = t('Show error messages through Clientside Validation');
+  }
+}
+
+function clientside_validation_ife_validator($form, $form_state) {
+  $settings = array();
+
+  if (isset($form['#ife_display']) && $form['#ife_display'] == 3) {
+    // recurse through the form elements
+    clientside_validation_ife_recurse_elements($form, $form['#form_id'], $settings);
+  }
+  else {
+    return;
+  }
+
+  $form_id = $form['#id'];
+  $matches = array();
+  preg_match(' /.*?(--(\d)*)/', $form_id, $matches);
+  if (isset($matches[1])) {
+    $form_id = str_replace($matches[1], '', $form_id);
+  }
+  $js_settings = array();
+  $js_settings['clientsideValidation']['forms'][$form_id]['serverSideErrors'] = $settings;
+  drupal_add_js(drupal_get_path('module', 'clientside_validation_ife') . '/clientside_validation_ife.js');
+  drupal_add_js($js_settings, 'settings');
+}
+
+function clientside_validation_ife_recurse_elements($element, &$settings) {
+  foreach (element_children($element) as $key) {
+    if (isset($element[$key]) && $element[$key]) {
+      clientside_validation_ife_recurse_elements($element[$key], $settings);
+    }
+  }
+  if (isset($element['#name'])) {
+    $settings[$element['#name']] = ife_errors('get', $element['#id']);
+    // Delete the message so IFE won't display it again.
+    ife_errors('set', $element['#id'], NULL);
+  }
+}

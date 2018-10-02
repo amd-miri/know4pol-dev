@@ -1,0 +1,53 @@
+<?php
+
+/**
+ * Implements hook_ctools_plugin_directory().
+ */
+function clientside_validation_captcha_ctools_plugin_directory($module, $plugin) {
+  if ($module == 'clientside_validation') {
+    return 'plugins/' . $plugin;
+  }
+}
+
+/**
+ * Implements hook_menu().
+ */
+function clientside_validation_captcha_menu() {
+  $items = array();
+  $items['clientside_validation/captcha'] = array(
+    'title' => 'Clientside validation ajax callback to validate captcha',
+    'page callback' => '_clientside_validation_captcha_ajax_captcha',
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+  );
+  return $items;
+}
+
+/**
+ * Ajax callback.
+ */
+function _clientside_validation_captcha_ajax_captcha() {
+  $captcha_response = filter_xss($_POST['value']);
+  $csid = $_POST['param'][0];
+  $captcha_validate = $_POST['param'][1];
+  $token = $_POST['param'][2];
+  if (!drupal_valid_token($token, $captcha_validate)) {
+    return drupal_access_denied();
+  }
+  $solution = db_query(
+    'SELECT solution FROM {captcha_sessions} WHERE csid = :csid',
+    array(':csid' => $csid)
+  )
+  ->fetchField();
+  if ($solution === FALSE) {
+    return drupal_json_output(array('result' => FALSE, 'message' => t('CAPTCHA validation error: unknown CAPTCHA session ID. Contact the site administrator if this problem persists.')));
+  }
+  if (!function_exists($captcha_validate)) {
+     $captcha_validate = 'captcha_validate_strict_equality';
+  }
+  watchdog($solution, $captcha_response);
+  if ($captcha_validate($solution, $captcha_response)) {
+    return drupal_json_output(array('result' => TRUE));
+  }
+  return drupal_json_output(array('result' => FALSE));
+}
