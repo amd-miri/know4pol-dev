@@ -29,7 +29,6 @@ class Know4polSearchFacetapiWidgetOGVocab extends FacetapiWidgetCheckboxLinks {
    */
   public function execute() {
     $element = &$this->build[$this->facet['field alias']];
-
     // Sets each item's theme hook, builds item list.
     $this->setThemeHooks($element);
     $items = $this->buildListItems($element);
@@ -50,6 +49,7 @@ class Know4polSearchFacetapiWidgetOGVocab extends FacetapiWidgetCheckboxLinks {
    * @see FacetapiWidgetLinks::buildListItems()
    */
   public function buildListItems($build) {
+    krumo($build);
     $settings = $this->settings->settings;
     // Initializes links attributes, adds rel="nofollow" if configured.
     $attributes = ($settings['nofollow']) ? array('rel' => 'nofollow') : array();
@@ -60,7 +60,7 @@ class Know4polSearchFacetapiWidgetOGVocab extends FacetapiWidgetCheckboxLinks {
     $last_vid = NULL;
     $vid_enable = array();
 
-    foreach ($build as $item) {
+    foreach ($build as &$item) {
       $row = array('class' => array());
 
       // Allow adding classes via altering.
@@ -110,8 +110,14 @@ class Know4polSearchFacetapiWidgetOGVocab extends FacetapiWidgetCheckboxLinks {
       // Themes the link, adds row to items.
       $row['data'] = theme($item['#theme'], $variables);
 
-      // Get vid of term.
-      $term = _know4pol_search_facetapi_load_term($item['#indexed_value']);
+      // Get term.
+      $term = _know4pol_search_facetapi_load_term($item);
+
+      // Skip unknown term.
+      if ($item['term'] == FALSE) {
+        continue;
+      }
+
       // Don't we know this vid already ?
       if (!array_key_exists($term->vid, $vid_enable)) {
         // Is this vocabulary par of the current OG ?
