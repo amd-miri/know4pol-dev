@@ -283,3 +283,21 @@ function know4pol_core_update_7017() {
     'field_collection',
   ), TRUE);
 }
+
+/**
+ * Update the know4pol_core weight and install clientside_validation.
+ */
+function know4pol_core_update_7018() {
+  db_update('system')
+    ->fields(array('weight' => 999))
+    ->condition('name', 'know4pol_core', '=')
+    ->execute();
+  module_enable(array(
+    'clientside_validation',
+    'clientside_validation_field_validation',
+    'clientside_validation_form',
+    'clientside_validation_html5',
+    'clientside_validation_states',
+    'clientside_validation_webform',
+  ), TRUE);
+}

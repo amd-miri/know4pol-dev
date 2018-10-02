@@ -33,6 +33,7 @@ function _multisite_inpage_nav_render(array $anchors) {
 
     // Loop our anchors. But we should replace possible bad parts from the id.
     foreach ($anchors as $heading) {
+      $heading['label'] = html_entity_decode($heading['label']);
       $items[] = l(
         $heading['label'],
         '',
