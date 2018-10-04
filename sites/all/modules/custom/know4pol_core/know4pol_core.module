@@ -716,7 +716,7 @@ function _know4pol_core_get_og_access($perm, $group_type, $gid) {
  * @see _node_add_access()
  */
 function _know4pol_core_node_add_access() {
-  if (user_access('administer content types')) {
+  if (user_access('administer nodes')) {
     return _node_add_access();
   }
   return FALSE;
