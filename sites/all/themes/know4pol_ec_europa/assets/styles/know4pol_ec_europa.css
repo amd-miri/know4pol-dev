@@ -301,3 +301,8 @@ section[id*='block-menu-menu-footer-middle-'] .block__content li a {
 section[id*='block-menu-menu-footer-middle-'] .block__content li a::after {
   position: relative !important;
 }
+
+/* ECL Component inpage-nav issue on IE */
+.ecl-u-z-navigation.js-stickybit-parent {
+  max-width: 20%;
+}
