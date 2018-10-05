@@ -699,12 +699,15 @@ function know4pol_core_menu_alter(&$items) {
  */
 function _know4pol_core_get_og_access($perm, $group_type, $gid) {
   $gid = (int) $gid;
-  if (og_user_access($group_type, $gid, $perm)) {
-    return TRUE;
+  if ($gid > 0) {
+    if (og_user_access($group_type, $gid, $perm)) {
+      return TRUE;
+    }
+    else {
+      return FALSE;
+    }
   }
-  else {
-    return FALSE;
-  }
+  return FALSE;
 }
 
 /**
