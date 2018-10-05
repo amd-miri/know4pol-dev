@@ -487,7 +487,7 @@ function drupal_http_build_query(array $query, $parent = '') {
   $params = array();
 
   foreach ($query as $key => $value) {
-    $key = $parent ? $parent . rawurlencode('[' . $key . ']') : rawurlencode($key);
+    $key = ($parent ? $parent . '[' . rawurlencode($key) . ']' : rawurlencode($key));
 
     // Recurse into children.
     if (is_array($value)) {
@@ -2236,11 +2236,8 @@ function url($path = NULL, array $options = array()) {
     'prefix' => ''
   );
 
-  // Determine whether this is an external link, but ensure that the current
-  // path is always treated as internal by default (to prevent external link
-  // injection vulnerabilities).
   if (!isset($options['external'])) {
-    $options['external'] = $path === $_GET['q'] ? FALSE : url_is_external($path);
+    $options['external'] = url_is_external($path);
   }
 
   // Preserve the original path before altering or aliasing.
@@ -3989,11 +3986,7 @@ function drupal_html_id($id) {
   // be merged with content already on the base page. The HTML IDs must be
   // unique for the fully merged content. Therefore, initialize $seen_ids to
   // take into account IDs that are already in use on the base page.
-  static $drupal_static_fast;
-  if (!isset($drupal_static_fast['seen_ids_init'])) {
-    $drupal_static_fast['seen_ids_init'] = &drupal_static(__FUNCTION__ . ':init');
-  }
-  $seen_ids_init = &$drupal_static_fast['seen_ids_init'];
+  $seen_ids_init = &drupal_static(__FUNCTION__ . ':init');
   if (!isset($seen_ids_init)) {
     // Ideally, Drupal would provide an API to persist state information about
     // prior page requests in the database, and we'd be able to add this
@@ -4038,10 +4031,7 @@ function drupal_html_id($id) {
       }
     }
   }
-  if (!isset($drupal_static_fast['seen_ids'])) {
-    $drupal_static_fast['seen_ids'] = &drupal_static(__FUNCTION__, $seen_ids_init);
-  }
-  $seen_ids = &$drupal_static_fast['seen_ids'];
+  $seen_ids = &drupal_static(__FUNCTION__, $seen_ids_init);
 
   $id = strtr(drupal_strtolower($id), array(' ' => '-', '_' => '-', '[' => '-', ']' => ''));
 
@@ -4256,6 +4246,16 @@ function drupal_add_js($data = NULL, $options = NULL) {
   // variable back to FALSE to indicate they have not yet been added.
   if (empty($javascript)) {
     $jquery_added = FALSE;
+  }
+
+  // If no type is specified and the URL is external, force the type to external.
+  if (is_string($data) && url_is_external($data)) {
+    if (is_array($options) && !array_key_exists('type', $options)) {
+      $options['type'] = 'external';
+    }
+    elseif (is_null($options)) {
+      $options = 'external';
+    }
   }
 
   // Construct the options, taking the defaults into consideration.

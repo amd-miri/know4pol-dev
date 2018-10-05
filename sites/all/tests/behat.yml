@@ -1,0 +1,34 @@
+default:
+  suites:
+    default:
+      contexts:
+        - FeatureContext
+        - Drupal\DrupalExtension\Context\DrushContext
+        - Drupal\DrupalExtension\Context\MessageContext
+        - Drupal\nexteuropa\Context\DrupalContext
+        - Drupal\nexteuropa\Context\MinkContext
+      filters:
+        tags: "~@wip"
+  extensions:
+    Behat\MinkExtension:
+      goutte: ~
+      selenium2: ~
+      javascript_session: 'selenium2'
+      base-url: 'http://localhost/'
+    Drupal\DrupalExtension:
+      api_driver: 'drupal'
+      blackbox: ~
+      drupal:
+        drupal_root: '/home/ec2-user/environment/know4pol-reference/platform'
+      selectors:
+        message_selector: '.messages'
+        error_message_selector: '.messages.error'
+        success_message_selector: '.messages.status'
+      subcontexts:
+        paths:
+          - '/home/ec2-user/environment/know4pol-reference/platform/sites/all'
+      drush:
+        root: '/home/ec2-user/environment/know4pol-reference/platform'
+        binary: '/home/ec2-user/environment/know4pol-reference/bin/drush'
+  formatters:
+    progress: ~

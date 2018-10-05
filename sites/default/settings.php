@@ -1,45 +1,71 @@
 <?php
 
 /**
+ * Load local development override configuration, if available.
+ *
+ * Use a custom settings file to override variables on secondary (staging,
+ * development, etc) installations of this site. Typically used to disable
+ * caching, JavaScript/CSS compression, re-routing of outgoing emails, and
+ * other things that should not happen on development and testing sites.
+ *
+ * The purpose of this file is to set defaults, not to enforce them, so
+ * keep this code block at the start of this file.
+ */
+$local_settings = getenv('DRUPAL_LOCAL_SETTINGS_LOCATION');
+if (file_exists($local_settings)){
+  include $local_settings;
+}
+
+/**
  * @file
  * Drupal site-specific configuration file.
  *
  * IMPORTANT NOTE:
- * This file may have been set to read-only by the Drupal installation
- * program. If you make changes to this file, be sure to protect it again
- * after making your modifications. Failure to remove write permissions
- * to this file is a security risk.
+ * This file may have been set to read-only by the Drupal installation program.
+ * If you make changes to this file, be sure to protect it again after making
+ * your modifications. Failure to remove write permissions to this file is a
+ * security risk.
  *
- * The configuration file to be loaded is based upon the rules below.
+ * The configuration file to be loaded is based upon the rules below. However
+ * if the multisite aliasing file named sites/sites.php is present, it will be
+ * loaded, and the aliases in the array $sites will override the default
+ * directory rules below. See sites/example.sites.php for more information about
+ * aliases.
  *
- * The configuration directory will be discovered by stripping the
- * website's hostname from left to right and pathname from right to
- * left. The first configuration file found will be used and any
- * others will be ignored. If no other configuration file is found
- * then the default configuration file at 'sites/default' will be used.
+ * The configuration directory will be discovered by stripping the website's
+ * hostname from left to right and pathname from right to left. The first
+ * configuration file found will be used and any others will be ignored. If no
+ * other configuration file is found then the default configuration file at
+ * 'sites/default' will be used.
  *
  * For example, for a fictitious site installed at
- * http://www.drupal.org/mysite/test/, the 'settings.php'
- * is searched in the following directories:
+ * http://www.drupal.org:8080/mysite/test/, the 'settings.php' file is searched
+ * for in the following directories:
  *
+ * - sites/8080.www.drupal.org.mysite.test
  * - sites/www.drupal.org.mysite.test
  * - sites/drupal.org.mysite.test
  * - sites/org.mysite.test
  *
+ * - sites/8080.www.drupal.org.mysite
  * - sites/www.drupal.org.mysite
  * - sites/drupal.org.mysite
  * - sites/org.mysite
  *
+ * - sites/8080.www.drupal.org
  * - sites/www.drupal.org
  * - sites/drupal.org
  * - sites/org
  *
  * - sites/default
  *
- * If you are installing on a non-standard port number, prefix the
+ * Note that if you are installing on a non-standard port number, prefix the
  * hostname with that number. For example,
  * http://www.drupal.org:8080/mysite/test/ could be loaded from
  * sites/8080.www.drupal.org.mysite.test/.
+ *
+ * @see example.sites.php
+ * @see conf_path()
  */
 
 /**
@@ -73,11 +99,13 @@
  * webserver.  For most other drivers, you must specify a
  * username, password, host, and database name.
  *
- * Some database engines support transactions.  In order to enable
- * transaction support for a given database, set the 'transactions' key
- * to TRUE.  To disable it, set it to FALSE.  Note that the default value
- * varies by driver.  For MySQL, the default is FALSE since MyISAM tables
- * do not support transactions.
+ * Transaction support is enabled by default for all drivers that support it,
+ * including MySQL. To explicitly disable it, set the 'transactions' key to
+ * FALSE.
+ * Note that some configurations of MySQL, such as the MyISAM engine, don't
+ * support it and will proceed silently even if enabled. If you experience
+ * transaction related crashes with such configuration, set the 'transactions'
+ * key to FALSE.
  *
  * For each database, you may optionally specify multiple "target" databases.
  * A target database allows Drupal to try to send certain queries to a
@@ -114,6 +142,38 @@
  * );
  * @endcode
  *
+ * For handling full UTF-8 in MySQL, including multi-byte characters such as
+ * emojis, Asian symbols, and mathematical symbols, you may set the collation
+ * and charset to "utf8mb4" prior to running install.php:
+ * @code
+ * $databases['default']['default'] = array(
+ *   'driver' => 'mysql',
+ *   'database' => 'databasename',
+ *   'username' => 'username',
+ *   'password' => 'password',
+ *   'host' => 'localhost',
+ *   'charset' => 'utf8mb4',
+ *   'collation' => 'utf8mb4_general_ci',
+ * );
+ * @endcode
+ * When using this setting on an existing installation, ensure that all existing
+ * tables have been converted to the utf8mb4 charset, for example by using the
+ * utf8mb4_convert contributed project available at
+ * https://www.drupal.org/project/utf8mb4_convert, so as to prevent mixing data
+ * with different charsets.
+ * Note this should only be used when all of the following conditions are met:
+ * - In order to allow for large indexes, MySQL must be set up with the
+ *   following my.cnf settings:
+ *     [mysqld]
+ *     innodb_large_prefix=true
+ *     innodb_file_format=barracuda
+ *     innodb_file_per_table=true
+ *   These settings are available as of MySQL 5.5.14, and are defaults in
+ *   MySQL 5.7.7 and up.
+ * - The PHP MySQL driver must support the utf8mb4 charset (libmysqlclient
+ *   5.5.3 and up, as well as mysqlnd 5.0.9 and up).
+ * - The MySQL server must support the utf8mb4 charset (5.5.3 and up).
+ *
  * You can optionally set prefixes for some or all database table names
  * by using the 'prefix' setting. If a prefix is specified, the table
  * name will be prepended with its value. Be sure to use valid database
@@ -137,7 +197,7 @@
  *     'authmap'   => 'shared_',
  *   ),
  * @endcode
- * You can also use a reference to a schema/database as a prefix. This maybe
+ * You can also use a reference to a schema/database as a prefix. This may be
  * useful if your Drupal installation exists in a schema that is not the default
  * or you want to access several databases from the same code base at the same
  * time.
@@ -200,20 +260,17 @@
  *   );
  * @endcode
  */
- 
 $databases = array (
-
-
   'default' => 
   array (
     'default' => 
     array (
+      'driver' => 'mysql',
       'database' => 'know4pol',
       'username' => 'root',
       'password' => '',
       'host' => 'localhost',
       'port' => '3306',
-      'driver' => 'mysql',
       'prefix' => '',
     ),
   ),
@@ -249,7 +306,7 @@ $update_free_access = FALSE;
  *   $drupal_hash_salt = file_get_contents('/home/example/salt.txt');
  *
  */
-$drupal_hash_salt = 'Vh7laVZctMMG38fO4SbsZ8emUIsa5bz0930MDOr1Q4E';
+$drupal_hash_salt = '';
 
 /**
  * Base URL (optional).
@@ -271,15 +328,14 @@ $drupal_hash_salt = 'Vh7laVZctMMG38fO4SbsZ8emUIsa5bz0930MDOr1Q4E';
  * It is not allowed to have a trailing slash; Drupal will add it
  * for you.
  */
-
- $base_url = 'https://localhost/know4pol';  // NO trailing slash!
+# $base_url = 'http://www.example.com';  // NO trailing slash!
 
 /**
  * PHP settings:
  *
  * To see what PHP settings are possible, including whether they can be set at
  * runtime (by using ini_set()), read the PHP documentation:
- * http://www.php.net/manual/en/ini.list.php
+ * http://www.php.net/manual/ini.list.php
  * See drupal_environment_initialize() in includes/bootstrap.inc for required
  * runtime settings and the .htaccess file for non-runtime settings. Settings
  * defined there should not be duplicated here so as to avoid conflict issues.
@@ -315,7 +371,7 @@ ini_set('session.cookie_lifetime', 2000000);
  * output filter may not have sufficient memory to process it.  If you
  * experience this issue, you may wish to uncomment the following two lines
  * and increase the limits of these variables.  For more information, see
- * http://php.net/manual/en/pcre.configuration.php.
+ * http://php.net/manual/pcre.configuration.php.
  */
 # ini_set('pcre.backtrack_limit', 200000);
 # ini_set('pcre.recursion_limit', 200000);
@@ -437,14 +493,25 @@ ini_set('session.cookie_lifetime', 2000000);
  * configured to cache and compress these files itself you may want to uncomment
  * one or both of the below lines, which will prevent gzip files being stored.
  */
-$conf['css_gzip_compression'] = FALSE;
-$conf['js_gzip_compression'] = FALSE;
-$conf['page_compression'] = FALSE;
+# $conf['css_gzip_compression'] = FALSE;
+# $conf['js_gzip_compression'] = FALSE;
+
+/**
+ * Block caching:
+ *
+ * Block caching may not be compatible with node access modules depending on
+ * how the original block cache policy is defined by the module that provides
+ * the block. By default, Drupal therefore disables block caching when one or
+ * more modules implement hook_node_grants(). If you consider block caching to
+ * be safe on your site and want to bypass this restriction, uncomment the line
+ * below.
+ */
+# $conf['block_cache_bypass_node_grants'] = TRUE;
 
 /**
  * String overrides:
  *
- * To override specific strings on your site with or without enabling locale
+ * To override specific strings on your site with or without enabling the Locale
  * module, add an entry to this list. This functionality allows you to change
  * a small number of your site's default English language interface strings.
  *
@@ -489,6 +556,7 @@ $conf['page_compression'] = FALSE;
  * specific pattern:
  * - 404_fast_paths_exclude: A regular expression to match paths to exclude,
  *   such as images generated by image styles, or dynamically-resized images.
+ *   The default pattern provided below also excludes the private file system.
  *   If you need to add more paths, you can add '|path' to the expression.
  * - 404_fast_paths: A regular expression to match paths that should return a
  *   simple 404 page, rather than the fully themed 404 page. If you don't have
@@ -497,235 +565,129 @@ $conf['page_compression'] = FALSE;
  *
  * Add leading hash signs if you would like to disable this functionality.
  */
-$conf['404_fast_paths_exclude'] = '/\/(?:styles)\//';
+$conf['404_fast_paths_exclude'] = '/\/(?:styles)|(?:system\/files)\//';
 $conf['404_fast_paths'] = '/\.(?:txt|png|gif|jpe?g|css|js|ico|swf|flv|cgi|bat|pl|dll|exe|asp)$/i';
-$conf['404_fast_html'] = '<html xmlns="http://www.w3.org/1999/xhtml"><head><title>404 Not Found</title></head><body><h1>Not Found</h1><p>The requested URL "@path" was not found on this server.</p></body></html>';
+$conf['404_fast_html'] = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML+RDFa 1.0//EN" "http://www.w3.org/MarkUp/DTD/xhtml-rdfa-1.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>404 Not Found</title></head><body><h1>Not Found</h1><p>The requested URL "@path" was not found on this server.</p></body></html>';
 
 /**
- * By default, fast 404s are returned as part of the normal page request
- * process, which will properly serve valid pages that happen to match and will
- * also log actual 404s to the Drupal log. Alternatively you can choose to
- * return a 404 now by uncommenting the following line. This will reduce server
- * load, but will cause even valid pages that happen to match the pattern to
- * return 404s, rather than the actual page. It will also prevent the Drupal
- * system log entry. Ensure you understand the effects of this before enabling.
+ * By default the page request process will return a fast 404 page for missing
+ * files if they match the regular expression set in '404_fast_paths' and not
+ * '404_fast_paths_exclude' above. 404 errors will simultaneously be logged in
+ * the Drupal system log.
  *
- * To enable this functionality, remove the leading hash sign below.
+ * You can choose to return a fast 404 page earlier for missing pages (as soon
+ * as settings.php is loaded) by uncommenting the line below. This speeds up
+ * server response time when loading 404 error pages and prevents the 404 error
+ * from being logged in the Drupal system log. In order to prevent valid pages
+ * such as image styles and other generated content that may match the
+ * '404_fast_paths' regular expression from returning 404 errors, it is
+ * necessary to add them to the '404_fast_paths_exclude' regular expression
+ * above. Make sure that you understand the effects of this feature before
+ * uncommenting the line below.
  */
 # drupal_fast_404();
+
+/**
+ * External access proxy settings:
+ *
+ * If your site must access the Internet via a web proxy then you can enter
+ * the proxy settings here. Currently only basic authentication is supported
+ * by using the username and password variables. The proxy_user_agent variable
+ * can be set to NULL for proxies that require no User-Agent header or to a
+ * non-empty string for proxies that limit requests to a specific agent. The
+ * proxy_exceptions variable is an array of host names to be accessed directly,
+ * not via proxy.
+ */
+# $conf['proxy_server'] = '';
+# $conf['proxy_port'] = 8080;
+# $conf['proxy_username'] = '';
+# $conf['proxy_password'] = '';
+# $conf['proxy_user_agent'] = '';
+# $conf['proxy_exceptions'] = array('127.0.0.1', 'localhost');
 
 /**
  * Authorized file system operations:
  *
  * The Update manager module included with Drupal provides a mechanism for
  * site administrators to securely install missing updates for the site
- * directly through the web user interface by providing either SSH or FTP
- * credentials. This allows the site to update the new files as the user who
- * owns all the Drupal files, instead of as the user the webserver is running
- * as. However, some sites might wish to disable this functionality, and only
- * update the code directly via SSH or FTP themselves. This setting completely
+ * directly through the web user interface. On securely-configured servers,
+ * the Update manager will require the administrator to provide SSH or FTP
+ * credentials before allowing the installation to proceed; this allows the
+ * site to update the new files as the user who owns all the Drupal files,
+ * instead of as the user the webserver is running as. On servers where the
+ * webserver user is itself the owner of the Drupal files, the administrator
+ * will not be prompted for SSH or FTP credentials (note that these server
+ * setups are common on shared hosting, but are inherently insecure).
+ *
+ * Some sites might wish to disable the above functionality, and only update
+ * the code directly via SSH or FTP themselves. This setting completely
  * disables all functionality related to these authorized file operations.
+ *
+ * @see http://drupal.org/node/244924
  *
  * Remove the leading hash signs to disable.
  */
 # $conf['allow_authorize_operations'] = FALSE;
 
-/** FPFIS configuration **/
-
-// -------------------------------------------------------------------------------
-// Base URL computation
-// -------------------------------------------------------------------------------
-// What protocol should we consider in case it cannot be determined?
-$default_proto = 'https';
-// What hostname should we consider in case no HTTP_HOST is available?
-$default_host = 'localhost';
-// What base request URI do we expect (no trailing slash)?
-$default_uri = '/know4pol';
-
-// Are we coming from SNET reverse_proxies?
-$using_proxy = isset($_SERVER['HTTP_X_BLUECOAT_VIA']);
-// Are we executed through Drush?
-$using_drush = function_exists('drush_main');
-
-// What protocol should we consider?
-$proto = $default_proto;
-if (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https') {
-  $proto = 'https';
-}
-$_SERVER['HTTPS'] = ($proto == 'https' ? 'on' : 'off');
-
-// What hostname should we consider?
-$host = $default_host;
-// Thanks to our Host-rewriting Varnish servers, we trust the HTTP Host as long
-// as it looks syntactically valid, except in Drush context.
-if (isset($_SERVER['HTTP_HOST']) && !$using_drush && drupal_valid_http_host($_SERVER['HTTP_HOST'])) {
-  $host = $_SERVER['HTTP_HOST'];
-}
-
-// By default, we simply rely on the default request URI.
-$uri = $default_uri;
-
-// Proxy-specific environment adjustments.
-if ($using_proxy) {
-  if (isset($_SERVER['HTTP_CLIENT_IP'])) {
-    $_SERVER['REMOTE_ADDR'] = $_SERVER['HTTP_CLIENT_IP'];
-  }
-}
-
-// Heuristics relying on the Apache-provided server port instead of the
-// formerly computed host are prone to errors.
-$_SERVER['SERVER_PORT'] = '';
-
-// Compute the "base base" URL.
-$base_base_url = sprintf('%s://%s%s', $proto, $host, $uri);
-
-// This instance has no subsite so our base URL always equals our base base
-// URL.
-$base_url = $base_base_url;
-ini_set('session.cookie_path', $uri);
-
-// Invite browsers to discard session cookies as soon as possible to reduce the
-// number of visitors that browse the site with a session cookie (thus
-// preventing Varnish from serving cached pages) while they are not logged
-// anymore.
-ini_set('session.cookie_lifetime', 0);
-
-// Enforce clean URLs
-$conf['clean_url'] = 1;
-
-// -------------------------------------------------------------------------------
-// Files-related configuration
-// -------------------------------------------------------------------------------
-$conf['file_temporary_path'] = 'tmp';
-$conf['file_chmod_directory'] = 02775;
-
-// -------------------------------------------------------------------------------
-// ApacheSolr configuration
-// -------------------------------------------------------------------------------
-$conf['apachesolr_attachments_java']      = 'C:\Program Files\Java\jdk1.8.0_162\bin\java.exe';
-$conf['apachesolr_attachments_tika_path'] = 'C:\xampp\htdocs\know4pol\sites\all\modules\contributed\apachesolr_attachments';
-$conf['apachesolr_attachments_tika_jar']  = 'tika-app-1.1.jar';
-
-// -------------------------------------------------------------------------------
-// Ecas configuration
-// -------------------------------------------------------------------------------
-define('FPFIS_COMMON_LIBRARIES_PATH', realpath('sites/all/modules/custom/ecas/libraries'));
-define('FPFIS_ECAS_PATH',             realpath('sites/all/modules/custom/ecas/libraries/phpcas/CAS.php'));
-define('FPFIS_ECAS_URL', 'ecas.ec.europa.eu');
-define('FPFIS_ECAS_PORT', 443);
-define('FPFIS_ECAS_URI', '/cas');
-define('FPFIS_LDAP_SERVER_NAME', 'ourldapserver');
-define('FPFIS_LDAP_SERVER_PORT', '389');
-define('FPFIS_LDAP_BASE_DN', 'ou=People,o=cec.eu.int');
-define('FPFIS_LDAP_BASE_DN_DG', 'ou=Groups,o=cec.eu.int');
-define('FPFIS_LDAP_USER_DN', 'miriahm');
-define('FPFIS_LDAP_PASSWORD', 'Maman$4747');
-$conf['ecas_force_proto'] = 'https';
-
-// We enforce the server admin email address because it may be used by the phpCas library
-$_SERVER['SERVER_ADMIN'] = 'digit-fpfis-support@ec.europa.eu';
-
-// -------------------------------------------------------------------------------
-// Cache configuration
-// -------------------------------------------------------------------------------
-$conf['page_cache_invoke_hooks'] = TRUE;
-$conf['cache'] = 1;
-$conf['preprocess_css'] = 0;
-$conf['preprocess_js'] = 0;
-$conf['cache_lifetime'] = 0; // this parameter is rather tricky: its human-readable description in the Drupal admin interface mentions it applies to cache_page, but it is actually taken into account by all bins, which looks like a good way to get weird behaviours
-$conf['page_cache_without_database'] = FALSE; // we need to connect to the database in order to get variables, because the invalidation mechanism relies on that.
-
-// -------------------------------------------------------------------------------
-// Proxy configuration
-// -------------------------------------------------------------------------------
-
-$conf['proxy_server'] = 'ps-bxl-usr.cec.eu.int';
-$conf['proxy_port'] = 8012;
-$conf['proxy_username'] = 'miriahm';
-$conf['proxy_password'] = 'Maman$4747';
-$conf['proxy_user_agent'] = 'Drupal JRC Hub test';
-$conf['proxy_exceptions'] = array('127.0.0.1', 'localhost', /* other exceptions */);
-
-// Make Feeds module to not use cURL
-$conf['feeds_never_use_curl'] = true;
-
-// Proxy configuration as read by the chr (Curl HTTP Request) module
-$conf['drupal_http_request_function'] = 'curl_http_request';
-
-$conf['https_proxy'] = $conf['http_proxy'] = array(
-  'server' => 'ps-bxl-usr.cec.eu.int',
-  'port' => '8012',
-  'username' => 'miriahm',
-  'password' => 'Maman$4747',
-  'exceptions' => array('127.0.0.1', 'localhost', /* other exceptions */),
-);
-// -------------------------------------------------------------------------------
-// Misc
-// -------------------------------------------------------------------------------
-$conf['allow_authorize_operations'] = FALSE;
-error_reporting(E_ALL);
-$conf['error_level'] = 2; // 0 is ERROR_REPORTING_HIDE, 1 is ERROR_REPORTING_DISPLAY_SOME, 2 is ERROR_REPORTING_DISPLAY_ALL
-$conf['dblog_row_limit'] = 1000;
-$conf['cron_safe_threshold'] = 0; // no Poor man's cron
-$conf['drupal_http_request_fails'] = FALSE;
-//$conf['maintenance_mode'] = TRUE;
-
-// -------------------------------------------------------------------------------
-// Memcached configuration
-// -------------------------------------------------------------------------------
-$memcached_enabled = FALSE;
-
-// -------------------------------------------------------------------------------
-// Varnish configuration -- using the varnish module
-// -------------------------------------------------------------------------------
-// The varnish module invalidates pages cached by Varnish instead of
-// managing a "cache_page" table or Memcached entries.
-$varnish_enabled = FALSE;
-if ($varnish_enabled) {
-  // This option is taken into account only when the Varnish module is patched adequately.
-  $conf['varnish_keep_caching'] = $memcached_enabled ? 'MemCacheDrupal' : 'DrupalDatabaseCache';
-  // Varnish-related options
-  $conf['varnish_flush_cron'] = 0; // disabled
-  $conf['varnish_version'] = 3; // 3.x
-  $conf['varnish_bantype'] = 1; // 0 is VARNISH_BANTYPE_NORMAL, 1 is VARNISH_BANTYPE_BANLURKER
-  $conf['varnish_control_terminal'] = 'fillme';
-  $conf['varnish_control_key'] = 'fillme'; // see .secret file in Varnish configuration
-  $conf['varnish_socket_timeout'] = '300'; // ms
-  $conf['varnish_cache_clear'] = 1; // varnish.module:4:define('VARNISH_DEFAULT_CLEAR', 1);
-  $conf['varnish_cache_lifetime'] = 1200; // seconds; Cached pages will not be re-created until at least this much time has elapsed.
-
-  $prevent_varnish_invalidation = TRUE;
-  // Cache-related options -- comment out to prevent Drupal from invalidating Varnish caches
-  if (!(isset($prevent_varnish_invalidation) && $prevent_varnish_invalidation)) {
-    $conf['cache_backends'][] = 'sites/all/modules/fpfis/varnish/varnish.cache.inc';
-    $conf['cache_class_cache_page'] = 'VarnishCache';
-  }
-}
-
-// -------------------------------------------------------------------------------
-// Application-specific configuration
-// -------------------------------------------------------------------------------
-
-// Access to JRC "Pubsys" Oracle production database
-$conf['oracle_import_oracle_database']['string'] = '(DESCRIPTION=(ADDRESS_LIST = (ADDRESS = (PROTOCOL = TCP)(HOST = dbprod.jrc.org)(PORT = 1521)))(CONNECT_DATA=(SID=APPL_PUC)))';
-$conf['oracle_import_oracle_database']['username'] = 'JIS';
-$conf['oracle_import_oracle_database']['password'] = 'WiW4zsA133';
-$conf['oracle_import_oracle_database']['driver'] = 'oracle';
-$conf['oracle_import_oracle_database']['host'] = 'dbprod.jrc.org';
-$conf['oracle_import_oracle_database']['database'] = '';
-
-// Add workbench moderation per node type permissions.
-$conf['workbench_moderation_per_node_type'] = TRUE;
-
-// disabling page compression should prevent delivering garbage before or after
-// gzip data, and thus prevent Varnish from delivering 503 errors
-$conf['page_compression'] = FALSE;
-
-// Required by Engineering on 2013-10-09, when deploying v1.01
-$conf['force_referer'] = TRUE;
-$conf['force_referer_scheme'] = 'https://';
+/**
+ * Theme debugging:
+ *
+ * When debugging is enabled:
+ * - The markup of each template is surrounded by HTML comments that contain
+ *   theming information, such as template file name suggestions.
+ * - Note that this debugging markup will cause automated tests that directly
+ *   check rendered HTML to fail.
+ *
+ * For more information about debugging theme templates, see
+ * https://www.drupal.org/node/223440#theme-debug.
+ *
+ * Not recommended in production environments.
+ *
+ * Remove the leading hash sign to enable.
+ */
+# $conf['theme_debug'] = TRUE;
 
 /**
- * Add the domain module setup routine.
+ * CSS identifier double underscores allowance:
+ *
+ * To allow CSS identifiers to contain double underscores (.example__selector)
+ * for Drupal's BEM-style naming standards, uncomment the line below.
+ * Note that if you change this value in existing sites, existing page styles
+ * may be broken.
+ *
+ * @see drupal_clean_css_identifier()
  */
-//include DRUPAL_ROOT . '/sites/all/modules/reggiani/domain/settings.inc';
+# $conf['allow_css_double_underscores'] = TRUE;
+
+/**
+ * Load local development override configuration, if available.
+ *
+ * Use settings.local.php to override variables on secondary (staging,
+ * development, etc) installations of this site. Typically used to disable
+ * caching, JavaScript/CSS compression, re-routing of outgoing emails, and
+ * other things that should not happen on development and testing sites.
+ *
+ * The purpose of this file is to override settings, so keep this code block
+ * at the end of this file to take full effect.
+ */
+$local_settings_post = str_replace('.php', '.post.php', $local_settings);
+if (file_exists($local_settings_post)){
+  include $local_settings_post;
+}
+
+/**
+ * Include a local settings file if it exists.
+ */
+$local_settings = dirname(__FILE__) . '/settings.local.php';
+if (file_exists($local_settings)) {
+  include $local_settings;
+}$conf['error_level'] = 2;
+$conf['views_ui_show_sql_query'] = 1;
+$conf['views_ui_show_performance_statistics'] = 1;
+$conf['views_show_additional_queries'] = 1;
+$conf['stage_file_proxy_origin'] = 'https://localhost/know4pol';
+$conf['stage_file_proxy_origin_dir'] = 'sites/know4pol/files';
+$conf['stage_file_proxy_hotlink'] = 1;
+$conf['file_public_path'] = 'sites/default/files';
+$conf['file_private_path'] = 'sites/default/files/private_files';
+$conf['file_temporary_path'] = 'tmp';
