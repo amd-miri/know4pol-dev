@@ -1,8 +1,0 @@
-name = Nexteuropa Display Suite layouts
-description  = "Display Suite layouts using BEM methodology provided for next europa sites"
-package = "NextEuropa Digital Transformation"
-core = 7.x
-
-dependencies[] = ds
-php = 5.5
-multisite_version = 2.2

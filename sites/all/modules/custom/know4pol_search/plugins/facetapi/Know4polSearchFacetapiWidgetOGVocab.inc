@@ -49,7 +49,6 @@ class Know4polSearchFacetapiWidgetOGVocab extends FacetapiWidgetCheckboxLinks {
    * @see FacetapiWidgetLinks::buildListItems()
    */
   public function buildListItems($build) {
-    krumo($build);
     $settings = $this->settings->settings;
     // Initializes links attributes, adds rel="nofollow" if configured.
     $attributes = ($settings['nofollow']) ? array('rel' => 'nofollow') : array();

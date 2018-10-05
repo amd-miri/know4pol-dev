@@ -1,0 +1,4 @@
+apachesolr_realtime, 7.x-1.2, 2015-05-16
+Issue #145348 by manarth: Do not index unpublished content
+Issue #2453799 by Nitebreed: drupal_set_message() throws error
+

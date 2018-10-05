@@ -1,0 +1,60 @@
+<?php
+/**
+ * @file
+ * Test cases for apachesolr_realtime module.
+ */
+
+class ApacheSolrRealTimeTest extends DrupalWebTestCase {
+
+  /**
+   * Define info about this test case.
+   *
+   * @return array
+   *   Return information about the test case.
+   */
+  public static function getInfo() {
+    return array(
+      'name' => 'Apachesolr Realtime',
+      'description' => 'Test insert, update and delete commits to Solr.',
+      'group' => 'Solr',
+    );
+  }
+
+  /**
+   * Set up test by installing modules and defining Solr environment.
+   */
+  public function setUp() {
+    // Install our module.
+    parent::setUp('apachesolr', 'apachesolr_realtime');
+    // Set default solr server variables.
+    $environment = array(
+      'env_id' => 'solr',
+      'name' => 'localhost server',
+      'url' => 'http://localhost:8983/solr/test',
+      'server_class' => '',
+    );
+
+    // Set the Solr environment.
+    variable_set('apachesolr_default_environment', $environment['env_id']);
+    apachesolr_environment_save($environment);
+
+    // Create and login user.
+    $account = $this->drupalCreateUser(array('access content', 'administer content types'));
+    $this->drupalLogin($account);
+
+  }
+
+  /**
+   * Create a new Article and check that it was committed to Solr.
+   */
+  public function TestArticleCommit() {
+    // Define content for article.
+    $add_article = array(
+      'title' => $this->randomName(8),
+      'body[und][0][value]' => $this->randomName(56),
+    );
+    // Post article.
+    $this->drupalPost('node/add/article', $add_article, t('Save'));
+    $this->assertText("Article " . $add_article['title'] . " has been created", "Add Article message found.");
+  }
+}

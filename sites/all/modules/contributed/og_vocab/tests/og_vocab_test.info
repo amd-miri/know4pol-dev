@@ -1,6 +1,0 @@
-name = OG vocabulary test module
-description = Functionality to assist OG vocabulary testing.
-core = 7.x
-dependencies[] = og_vocab
-dependencies[] = og_context
-hidden = TRUE
