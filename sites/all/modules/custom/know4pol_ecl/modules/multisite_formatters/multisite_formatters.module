@@ -585,6 +585,8 @@ function multisite_formatters_field_formatter_view($entity_type, $entity, $field
             break;
         }
       }
+      
+      
       // First process filter to avoid overtrimming the text.
       if (isset($settings['filter_options']['strip_html']) && $settings['filter_options']['strip_html'] != '') {
         $output = strip_tags($output, $settings['filter_preserve_tags']);
@@ -621,7 +623,6 @@ function multisite_formatters_field_formatter_view($entity_type, $entity, $field
           }
         }
       }
-
       $elements[$delta] = array(
         '#markup' => $output,
       );
@@ -632,7 +633,7 @@ function multisite_formatters_field_formatter_view($entity_type, $entity, $field
 }
 
 /**
- * Trim html text to a specific number of word/character .
+ * Trim html text to a specific number of word/character (not cutting words).
  *
  * @param string $html
  *   The source HTML.
@@ -663,15 +664,14 @@ function _multisite_formatters_trim_html_text($html, $max_len, $type, $suffix) {
   $total_len = 0;
   $current_pos = 0;
 
+  krumo($text);
+
   // Start counting in text.
   foreach ($text[0] as $index => $word) {
     $total_len += ($type == 'words' ? 1 : drupal_strlen($word[0]));
-    if ($total_len > $max_len) {
-      break;
-    }
-    // Catch up with the tags length to this word.
     $current_pos = $word[1] + drupal_strlen($word[0]);
-    // Go thought tags with array boundaries as safeguard.
+    // Catch up with the tags length to this word.
+    // Go trought tags with array boundaries as safeguard.
     while ($tags[$index_tag][1] - $offset_tags <= $current_pos && $index_tag++ < count($tags)) {
       $tag = $tags[$index_tag - 1];
       // Minus one as indxed increased in condition. Needed since the continues.
@@ -695,6 +695,10 @@ function _multisite_formatters_trim_html_text($html, $max_len, $type, $suffix) {
       // Weird tag, do nothing.
     }
     $last_word = $index;
+    // Max lenght reached ?  
+    if ($total_len >= $max_len) {
+      break;
+    }
   }
 
   $result = drupal_substr($html, 0, $current_pos + $offset_tags);
