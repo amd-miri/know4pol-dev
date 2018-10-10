@@ -37,12 +37,6 @@ class Know4polSearchFacetapiExcludeOGVocab extends FacetapiFilter {
     $form['exclude_vmn'] = array(
       '#title' => t('Exclude terms that belong to those (OG) vocabularies'),
       '#type' => 'textarea',
-      /*'#ajax' => array(
-        'callback' => 'ajax_example_autocheckboxes_callback',
-        'wrapper' => 'checkboxes-div',
-        'method' => 'replace',
-        'effect' => 'fade',
-      ),*/
       '#description' => t("Machine_name list of vocavularies to hide. One per line"),
       '#default_value' => $this->settings->settings['exclude_vmn'],
     );
