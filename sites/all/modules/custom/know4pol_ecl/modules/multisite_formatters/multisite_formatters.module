@@ -585,8 +585,7 @@ function multisite_formatters_field_formatter_view($entity_type, $entity, $field
             break;
         }
       }
-      
-      
+
       // First process filter to avoid overtrimming the text.
       if (isset($settings['filter_options']['strip_html']) && $settings['filter_options']['strip_html'] != '') {
         $output = strip_tags($output, $settings['filter_preserve_tags']);
@@ -664,8 +663,6 @@ function _multisite_formatters_trim_html_text($html, $max_len, $type, $suffix) {
   $total_len = 0;
   $current_pos = 0;
 
-  krumo($text);
-
   // Start counting in text.
   foreach ($text[0] as $index => $word) {
     $total_len += ($type == 'words' ? 1 : drupal_strlen($word[0]));
@@ -695,7 +692,7 @@ function _multisite_formatters_trim_html_text($html, $max_len, $type, $suffix) {
       // Weird tag, do nothing.
     }
     $last_word = $index;
-    // Max lenght reached ?  
+    // Max lenght reached ?
     if ($total_len >= $max_len) {
       break;
     }
