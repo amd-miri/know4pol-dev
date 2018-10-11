@@ -17,7 +17,7 @@ class Know4polSearchFacetapiExcludeOGVocab extends FacetapiFilter {
    * Filters facet items.
    */
   public function execute(array $build) {
-    $remove = explode(PHP_EOL, $this->settings->settings['exclude_vmn']);
+    $remove = preg_split('/\R/', $this->settings->settings['exclude_vmn']);
     $result_build = array();
 
     foreach ($build as &$item) {

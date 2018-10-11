@@ -302,7 +302,22 @@ section[id*='block-menu-menu-footer-middle-'] .block__content li a::after {
   position: relative !important;
 }
 
-/* ECL Component inpage-nav issue on IE */
-.ecl-u-z-navigation.js-stickybit-parent {
-  max-width: 20%;
+/* ECL v0 Component inpage-nav issue on some version of browsers */
+.ecl-navigation-inpage.js-is-sticky {
+  max-width: 256px;
+}
+@media(min-width:768px) {
+  .ecl-navigation-inpage.js-is-sticky {
+    max-width: 145px;
+  }
+}
+@media(min-width:992px) {
+  .ecl-navigation-inpage.js-is-sticky {
+    max-width: 210px;
+  }
+}
+@media(min-width:1200px) {
+  .ecl-navigation-inpage.js-is-sticky {
+    max-width: 256px;
+  }
 }
