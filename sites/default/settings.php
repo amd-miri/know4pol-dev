@@ -681,7 +681,8 @@ if (file_exists($local_settings_post)){
 $local_settings = dirname(__FILE__) . '/settings.local.php';
 if (file_exists($local_settings)) {
   include $local_settings;
-}$conf['error_level'] = 2;
+}
+$conf['error_level'] = 1;
 $conf['views_ui_show_sql_query'] = 1;
 $conf['views_ui_show_performance_statistics'] = 1;
 $conf['views_show_additional_queries'] = 1;
