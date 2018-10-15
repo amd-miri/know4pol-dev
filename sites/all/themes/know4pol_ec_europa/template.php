@@ -177,3 +177,14 @@ function know4pol_ec_europa_preprocess_file_entity(&$variables) {
   );
   $variables['image'] = $content;
 }
+
+/**
+ * Implements template_url_outbound_alter().
+ *
+ * Remove appended redirection after creating the content from URI.
+ */
+function know4pol_ec_europa_url_outbound_alter(&$path, &$options, $original_path) {
+  if (preg_match('/node.add.\+?(\S+)?/m', $path)) {
+    unset($options['query']['destination']);
+  }
+}

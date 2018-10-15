@@ -26,7 +26,7 @@ function know4pol_ec_europa_preprocess_footer(&$variables, $hook) {
   // First get the group Id of the page if there is only one.
   $gid = "";
   if (isset($menu['page_arguments'][0]->og_group_ref[LANGUAGE_NONE]) && count($menu['page_arguments'][0]->og_group_ref[LANGUAGE_NONE] == 1)) {
-    $gid = $menu['page_arguments'][0]->og_group_ref[LANGUAGE_NONE]['0']['target_id'];
+    $gid = $menu['page_arguments'][0]->og_group_ref[LANGUAGE_NONE][0]['target_id'];
   }
   // Then add the "Give us feedback" link.
   // We can't add the link directly to the footer_right menu,
@@ -36,11 +36,11 @@ function know4pol_ec_europa_preprocess_footer(&$variables, $hook) {
   }
 
   // Case 2 : Add dedicated footer menus for the three content types.
-  if (isset($menu['page_arguments']['0']->type) &&
-      ($menu['page_arguments']['0']->type == 'knowledge_centre' ||
-       $menu['page_arguments']['0']->type == 'topic' ||
-       $menu['page_arguments']['0']->type == 'country')) {
-    switch ($menu['page_arguments']['0']->type) {
+  if (isset($menu['page_arguments'][0]->type) &&
+      ($menu['page_arguments'][0]->type == 'knowledge_centre' ||
+       $menu['page_arguments'][0]->type == 'topic' ||
+       $menu['page_arguments'][0]->type == 'country')) {
+    switch ($menu['page_arguments'][0]->type) {
       case 'knowledge_centre':
         $variables = _know4pol_ec_europa_make_footer_links_ks_homepage($variables, $menu);
         break;
@@ -66,8 +66,8 @@ function know4pol_ec_europa_preprocess_footer(&$variables, $hook) {
  */
 function _know4pol_ec_europa_make_footer_links_ks_homepage(array $variables, array $menu) {
   // A) First change the site name to KS name on left side.
-  $variables['footer_left']['title']['#text'] = $menu['page_arguments']['0']->title;
-  $variables['footer_left']['title']['#path'] = $menu['page_arguments']['0']->path['alias'];
+  $variables['footer_left']['title']['#text'] = $menu['page_arguments'][0]->title;
+  $variables['footer_left']['title']['#path'] = $menu['page_arguments'][0]->path['alias'];
   // B) Then add the KS middle menu links.
   // Get first the menu links from the KS menu.
   $ks_middle_menulinks = _atomium_block_get_render_array('menu', 'menu-footer-middle-' . $menu['page_arguments'][0]->nid);
@@ -122,11 +122,11 @@ function _know4pol_ec_europa_make_footer_links_ks_homepage(array $variables, arr
  */
 function _know4pol_ec_europa_make_footer_links_on_topic_country(array $variables, array $menu) {
   // A) First change the site name to KS name on left side.
-  $variables['footer_left']['title']['#text'] = $menu['page_arguments']['0']->og_group_ref[LANGUAGE_NONE]['0']['label'];
-  $variables['footer_left']['title']['#path'] = drupal_lookup_path('alias', $menu['page_arguments']['0']->og_group_ref[LANGUAGE_NONE]['0']['url']);
+  $variables['footer_left']['title']['#text'] = $menu['page_arguments'][0]->og_group_ref[LANGUAGE_NONE][0]['label'];
+  $variables['footer_left']['title']['#path'] = drupal_lookup_path('alias', $menu['page_arguments'][0]->og_group_ref[LANGUAGE_NONE][0]['url']);
   // B) Then add the KS middle menu links.
   // Get first the menu links from the KS menu.
-  $ks_middle_menulinks = _atomium_block_get_render_array('menu', 'menu-footer-middle-' . $menu['page_arguments'][0]->og_group_ref[LANGUAGE_NONE]['0']['target_id']);
+  $ks_middle_menulinks = _atomium_block_get_render_array('menu', 'menu-footer-middle-' . $menu['page_arguments'][0]->og_group_ref[LANGUAGE_NONE][0]['target_id']);
   if (!empty($ks_middle_menulinks)) {
     // Replace the theme suggestions from the original menu-footer-middle.
     $ks_middle_menulinks['#theme_wrappers'] = array(
@@ -142,7 +142,7 @@ function _know4pol_ec_europa_make_footer_links_on_topic_country(array $variables
     unset($variables['footer_middle']);
   }
   // C) Finally add the KS right menu links programatically.
-  $gid = $menu['page_arguments'][0]->og_group_ref[LANGUAGE_NONE]['0']['target_id'];
+  $gid = $menu['page_arguments'][0]->og_group_ref[LANGUAGE_NONE][0]['target_id'];
   $group_path_alias = drupal_lookup_path('alias', 'node/' . $gid);
   // Remove the orginal links.
   foreach ($variables['footer_right'] as $key => $value) {

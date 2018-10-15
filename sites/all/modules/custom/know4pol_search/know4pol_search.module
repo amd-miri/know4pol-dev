@@ -503,8 +503,8 @@ function know4pol_search_block_view($delta = '') {
  *   Returns the block html.
  */
 function _know4pol_search_all_dropdown_list() {
-  $html_topics_list = _know4pol_search_links_into_rows(_know4pol_search_get_topics_list());
-  $html_countries_list = _know4pol_search_links_into_rows(_know4pol_search_get_countries_list());
+  $html_topics_list = _know4pol_search_topic_links_into_rows(_know4pol_search_get_topics_list());
+  $html_countries_list = _know4pol_search_country_links_into_rows(_know4pol_search_get_countries_list());
   $block_buttons = '';
   $block_content = '';
 
@@ -535,7 +535,7 @@ function _know4pol_search_all_dropdown_list() {
  * Returns html code for topic dropdown div.
  */
 function _know4pol_search_topics_dropdown_list() {
-  $html_topics_list = _know4pol_search_links_into_rows(_know4pol_search_get_topics_list());
+  $html_topics_list = _know4pol_search_topic_links_into_rows(_know4pol_search_get_topics_list());
   if (!empty($html_topics_list)) {
     return '<div class="browse-by-block">
               <button type="button" class="ecl-button ecl-button--default ecl-expandable__button" id="topic_button">Topics &#9660;</button>
@@ -550,7 +550,7 @@ function _know4pol_search_topics_dropdown_list() {
  * Returns html code for countries dropdown div.
  */
 function _know4pol_search_countries_dropdown_list() {
-  $html_countries_list = _know4pol_search_links_into_rows(_know4pol_search_get_countries_list());
+  $html_countries_list = _know4pol_search_country_links_into_rows(_know4pol_search_get_countries_list());
   if (!empty($html_countries_list)) {
     return '<div class="browse-by-block">
               <button type="button" class="ecl-button ecl-button--default ecl-expandable__button" id="country_button">Countries &#9660;</button>
@@ -614,7 +614,9 @@ function _know4pol_search_get_countries_list() {
   $nids = array_keys($result['node']);
   $countries = node_load_multiple($nids);
   foreach ($countries as $country) {
-    $links[] = l($country->title, 'node/' . $country->nid, array('attributes' => array('class' => array('ecl-link', 'ecl-list-item__link'))));
+    $term = taxonomy_get_parents($country->field_cnt_related_country_tags[LANGUAGE_NONE][0]['tid']);
+    $term = reset($term);
+    $links[$term->name][] = l($country->title, 'node/' . $country->nid, array('attributes' => array('class' => array('ecl-link', 'ecl-list-item__link'))));
   }
   return $links;
 }
@@ -628,7 +630,39 @@ function _know4pol_search_get_countries_list() {
  * @return array
  *   Returns themed html list of links to topic pages.
  */
-function _know4pol_search_links_into_rows(array $links = array()) {
+function _know4pol_search_country_links_into_rows(array $links = array()) {
+  $output = "";
+  if (!empty($links['EU'])) {
+    // Adding the EU country members.
+    $output = "<h2>EU</h2>";
+    $output .= '<ul class="ecl-listing ecl-listing--three-columns">';
+    foreach ($links['EU'] as $link) {
+      $output .= '<li class="ecl-list-item ecl-list-item--three-columns">' . $link . '</li>';
+    }
+    $output .= '</ul>';
+  }
+  if (!empty($links['Non-EU'])) {
+    // Adding the Non-EU country memebers.
+    $output .= "<h2>Non-EU</h2>";
+    $output .= '<ul class="ecl-listing ecl-listing--three-columns">';
+    foreach ($links['Non-EU'] as $link) {
+      $output .= '<li class="ecl-list-item ecl-list-item--three-columns">' . $link . '</li>';
+    }
+    $output .= '</ul>';
+  }
+  return $output;
+}
+
+/**
+ * Get allowed search pages on homepage.
+ *
+ * @param array $links
+ *   Links to the nodes.
+ *
+ * @return array
+ *   Returns themed html list of links to topic pages.
+ */
+function _know4pol_search_topic_links_into_rows(array $links = array()) {
   $output = "";
   if (!empty($links)) {
     $output = '<ul class="ecl-listing ecl-listing--three-columns">';
