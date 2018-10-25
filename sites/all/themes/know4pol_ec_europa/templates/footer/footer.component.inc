@@ -35,7 +35,7 @@ function know4pol_ec_europa_preprocess_footer(&$variables, $hook) {
     $variables['footer_right']['give-us-feedback'] = _know4pol_ec_europa_give_us_fedback_menu_link($gid, $menu);
   }
 
-  // Case 2 : Add dedicated footer menus for the three content types.
+  // Case 2 : Add the KS footer menus for the three content types.
   if (isset($menu['page_arguments'][0]->type) &&
       ($menu['page_arguments'][0]->type == 'knowledge_centre' ||
        $menu['page_arguments'][0]->type == 'topic' ||
@@ -47,8 +47,21 @@ function know4pol_ec_europa_preprocess_footer(&$variables, $hook) {
 
       case 'topic':
       case 'country':
-        $variables = _know4pol_ec_europa_make_footer_links_on_topic_country($variables, $menu);
+        $variables = _know4pol_ec_europa_make_footer_links_on_topic_country_about($variables, $menu);
         break;
+    }
+  }
+
+  // Case 3 : Add the KS footer menus on the KS about page.
+  if (isset($menu['page_arguments'][0]->type) &&
+      ($menu['page_arguments'][0]->type == 'page')) {
+    $path = explode('/', $menu['page_arguments'][0]->path['alias']);
+    if ($path[1] == 'about') {
+      $gid = $menu['page_arguments'][0]->og_group_ref[LANGUAGE_NONE][0]['target_id'];
+      $group_path_alias = drupal_lookup_path('alias', 'node/' . $gid);
+      if ($path[0] == $group_path_alias) {
+        $variables = _know4pol_ec_europa_make_footer_links_on_topic_country_about($variables, $menu);
+      }
     }
   }
 }
@@ -120,10 +133,17 @@ function _know4pol_ec_europa_make_footer_links_ks_homepage(array $variables, arr
  * @return array
  *   The original variables.
  */
-function _know4pol_ec_europa_make_footer_links_on_topic_country(array $variables, array $menu) {
+function _know4pol_ec_europa_make_footer_links_on_topic_country_about(array $variables, array $menu) {
   // A) First change the site name to KS name on left side.
-  $variables['footer_left']['title']['#text'] = $menu['page_arguments'][0]->og_group_ref[LANGUAGE_NONE][0]['label'];
-  $variables['footer_left']['title']['#path'] = drupal_lookup_path('alias', $menu['page_arguments'][0]->og_group_ref[LANGUAGE_NONE][0]['url']);
+  if (isset($menu['page_arguments'][0]->og_group_ref[LANGUAGE_NONE][0]['label'])) {
+    $variables['footer_left']['title']['#text'] = $menu['page_arguments'][0]->og_group_ref[LANGUAGE_NONE][0]['label'];
+    $variables['footer_left']['title']['#path'] = drupal_lookup_path('alias', $menu['page_arguments'][0]->og_group_ref[LANGUAGE_NONE][0]['url']);
+  }
+  elseif (isset($menu['page_arguments'][0]->og_group_ref[LANGUAGE_NONE][0]['target_id'])) {
+    $group_node = node_load($menu['page_arguments'][0]->og_group_ref[LANGUAGE_NONE][0]['target_id']);
+    $variables['footer_left']['title']['#text'] = $group_node->title;
+    $variables['footer_left']['title']['#path'] = $group_node->path['source'];
+  }
   // B) Then add the KS middle menu links.
   // Get first the menu links from the KS menu.
   $ks_middle_menulinks = _atomium_block_get_render_array('menu', 'menu-footer-middle-' . $menu['page_arguments'][0]->og_group_ref[LANGUAGE_NONE][0]['target_id']);

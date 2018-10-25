@@ -304,10 +304,71 @@ function know4pol_core_update_7019() {
 }
 
 /**
- * Enable clientside and markdown modules.
+ * Enable markdown modules.
  */
 function know4pol_core_update_7020() {
   module_enable(array(
     'markdown',
   ), TRUE);
+}
+
+/**
+ * Update all Full node embeds.
+ */
+function know4pol_core_update_7021() {
+  // Update the field_data_body table.
+  db_update('field_data_body')
+    ->expression('body_value', 'replace(body_value, :old, :new)', array(
+      ':old' => ':full]',
+      ':new' => ':node_embed]',
+    ))
+    ->execute();
+  db_update('field_data_body')
+    ->expression('body_value', 'replace(body_value, :old, :new)', array(
+      ':old' => 'as Full content}',
+      ':new' => 'as Content}',
+    ))
+    ->execute();
+
+  // Update the field_revision_body table.
+  db_update('field_revision_body')
+    ->expression('body_value', 'replace(body_value, :old, :new)', array(
+      ':old' => ':full]',
+      ':new' => ':node_embed]',
+    ))
+    ->execute();
+  db_update('field_revision_body')
+    ->expression('body_value', 'replace(body_value, :old, :new)', array(
+      ':old' => 'as Full content}',
+      ':new' => 'as Content}',
+    ))
+    ->execute();
+
+  // Update the field_data_field_ne_body table.
+  db_update('field_data_field_ne_body')
+    ->expression('field_ne_body_value', 'replace(field_ne_body_value, :old, :new)', array(
+      ':old' => ':full]',
+      ':new' => ':node_embed]',
+    ))
+    ->execute();
+  db_update('field_data_field_ne_body')
+    ->expression('field_ne_body_value', 'replace(field_ne_body_value, :old, :new)', array(
+      ':old' => 'as Full content}',
+      ':new' => 'as Content}',
+    ))
+    ->execute();
+
+  // Update the field_revision_field_ne_body table.
+  db_update('field_revision_field_ne_body')
+    ->expression('field_ne_body_value', 'replace(field_ne_body_value, :old, :new)', array(
+      ':old' => ':full]',
+      ':new' => ':node_embed]',
+    ))
+    ->execute();
+  db_update('field_revision_field_ne_body')
+    ->expression('field_ne_body_value', 'replace(field_ne_body_value, :old, :new)', array(
+      ':old' => 'as Full content}',
+      ':new' => 'as Content}',
+    ))
+    ->execute();
 }

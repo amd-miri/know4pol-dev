@@ -936,16 +936,19 @@ function _know4pol_core_get_topic_keywords_fields_by_ks(array $knowledge_service
   // Third add the list of specific keywords per KS.
   // First get the default vocabulary from the knowledge service content type.
   $ks_keyword_content = "";
-  $main_ks_keywords_vocab_id = $knowledge_service_node->field_the_main_ks_keywords_vocab[LANGUAGE_NONE][0]['target_id'];
-  $ks_terms = array_keys(entity_load('taxonomy_term', FALSE, array('vid' => $main_ks_keywords_vocab_id)));
-  foreach ($knowledge_services_specific_keywords as $ks_keyword) {
-    if (in_array($ks_keyword['target_id'], $ks_terms)) {
-      $ks_keyword_content .= _know4pol_core_create_keyword_content_link($ks_keyword, $knowledge_service);
+  if (isset($knowledge_service_node->field_the_main_ks_keywords_vocab[LANGUAGE_NONE][0]['target_id'])) {
+    $main_ks_keywords_vocab_id = $knowledge_service_node->field_the_main_ks_keywords_vocab[LANGUAGE_NONE][0]['target_id'];
+    $ks_terms = array_keys(entity_load('taxonomy_term', FALSE, array('vid' => $main_ks_keywords_vocab_id)));
+    foreach ($knowledge_services_specific_keywords as $ks_keyword) {
+      if (in_array($ks_keyword['target_id'], $ks_terms)) {
+        $ks_keyword_content .= _know4pol_core_create_keyword_content_link($ks_keyword, $knowledge_service);
+      }
     }
   }
   if ($ks_keyword_content != "") {
     $content .= _know4pol_core_add_seperation_bar($ks_keyword_content);
   }
+
   return $content;
 }
 
