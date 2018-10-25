@@ -1,0 +1,318 @@
+<?php
+
+/**
+ * @file
+ * Main module file.
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function cer_menu() {
+  $items = array();
+
+  $items['admin/config/system/cer'] = array(
+    'title' => 'Corresponding entity references',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('cer_settings_form'),
+    'access arguments' => array('administer cer settings'),
+    'file' => 'cer.admin.inc',
+    'type' => MENU_NORMAL_ITEM,
+  );
+  $items['admin/config/system/cer/references'] = array(
+    'title' => 'References',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('cer_settings_form'),
+    'access arguments' => array('administer cer settings'),
+    'file' => 'cer.admin.inc',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+  );
+  $items['admin/config/system/cer/update'] = array(
+    'title' => 'Update existing entities',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('cer_update_form'),
+    'access arguments' => array('administer cer settings'),
+    'file' => 'cer.admin.inc',
+    'type' => MENU_LOCAL_TASK,
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_permission().
+ */
+function cer_permission() {
+  return array(
+    'administer cer settings' => array(
+      'title' => t('Administer corresponding entity reference settings'),
+    )
+  );
+}
+
+/**
+ * Implements hook_help().
+ */
+function cer_help($path, $arg) {
+  $output = '';
+  if ($path == 'admin/config/system/cer') {
+    $output .= t('Check which entity references should listen to each other. When checking a check box a reference on entity type A to entity B will automatically update the entity reference field on entity B adding an entry which points to entity A.');
+  }
+  elseif ($path == 'admin/config/system/cer/update') {
+    $output .= t('This will update all the existing entities for the selected content types so that their entity reference fields are in sync.');
+    $output .= '<br />';
+    $output .= t('This process may take a long time depending on the number of entities you are updating.');
+    $output .= '<br /><br />';
+    $output .= t('When the process is finished you will see a count of the number of entities that were updated.');
+  }
+  return $output;
+}
+
+/**
+ * Implements hook_field_delete_instance().
+ */
+function cer_field_delete_instance($instance) {
+  foreach (cer_preset_load_enabled() as $row) {
+    $keys = explode('*', $row->entity_types_content_fields);
+
+    if (($keys[0] == $instance['entity_type'] && $keys[1] == $instance['bundle'] && $keys[2] == $instance['field_name']) || ($keys[3] == $instance['entity_type'] && $keys[4] == $instance['bundle'] && $keys[5] == $instance['field_name'])) {
+      cer_preset_delete($row->entity_types_content_fields);
+    }
+  }
+}
+
+/**
+ * Implements hook_field_delete_field().
+ */
+function cer_field_delete_field($field) {
+  foreach (cer_preset_load_enabled() as $row) {
+    $keys = explode('*', $row->entity_types_content_fields);
+
+    if ($keys[2] == $field['field_name'] || $keys[5] == $field['field_name']) {
+      cer_preset_delete($row->entity_types_content_fields);
+    }
+  }
+}
+
+/**
+ * Implements hook_theme().
+ */
+function cer_theme() {
+  return array(
+    'cer_label' => array(
+      'variables' => array('key' => ''),
+    ),
+  );
+}
+
+function theme_cer_label($variables) {
+  $key = explode(' ', $variables['key']);
+  
+  $local = field_info_instance($key[0], $key[2], $key[1]);
+  $remote = field_info_instance($key[3], $key[5], $key[4]);
+
+  $message = 'Correspond <span title="!local_field">%local_label</span> on !local_entity(s) of type %local_bundle with <span title="!remote_field">%remote_label</span> on !remote_entity(s) of type %remote_bundle.';
+
+  $variables = array(
+    '%local_label' => $local['label'],
+    '!local_field' => $local['field_name'],
+    '!local_entity' => $local['entity_type'],
+    '%local_bundle' => $local['bundle'],
+    '%remote_label' => $remote['label'],
+    '!remote_field' => $remote['field_name'],
+    '!remote_entity' => $remote['entity_type'],
+    '%remote_bundle' => $remote['bundle'],
+  );
+
+  return t($message, $variables);
+}
+
+/**
+ * Implements hook_entity_insert().
+ */
+function cer_entity_insert($entity, $type) {
+  cer_processing_entity('insert', $entity, $type);
+}
+
+/**
+ * Implements hook_entity_update().
+ */
+function cer_entity_update($entity, $type) {
+  cer_processing_entity('update', $entity, $type);
+}
+
+/**
+ * Implements hook_entity_delete().
+ */
+function cer_entity_delete($entity, $type) {
+  cer_processing_entity('delete', $entity, $type);
+}
+
+/**
+ * Load enabled CER presets.
+ */
+function cer_preset_load_enabled() {
+  ctools_include('export');
+  return ctools_export_load_object('cer', 'conditions', array('enabled' => 1));
+}
+
+/**
+ * Return CER preset by key.
+ */
+function cer_preset_load($key) {
+  ctools_include('export');
+  return ctools_export_crud_load('cer', $key);
+}
+
+/**
+ * Return 1 if CER preset specified by given key is enabled.
+ */
+function cer_preset_enabled($key) {
+  $preset = cer_preset_load($key);
+  return empty($preset) ? 0 : $preset->enabled;
+}
+
+/**
+ * Deletes or disables a given CER preset.
+ */
+function cer_preset_delete($key) {
+  ctools_include('export');
+
+  ctools_export_crud_delete('cer', $key);
+  ctools_export_crud_disable('cer', $key);
+
+  ctools_export_load_object_reset('cer');
+}
+
+/**
+ * Process a entity's corresponding entity references.
+ *
+ * @param string $op 
+ *  The operation being performed on the entity (insert, update, or delete).
+ *
+ * @param object $entity
+ *  The entity or the entity's id.
+ *
+ * @param string $entity_type
+ *  The entity type.
+ *
+ * @param array $context
+ *  Either the Batch API context (since this is the callback function used
+ *  during bulk update) or NULL if we're not in a batch job.
+ */
+function cer_processing_entity($op, $entity, $entity_type, &$context = NULL) {
+  // Load the entity if we're given an ID rather than an entity.
+  if (!is_object($entity)) {
+    $entity = entity_load($entity_type, array($entity));
+    $entity = reset($entity);
+  }
+  // If the entity is of the wrong type, entity_extract_IDs() will throw
+  // EntityMalformedException and rightfully bail out here.
+  list (, , $bundle) = entity_extract_IDs($entity_type, $entity);
+
+  $result = cer_preset_load_enabled();
+
+  foreach ($result as $row) {
+    $keys = explode('*', $row->entity_types_content_fields);
+
+    if ($keys[0] == $entity_type && $keys[1] == $bundle) {
+      try {
+        $handler = new CerHandler($row->entity_types_content_fields, $entity);
+        call_user_func(array($handler, $op));
+      }
+      catch (CerException $e) {
+        if (isset($context)) {
+          $context['results']['errors'][] = $e;
+        }
+        else {
+          throw $e;
+        }
+      }
+    }
+
+    if ($keys[3] == $entity_type && $keys[4] == $bundle) {
+      $preset = implode('*', array($keys[3], $keys[4], $keys[5], $keys[0], $keys[1], $keys[2]));
+
+      try {
+        $handler = new CerHandler($preset, $entity);
+        call_user_func(array($handler, $op));
+      }
+      catch (CerException $e) {
+        if (isset($context)) {
+          $context['results']['errors'][] = $e;
+        }
+        else {
+          throw $e;
+        }
+      }
+    }
+  }
+
+  if (isset($context)) {
+    $context['results']['count']++;
+  }
+}
+
+/**
+ * Batch 'finished' callback.
+ */
+function cer_batch_update_existing_finished($success, $results, $operations) {
+  if ($success) {
+    $message = format_plural($results['count'], '1 entity processed.', '@count entities processed.');
+
+    if (isset($results['errors'])) {
+      $type = 'warning';
+      foreach ($results['errors'] as $e) {
+        drupal_set_message($e->getMessage(), 'error');
+      }
+    }
+    else {
+      $type = 'status';
+    }
+    drupal_set_message($message, $type);
+  }
+  else {
+    // An error occurred. $operations contains the operations that remained unprocessed.
+    $error_operation = reset($operations);
+    $message = 'An error occurred while processing ' . $error_operation[0] . ' with arguments:' . print_r($error_operation[0], TRUE);
+    drupal_set_message($message, 'error');
+  }
+}
+
+/**
+ * Implements hook_ctools_plugin_api().
+ */
+function cer_ctools_plugin_api($owner, $api) {
+  if ($owner == 'cer' && $api == 'default_cer_presets') {
+    return array('version' => 1);
+  }
+}
+
+/**
+ * Update field data.
+ *
+ * @param $node the referenced node to be updated.
+ */
+function _cer_update($entity_type, $entity) {
+  $entity->original = isset($entity->original) ? $entity->original : NULL;
+
+  $extract_ids = entity_extract_IDs($entity_type, $entity);
+  $id = array_shift($extract_ids);
+
+  field_attach_presave($entity_type, $entity);
+  field_attach_update($entity_type, $entity);
+
+  // Issue #2212499.
+  if ($entity_type == 'node') {
+    $entity->changed = time();
+
+    db_update('node')
+      ->fields(array(
+        'changed' => $entity->changed,
+      ))
+      ->condition('nid', $id)
+      ->execute();
+  }
+
+  entity_get_controller($entity_type)->resetCache(array($id));
+}

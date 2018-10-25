@@ -75,7 +75,18 @@ function know4pol_ec_europa_preprocess_field(array &$variables, $hook) {
         $el['#object']->nid != $menu_item['map'][1]->nid) {
         // Disable DS formatting and use template instead.
         $variables['theme_hook_suggestions'][] = 'field__title_embed';
-        $el['#items'][0][value] = $el['#object']->title;
+        $variables['element']['#items'][0][value] = $el['#object']->title;
+      }
+
+      // Navigation block alternate title on blocks.
+      if ($el['#view_mode'] == 'navigation') {
+        if (isset($node->field_nav_navigation_title[LANGUAGE_NONE][0]['value'])) {
+          $alt_title = trim($node->field_nav_navigation_title[LANGUAGE_NONE][0]['value']);
+          // Do not display the original title if the alt is filled in.
+          if (drupal_strlen($alt_title)) {
+            unset($variables['items']);
+          }
+        }
       }
   }
 }

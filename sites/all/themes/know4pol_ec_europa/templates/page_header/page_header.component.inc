@@ -42,6 +42,13 @@ function know4pol_ec_europa_preprocess_page_header(&$variables, $hook) {
         $variables['title'] = $node->field_ks_fullname[LANGUAGE_NONE][0]['value'];
         break;
 
+      case 'navigation_page':
+        $variables['full_banner'] = TRUE;
+        if (!empty($node->field_nav_description[LANGUAGE_NONE][0]['value'])) {
+          $variables['introduction'] = $node->field_nav_description[LANGUAGE_NONE][0]['value'];
+        }
+        break;
+
       // Common for those types.
       case 'newsroom_item':
       case 'dataset':

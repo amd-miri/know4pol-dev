@@ -1,0 +1,60 @@
+<?php
+
+/**
+ * @file
+ * Install file providing corresponding entity reference schema.
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function cer_schema() {
+  $schema['cer'] = array(
+    'description' => t('Saves the content types and entity reference fields for which the corresponding entity reference is enabled'),
+    'fields' => array(
+      'entity_types_content_fields' => array('type' => 'varchar', 'length' => 200, 'not null' => TRUE, 'default' => ''),
+      'enabled' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0),
+    ),
+    'primary key' => array('entity_types_content_fields'),
+    'export' => array(
+      'key' => 'entity_types_content_fields',
+      'status' => 'enabled',
+      'primary key' => 'entity_types_content_fields',
+      'key name' => 'Corresponding entity reference',
+      'identifier' => 'cnr_obj',
+      'api' => array(
+        'api' => 'default_cer_presets',
+        'owner' => 'cer',
+        'minimum_version' => 1,
+        'current_version' => 1,
+      ),
+    ),
+  );
+  return $schema;
+}
+
+/**
+ * Rename table to shorten module name.
+ */
+function cer_update_7001() {
+  db_rename_table('corresponding_entity_references', 'cer');
+}
+
+/**
+ * Disable presets which refer to fields that don't exist. (Issue #2122531)
+ */
+function cer_update_7002() {
+  $presets = db_query('SELECT entity_types_content_fields FROM {cer} WHERE 1')->fetchCol();
+
+  foreach ($presets as $preset) {
+    $keys = explode('*', $preset);
+    
+    $left = field_info_instance($keys[0], $keys[2], $keys[1]);
+    $right = field_info_instance($keys[3], $keys[5], $keys[4]);
+
+    if (empty($left) || empty($right)) {
+      db_query('UPDATE {cer} SET enabled = 0 WHERE entity_types_content_fields = :preset', array(':preset' => $preset));
+      drupal_set_message(t('CER preset %preset was disabled because it uses non-existent fields.', array('%preset' => $preset)), 'warning');
+    }
+  }
+}
