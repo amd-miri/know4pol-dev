@@ -8,7 +8,6 @@
 /**
  * Implements hook_default_rules_configuration().
  */
- /*
 function nexteuropa_varnish_default_rules_configuration() {
   $config = [];
   // Invalidate cache after create and update of published nodes.
@@ -53,4 +52,3 @@ function nexteuropa_varnish_default_rules_configuration() {
   return $config;
 
 }
-*/
