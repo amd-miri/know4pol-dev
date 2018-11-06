@@ -1,57 +1,52 @@
 ACKNOWLEDGEMENTS
 
-As this is the next evolution of Corresponding Node References,
-I would like to say thanks for all the work done over on Corresponding Node
-References.
+This is the next generation of Corresponding Node References. So, thanks are due
+to everyone who ever worked on CNR!
 
 DESCRIPTION
 
-It syncs the entity reference between two entity types which have an entity
-reference to each other, so double editing entities is no longer needed. If one
-entity has a reference, the other entity also receives a reference to the saved
-entity if it is referenced in that entity.
+CER keeps reference fields in sync. If entity Alice references entity Bob, CER will make Bob back-reference Alice automatically, and it will continue to keep the two in sync if either one is changed or deleted. CER does this by way of “presets”, which are relationships you set up between reference-type fields.
+
+By “reference-type fields”, I mean any kind of field that references an entity. Out of the box, CER can integrate with the following field types:
+
+- Entity Reference
+- Node Reference
+- User Reference
+- Taxonomy Term Reference
+- Profile2 (using the cer_profile2 add-on module)
+- Commerce Product Reference (using the cer_commerce add-on module)
+
+CER has an object-oriented API you can use to integrate other kinds of fields, if you need to. For more information, see cer.api.php.
 
 DEPENDENCIES
 
-7.x: Entity Reference
+- Entity API
+- CTools
+- Table Element
 
-EXAMPLE
+CREATING PRESETS
 
-Entity type A has an entity reference to entity type B and entity type B has an
-entity reference to entity type A. When you create entity X of type A and
-reference it to entity Y of type B entity Y will also receive an update in its
-entity reference field pointing to entity X.
+CER won’t do anything until you create at least one preset. To create a preset, visit admin/config/content/cer and click “Add a preset”. You will need Hierarchical Select installed to continue.
 
-KNOWN ISSUES
+Select the field you want to use for the left side of the preset, then click Continue. Another select field will appear; use it to choose the field to use for the right side of the preset. Click Save, and you’re all set!
 
-- Support for entity reference fields in field collections is still a work in progress.
-  CER has no native support for entities that are wrapped by other entities (i.e.,
-  field collections), and implementing this properly will require extensive changes
-  to many parts of CER. For this reason, field collection support is on hold until
-  a few other major issues in the queue are sorted out. The thread for field collection
-  support is http://drupal.org/node/1729666.
+THINGS YOU SHOULD KNOW
 
-- Support for multi-language entities is, at the time of this writing, flaky at best.
-  There is a patch to implement better multi-language support, available at
-  http://drupal.org/node/1961026. If this patch works well for you, PLEASE post
-  in that issue to say that it worked so that the patch can be reviewed by
-  the community before being committed into CER.
+* If you’re updating from CER 1.x or 2.x, you MUST clear all your caches *before* running update.php so that new classes can be registered with the autoloader! If you don’t do this, you are likely to receive fatal errors during the update.
 
-- If you're updating CER from 1.x to 2.x, you should rebuild your theme registry.
-  This is because the reference labels on CER's admin page were made themeable
-  in 2.x, so you'll need to make Drupal recognize the new theme hook.
+* If you have Corresponding Node References installed, CER will disable it and take over its field relationships.
 
-INSTALL
+* Everything CER does, it does in a normal security context. This can lead to unexpected behavior if you’re not aware of it. In other words, if you don’t have the permission to view a specific node, don’t expect CER to be able to reference it when logged in as you. Be mindful of your entity/field permissions!
+  
+* devel_generate does not play nicely with CER, especially where field collections are concerned. The results are utterly unpredictable.
 
-- To install enable the module at admin/build/modules
-- Create entity type A
-- Create entity type B
-- Create a entity reference field on entity type A pointing to entity B
-- Create a entity reference field on entity type B pointing to entity A
-- Go to the settings page at admin/config/system/cer. 
-  Select to enable the corresponding referencing for these node types pointing 
-  to each other.
-- Create some entities and reference them to each other
+ROAD MAP
+
+If any of this stuff interests you, I wholeheartedly encourage you to submit patches or contribute in any way you can!
+
+- Moar automated test coverage
+- Performance enhancement
+- Documentation
 
 MAINTAINER
 
