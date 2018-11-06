@@ -170,11 +170,14 @@ function _know4pol_search_settings_form_submit(array $form, array &$form_state) 
  *   Returns content types.
  */
 function _know4pol_search_get_allowed_content_types($nid = 0) {
+  $allowed_options = array();
   $know4pol_search_settings_array = variable_get('know4pol_search_settings');
   if ($nid == 0) {
     return $know4pol_search_settings_array[0];
   }
-  $allowed_options = $know4pol_search_settings_array[$nid];
+  if (isset($know4pol_search_settings_array[$nid])) {
+    $allowed_options = $know4pol_search_settings_array[$nid];
+  }
   // Get human names.
   $types = node_type_get_types();
   // Change newsroom item to news and events, which aren't node types.
@@ -185,8 +188,10 @@ function _know4pol_search_get_allowed_content_types($nid = 0) {
   $eventsobject = (object) $eventsarray;
   $types['news'] = $newsobject;
   $types['event'] = $eventsobject;
-  foreach ($allowed_options as $allowed_option) {
-    $allowed_options[$allowed_option] = $types[$allowed_option]->name;
+  if (!empty($allowed_options)) {
+    foreach ($allowed_options as $allowed_option) {
+      $allowed_options[$allowed_option] = $types[$allowed_option]->name;
+    }
   }
   // Default option, which isn't a content type.
   $allowed_options['all'] = 'All';
