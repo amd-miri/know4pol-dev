@@ -56,7 +56,7 @@ function know4pol_ec_europa_preprocess_footer(&$variables, $hook) {
   if (isset($menu['page_arguments'][0]->type) &&
       ($menu['page_arguments'][0]->type == 'page')) {
     $path = explode('/', $menu['page_arguments'][0]->path['alias']);
-    if ($path[1] == 'about') {
+    if (isset($path[1]) && $path[1] == 'about') {
       $gid = $menu['page_arguments'][0]->og_group_ref[LANGUAGE_NONE][0]['target_id'];
       $group_path_alias = drupal_lookup_path('alias', 'node/' . $gid);
       if ($path[0] == $group_path_alias) {
