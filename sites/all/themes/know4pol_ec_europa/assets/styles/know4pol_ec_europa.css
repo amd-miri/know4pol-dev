@@ -321,3 +321,8 @@ section[id*='block-menu-menu-footer-middle-'] .block__content li a::after {
     max-width: 256px;
   }
 }
+
+/* ECL file */
+.content .ecl-file {
+  margin: 1rem 0;
+}
