@@ -109,15 +109,13 @@ class EntityTranslationHandlerFactory {
    *   The type of the entity the translation handler will wrap.
    * @param $entity
    *   The entity the translation handler will wrap.
-   *
-   * @return EntityTranslationHandlerInterface
-   *   A class implementing EntityTranslationHandlerInterface.
    */
   public function getHandlerId($entity_type, $entity) {
     if (!isset($entity->entity_translation_handler_id)) {
-      list($id, $revision_id) = entity_extract_ids($entity_type, $entity);
+      list($id, $revision_id, $bundle) = entity_extract_ids($entity_type, $entity);
       $revision_id = isset($revision_id) ? $revision_id : 0;
-      $entity->entity_translation_handler_id = $entity_type . '-' . (!empty($id) ? 'eid-' . $id . '-' . $revision_id : 'new-' . self::$newId++);
+      $bundle = isset($bundle) ? $bundle : $entity_type;
+      $entity->entity_translation_handler_id = $entity_type . '-' . $bundle . '-' . (!empty($id) ? 'eid-' . $id . '-' . $revision_id : 'new-' . self::$newId++);
     }
     return $entity->entity_translation_handler_id;
   }
@@ -137,26 +135,6 @@ class EntityTranslationHandlerFactory {
       return isset($this->lastByType[$entity_type]) ? $this->lastByType[$entity_type] : NULL;
     }
     return $this->last;
-  }
-
-  /**
-   * Returns a translation handler for the current revision of the entity.
-   *
-   * @param $entity_type
-   *   The type of the entity the translation handler will wrap.
-   * @param $entity
-   *   The entity whose current revision the translation handler will wrap.
-   *
-   *  @return EntityTranslationHandlerInterface
-   *   A class implementing EntityTranslationHandlerInterface.
-   */
-  public function getCurrentRevisionHandler($entity_type, $entity) {
-    $handler = $this->getHandler($entity_type, $entity);
-    if (!$handler->isNewEntity()) {
-      $revision = $handler->getCurrentEntityRevision();
-      $handler = $this->getHandler($entity_type, $revision);
-    }
-    return $handler;
   }
 
 }
