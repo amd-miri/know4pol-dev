@@ -465,7 +465,10 @@ function multisite_formatters_field_formatter_prepare_view($entity_type, $entiti
 
           case 'entityreference':
             // Load all entities.
-            $entities = entity_load('node', $items[$id]);
+            $poparray = function ($value) {
+              return $value['target_id'];
+            };
+            $entities = entity_load('node', array_map($poparray, $items[$id]));
             foreach ($items[$id] as &$item) {
               $eid = $item['target_id'];
               $item['drupal_link'] = TRUE;
