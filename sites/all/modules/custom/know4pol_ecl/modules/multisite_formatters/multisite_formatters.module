@@ -429,7 +429,10 @@ function multisite_formatters_field_formatter_prepare_view($entity_type, $entiti
 
           case 'taxonomy_term_reference':
             // Load all terms.
-            $terms = taxonomy_term_load_multiple($items[$id]);
+            $poparray = function ($value) {
+              return $value['tid'];
+            };
+            $terms = taxonomy_term_load_multiple(array_map($poparray, $items[$id]));
             if (!isset($column)) {
               $column = 'tid';
             }
