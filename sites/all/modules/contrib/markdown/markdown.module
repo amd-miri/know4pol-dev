@@ -141,3 +141,12 @@ function _filter_markdown_settings($form, &$form_state, $filter, $format, $defau
 
   return $settings;
 }
+
+/**
+ * Implements hook_ctools_plugin_directory().
+ */
+function markdown_ctools_plugin_directory($owner, $plugin_type) {
+  if ($owner == 'feeds_tamper' && $plugin_type == 'plugins') {
+    return 'plugins';
+  }
+}
