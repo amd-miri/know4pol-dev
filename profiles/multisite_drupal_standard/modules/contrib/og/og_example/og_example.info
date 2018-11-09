@@ -29,3 +29,9 @@ features[node][] = group
 features[node][] = post
 features[page_manager_handlers][] = node_view_panel_context
 features[rules_config][] = rules_og_new_content_message
+
+; Information added by Drupal.org packaging script on 2018-06-28
+version = "7.x-2.10"
+core = "7.x"
+project = "og"
+datestamp = "1530174231"

@@ -67,6 +67,19 @@ function multisite_formatters_field_formatter_info() {
         'filter_preserve_tags' => '',
       ),
     ),
+    'text_link' => array(
+      'label' => t('Text link'),
+      'description' => t('Format links in text, if availabe.'),
+      'field types' => array(
+        'text',
+        'text_long',
+        'text_with_summary',
+      ),
+      'settings' => array(
+        'seperator_options' => array(),
+        'seperator_chacacter' => '',
+      ),
+    ),
   );
 }
 
@@ -117,7 +130,7 @@ function multisite_formatters_field_formatter_settings_form($field, $instance, $
       }
     }
     else {
-      $solr_pages = ['Apache solr not installed'];
+      $solr_pages = array('Apache solr not installed');
     }
     $element['solr'] = array(
       '#type' => 'select',
@@ -268,6 +281,30 @@ function multisite_formatters_field_formatter_settings_form($field, $instance, $
       ),
     );
   }
+
+  // Text_link.
+  elseif ($display['type'] == 'text_link') {
+    $element['seperator_options'] = array(
+      '#title' => t('If you have more than one link in your text field, please secify the character seperating them.'),
+      '#type' => 'checkboxes',
+      '#options' => array(
+        'seperator' => t('Add a seperator character'),
+      ),
+      '#default_value' => empty($settings['seperator_options']) ? array() : $settings['seperator_options'],
+    );
+
+    $element['seperator_chacacter'] = array(
+      '#title' => t('The seperator character'),
+      '#type' => 'textfield',
+      '#default_value' => $settings['seperator_chacacter'],
+      '#states' => array(
+        'visible' => array(
+          'input[name="fields[' . $field['field_name'] . '][settings_edit_form][settings][seperator_options][seperator]"' => array('checked' => TRUE),
+        ),
+      ),
+    );
+  }
+
   return $element;
 }
 
@@ -355,8 +392,15 @@ function multisite_formatters_field_formatter_settings_summary($field, $instance
     }
   }
 
-  $summary = implode('<br />', $summary);
+  // Text link.
+  elseif ($display['type'] == 'text_link') {
+    $summary[] = t("Convert text into html links, if any link is available.");
+    if (isset($settings['seperator_options']['seperator']) && $settings['seperator_options']['seperator'] != '') {
+      $summary[] = t("Split the text by a @character", array('@character' => $settings['seperator_options']['seperator']));
+    }
+  }
 
+  $summary = implode('<br />', $summary);
   return $summary;
 }
 
@@ -385,7 +429,10 @@ function multisite_formatters_field_formatter_prepare_view($entity_type, $entiti
 
           case 'taxonomy_term_reference':
             // Load all terms.
-            $terms = taxonomy_term_load_multiple($items[$id]);
+            $poparray = function ($value) {
+              return $value['tid'];
+            };
+            $terms = taxonomy_term_load_multiple(array_map($poparray, $items[$id]));
             if (!isset($column)) {
               $column = 'tid';
             }
@@ -418,7 +465,10 @@ function multisite_formatters_field_formatter_prepare_view($entity_type, $entiti
 
           case 'entityreference':
             // Load all entities.
-            $entities = entity_load('node', $items[$id]);
+            $poparray = function ($value) {
+              return $value['target_id'];
+            };
+            $entities = entity_load('node', array_map($poparray, $items[$id]));
             foreach ($items[$id] as &$item) {
               $eid = $item['target_id'];
               $item['drupal_link'] = TRUE;
@@ -625,6 +675,36 @@ function multisite_formatters_field_formatter_view($entity_type, $entity, $field
       $elements[$delta] = array(
         '#markup' => $output,
       );
+    }
+  }
+
+  // Text link.
+  elseif ($display['type'] == 'text_link') {
+    foreach ($items as $item) {
+      // First case : if a seperator parameter is defined.
+      if (isset($settings['seperator_options']['seperator'])
+          && $settings['seperator_options']['seperator'] == 'seperator'
+          && $settings['seperator_chacacter'] != '') {
+        $item_array = explode($settings['seperator_chacacter'], $item['value']);
+        foreach ($item_array as $value) {
+          if (preg_match('/("?)(https?:\/\/[^\s]+\.[^\s]+)/', $value)) {
+            $value_array[] = l($value, $value);
+          }
+          else {
+            $value_array[] = $value;
+          }
+        }
+        $elements[] = implode('<br>', $value_array);
+      }
+      // Second case : if there is no parameter defined.
+      // And the item begins by HTTP or HTPPS.
+      elseif (preg_match('/("?)(https?:\/\/[^\s]+\.[^\s]+)/', $item['value'])) {
+        $elements[] = l($item['value'], $item['value']);
+      }
+      // Otherwise just send the unchanged item.
+      else {
+        $elements[] = $item['value'];
+      }
     }
   }
 

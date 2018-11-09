@@ -160,25 +160,6 @@ function _know4pol_ec_europa_build_query_facets(array $active_facets) {
 }
 
 /**
- * Preprocess hook for file entities.
- */
-function know4pol_ec_europa_preprocess_file_entity(&$variables) {
-  $image = image_load($variables['uri']);
-  $content = array(
-    'file' => array(
-      '#theme' => 'image_style',
-      '#style_name' => 'original',
-      '#path' => $image->source,
-      '#width' => $image->info['width'],
-      '#height' => $image->info['height'],
-      '#alt' => $variables['field_file_image_alt_text']['en'][0]['value'],
-      '#title' => $variables['field_file_image_title_text']['en'][0]['value'],
-    ),
-  );
-  $variables['image'] = $content;
-}
-
-/**
  * Implements template_url_outbound_alter().
  *
  * Remove appended redirection after creating the content from URI.

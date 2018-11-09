@@ -21,12 +21,20 @@ function workbench_og_workbench_moderation_states_next_alter(&$states, $current_
   // Get group nodes.
   $groups = og_get_entity_groups($entity_type = 'node', $context['node'], array(OG_STATE_ACTIVE));
 
-  // If we are creating a node, we don't have groups associated yet.
   if (empty($groups)) {
-    return;
+    // Make sure we are not on a node/add page that is part of groups.
+    if(og_is_group($entity_type = 'node', $context['node']->nid)) {
+      $groups = node_load_multiple(array($context['node']->nid));
+    }
+    else {
+      // The node is not part of groups.
+      return;
+    }
   }
-
-  $groups = node_load_multiple(array_values($groups['node']));
+  else {
+    // We are on an edit page of a group.
+    $groups = node_load_multiple(array_values($groups['node']));
+  }
   $possible_states = workbench_moderation_state_labels();
 
   foreach ($groups as $group) {
@@ -39,8 +47,16 @@ function workbench_og_workbench_moderation_states_next_alter(&$states, $current_
       $permission = t('moderate content from @from_state to @to_state',
                       array('@from_state' => $current_state, '@to_state' => $state_key));
 
-      if (og_user_access_entity($permission, 'node', $group)) {
+      if(og_user_access_entity($permission, 'node', $group)) {
+        // User group role has access
         $states[$state_key] = $state_name;
+      }
+      else {
+        // Prevent non-group roles from having access, If og_node_access_strict is turned on.
+        if(variable_get('og_node_access_strict', TRUE)) {
+          unset($states[$state_key]);
+        }
+
       }
     }
   }
@@ -91,7 +107,7 @@ function workbench_og_node_access_records($node) {
   }
 
   // If revision is not published we need to grant access to group.
-  if (!$node->workbench_moderation['my_revision']->published) {
+  if ($node->status != 1) {
 
     $grants = array();
     // Fet the groups defined in the node.
@@ -120,27 +136,28 @@ function workbench_og_node_access_records($node) {
  * Will pass grants to every group the user belongs to
  */
 function workbench_og_node_grants($account, $op) {
+  $grants = &drupal_static(__FUNCTION__);
 
-  $grants = array();
+  if (!isset($grants[$account->uid][$op])) {
+    // Gets the user groups.
+    $group_ids = og_get_entity_groups('user', $account, array(OG_STATE_ACTIVE));
 
-  // Gets the user groups.
-  $group_ids = og_get_entity_groups('user', $account, array(OG_STATE_ACTIVE));
+    // Foreach group that user is a member.
+    if (isset($group_ids) && !empty($group_ids['node'])) {
 
-  // Foreach group that user is a member.
-  if (isset($group_ids) && !empty($group_ids['node'])) {
+      $groups = entity_load('node', array_values(reset($group_ids)));
+      foreach ($groups as $group_id => $group) {
 
-    $groups = entity_load('node', array_values(reset($group_ids)));
-    foreach ($groups as $group_id => $group) {
-
-      /* check if the user can access unpublished content in this group. If that
-      is correct, access is granted */
-      if (og_user_access_entity('View all unpublished content', 'node', $group)) {
-        $grants['workbench_moderation_og'][] = $group_id;
+        /* check if the user can access unpublished content in this group. If that
+        is correct, access is granted */
+        if (og_user_access_entity('View all unpublished content', 'node', $group)) {
+          $grants[$account->uid][$op]['workbench_moderation_og'][] = $group_id;
+        }
       }
     }
   }
 
-  return $grants;
+  return isset($grants[$account->uid][$op]) ? $grants[$account->uid][$op] : NULL;
 }
 
 /**

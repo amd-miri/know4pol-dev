@@ -395,3 +395,8 @@ hr.listing__separator {
 .node-navigation-page .ecl-list-item .field {
   margin-bottom: 0;
 }
+
+/* ECL file */
+.content .ecl-file {
+  margin: 1rem 0;
+}

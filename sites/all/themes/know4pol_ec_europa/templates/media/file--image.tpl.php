@@ -86,7 +86,7 @@
     <?php
       // We hide the links now so that we can render them later.
       hide($content['links']);
-      print drupal_render($image);
+      print render($content);
     ?>
 
     <?php if(!empty($content['file']['#item']['field_caption']['en'][0]['value']) || !empty($content['file']['#item']['field_newsroom_copyrights']['en'][0]['value'])): ?>
