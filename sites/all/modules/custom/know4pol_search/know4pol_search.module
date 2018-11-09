@@ -941,6 +941,7 @@ function know4pol_search_apachesolr_query_alter($query) {
  * Implements hook_apachesolr_index_document_build_node().
  */
 function know4pol_search_apachesolr_index_document_build_node(ApacheSolrDocument $document, $entity, $entity_type) {
+
   switch ($entity->type) {
     case 'newsroom_item':
       // Add signle field newsroom date in SolR index.

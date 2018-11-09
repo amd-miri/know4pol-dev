@@ -476,7 +476,13 @@ function know4pol_core_feeds_presave(FeedsSource $source, $entity, $item, $entit
         if (!empty($matched_term_in_tags)) {
           $matched_term_in_tags = array_shift($matched_term_in_tags);
           // Add the tag to the imported entity.
-          $entity->field_tags[LANGUAGE_NONE][]['tid'] = $matched_term_in_tags->tid;
+          $poparray = function ($value) {
+            return $value['tid'];
+          };
+          $entity_tags = array_map($poparray, $entity->field_tags[LANGUAGE_NONE]);
+          if (!in_array($matched_term_in_tags->tid, $entity_tags)) {
+            $entity->field_tags[LANGUAGE_NONE][]['tid'] = $matched_term_in_tags->tid;
+          }
         }
       }
       // Else if the category is "Knowledge Service".
