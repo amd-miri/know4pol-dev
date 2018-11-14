@@ -1,0 +1,104 @@
+<?php
+
+/**
+ * @file
+ * Collapse_text is an input filter that allows text to be collapsible.
+ */
+
+ /**
+  * Implements hook_filter_info_alter().
+  */
+function multisite_filters_filter_info_alter(&$info) {
+  // This alters collapse_text_filter, if not installed do nothing.
+  if (!isset($info['collapse_text_filter'])) {
+    return;
+  }
+
+  // Alter module since installed and configured in Multisite.
+  // Could be easily transformed into its own filter with hook_filter_info.
+  $info['collapse_text_filter'] = array(
+    'title'             => t('Explandable component'),
+    'description'       => t('Transform custom markup [expandable] to implement ECL Expandable'),
+    'process callback'  => 'multisite_filters_filter_process',
+    'cache'             => TRUE,
+  );
+}
+
+/**
+ * Implements hook_filter_FILTER_process().
+ */
+function multisite_filters_filter_process($text, $filter, $format, $langcode, $cache, $cache_id) {
+  // Retrieve the options, then look for overrides
+  // Replace legacy markup.
+  $text = preg_replace('/\[collapsed(.*?)\]/', '[expandable\1]', $text);
+  $text = preg_replace('/\[collapse(.*?)\]/', '[expandable\1 opened]', $text);
+  $text = preg_replace('/\[\/collapsed?\]/', '[/expandable]', $text);
+
+  // Detect markup. Broken <p> tags will have to be fixed after.
+  $found = preg_match_all('/\[expandable(\s[^\]]+)?\](.*?)\[\/expandable\]/is', $text, $matches, PREG_SET_ORDER);
+  if (!$found) {
+    return $text;
+  }
+  // krumo($matches);
+  foreach ($matches as $result) {
+    // Create drupal render array.
+    $element = array(
+      '#theme' => 'expandable',
+      '#body' => $result[2],
+    );
+
+    // Extract options.
+    preg_match_all('/(\w+)(="(.*?)")?/', $result[1], $options, PREG_SET_ORDER);
+    foreach ($options as $setting) {
+      // Attribue name.
+      switch ($setting[1]) {
+        case 'title':
+          // Check attribute value.
+          if (isset($setting[3])) {
+            $element['#title'] = $setting[3];
+          }
+          break;
+
+        case 'titleclose':
+          // Check attribute value.
+          if (isset($setting[3])) {
+            $element['#title_close'] = $setting[3];
+          }
+          break;
+
+        case 'opened':
+          // Check attribute value.
+          $element['#opened'] = TRUE;
+          break;
+
+        case 'button':
+          // Check attribute value.
+          $element['#button'] = TRUE;
+          break;
+      }
+    }
+
+    // Render expandable using ec_europa template.
+    $text = str_replace($result[0], drupal_render($element), $text);
+  }
+
+  return $text;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function multisite_filters_theme($existing, $type, $theme, $path) {
+  return array(
+    'expandable' => array(
+      'variables' => array(
+        'title' => t('Show more'),
+        'title_close' => NULL,
+        'body' => NULL,
+        'opened' => FALSE,
+        'button' => FALSE,
+      ),
+      'template' => 'expandable',
+    ),
+  );
+}
