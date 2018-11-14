@@ -21,6 +21,16 @@ function know4pol_ecl_wysiwyg_plugin($editor, $version) {
             'eclbutton' => t('ECL Button'),
           ),
         );
+        $plugins['eclexpandable'] = array(
+          'desc' => 'Expandable - ' . t('Inserts ECL template markup'),
+          'internal' => FALSE,
+          'path' => drupal_get_path('module', 'know4pol_ecl') . '/plugins/eclexpandable',
+          'filename' => 'plugin.js',
+          'load' => TRUE,
+          'buttons' => array(
+            'eclexpandable' => t('ECL expandable'),
+          ),
+        );
       }
       break;
   }
@@ -122,7 +132,7 @@ function _know4pol_ecl_get_wysiwyg_toolbar($format) {
         'Blockquote',
         'media',
         'Iframe',
-        'collapse',
+        'eclexpandable',
         'eclbutton',
       ];
       break;

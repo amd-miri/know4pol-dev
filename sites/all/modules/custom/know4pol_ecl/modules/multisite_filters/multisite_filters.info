@@ -1,0 +1,7 @@
+name = Multisite filters
+description = Provides input filters for certain ECL in text
+core = 7.x
+dependencies[] = know4pol_ecl
+package = JRC
+php = 5.2.4
+multisite_version = 2.4
