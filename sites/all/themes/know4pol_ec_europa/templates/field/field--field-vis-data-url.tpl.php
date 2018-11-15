@@ -6,8 +6,6 @@
  */
 ?>
 
-
-
 <div<?php print $atomium['attributes']['wrapper']; ?> style="width:100%">
   <div class="ecl-field__label"><?php print $label ?></div>
   <div class="ecl-field__body">
@@ -32,6 +30,13 @@
           "custom": "<?php print $item['#element']['url']; ?>"
         }</script>
         <script defer src="//europa.eu/webtools/load.js" type="text/javascript"></script>
+        <?php elseif ($item['#element']['v_type'] == "Map"): ?>
+        <script defer src="//europa.eu/webtools/load.js" type="text/javascript"></script>
+        <script type="application/json">{
+          "service": "map",
+          "version": "2.0",
+          "custom": "<?php print $item['#element']['url']; ?>"
+        }</script>
         <?php endif; ?>
     <?php endforeach; ?>
   </div>
