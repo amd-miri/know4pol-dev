@@ -29,7 +29,7 @@ function markdown_feeds_tamper_form($importer, $element_key, $settings) {
  * Callback for plugin.
  */
 function markdown_feeds_tamper_callback($feeds_parser_result, $item_key, $element_key, &$field, $settings, $feeds_source) {
-  $field = _filter_markdown($field);
+  $field = _filter_markdown($field, null);
 }
 
 ?>

@@ -509,3 +509,24 @@ function know4pol_core_update_7022(&$sandbox) {
 
   $sandbox['#finished'] = (empty($sandbox['field_instance_list']) && empty($sandbox['node_list']));
 }
+
+/**
+ * Enable field_object, elements and cer modules.
+ */
+function know4pol_core_update_7023() {
+  module_enable(array(
+    'elements',
+    'field_object',
+    'cer',
+    'multisite_filters',
+  ), TRUE);
+}
+
+/**
+ * Enable multisite_filters modules.
+ */
+function know4pol_core_update_7024() {
+  module_enable(array(
+    'multisite_filters',
+  ), TRUE);
+}
