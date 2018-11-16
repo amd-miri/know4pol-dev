@@ -400,3 +400,12 @@ hr.listing__separator {
 .content .ecl-file {
   margin: 1rem 0;
 }
+
+/* Fix the facet button margins */
+.ecl-tag--facet-close .ecl-tag__label {
+  margin-right: 0;
+}
+
+.ecl-tag--facet-close .ecl-button--facet-close {
+  margin-right: 1.35rem;
+}
