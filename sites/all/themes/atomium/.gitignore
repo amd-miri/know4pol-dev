@@ -1,8 +1,0 @@
-vendor
-grumphp.yml
-composer.lock
-node_modules
-.idea/
-/build/
-/phpunit.xml
-/runner.yml
