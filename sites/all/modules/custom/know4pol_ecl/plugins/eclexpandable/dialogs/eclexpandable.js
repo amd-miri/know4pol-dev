@@ -1,7 +1,8 @@
 /**
  * @file
  */
-CKEDITOR.dialog.add('eclexpandableDialog', function(editor) {
+
+CKEDITOR.dialog.add('eclexpandableDialog', function (editor) {
   return {
     title: 'ECL Expandable',
     minWidth: 400,
@@ -25,11 +26,6 @@ CKEDITOR.dialog.add('eclexpandableDialog', function(editor) {
           validate: CKEDITOR.dialog.validate.notEmpty(
             "Label should be provided")
         },
-        /* not implemented in current ECL v0 {
-                     type: 'text',
-                     id: 'strLabelClose',
-                     label: 'Label when opened',
-                    }, */
         {
           type: 'checkbox',
           id: 'blnOpened',
@@ -37,7 +33,7 @@ CKEDITOR.dialog.add('eclexpandableDialog', function(editor) {
         },
       ]
     }],
-    onOk: function() {
+    onOk: function () {
       var selection = editor.getSelection();
       var container = new CKEDITOR.dom.element('p');
       container.appendText('[expandable title="' + this.getValueOf('tab1',
@@ -52,7 +48,8 @@ CKEDITOR.dialog.add('eclexpandableDialog', function(editor) {
         range.startOffset == range.endOffset) {
           var p = new CKEDITOR.dom.element('p');
           p.appendTo(container);
-      } else {
+      }
+else {
         var fragment = range.extractContents();
         fragment.appendTo(container);
       }

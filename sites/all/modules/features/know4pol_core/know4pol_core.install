@@ -518,14 +518,21 @@ function know4pol_core_update_7023() {
     'elements',
     'field_object',
     'cer',
-    'multisite_filters',
   ), TRUE);
 }
 
 /**
- * Enable multisite_filters modules.
+ * Enable multisite_filters module and disable apachesolr_realtime.
  */
 function know4pol_core_update_7024() {
+  module_disable(array(
+    'apachesolr_realtime_reports',
+    'apachesolr_realtime',
+  ), FALSE);
+  drupal_uninstall_modules(array(
+    'apachesolr_realtime_reports',
+    'apachesolr_realtime',
+  ), FALSE);
   module_enable(array(
     'multisite_filters',
   ), TRUE);

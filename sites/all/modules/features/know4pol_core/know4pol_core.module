@@ -250,6 +250,7 @@ function _know4pol_core_get_accessible_vocabs($bundle, array $gids) {
  * Implements hook_feeds_processor_targets_alter().
  */
 function know4pol_core_feeds_processor_targets_alter(&$targets, $entity_type, $bundle_name) {
+  $targets['field_related_organisations:acronym']['callback'] = '_know4pol_core_post_process_callback';
   $targets['og_group_ref:label']['callback'] = '_know4pol_core_post_process_callback';
   $targets['og_group_ref:etid']['callback'] = '_know4pol_core_post_process_callback';
   $targets['og_vocabulary']['callback'] = '_know4pol_core_post_process_callback';
@@ -294,7 +295,12 @@ function _know4pol_core_get_og_vocabularies_by_content_type($bundle_name) {
  * @param array $value
  *   The value to map. MUST be an array.
  */
-function _know4pol_core_post_process_callback(FeedsSource $source, $entity, $target, array $value) {
+function _know4pol_core_post_process_callback(FeedsSource $source, $entity, $target, array $value, array $mapping) {
+  // Add in default values.
+  $mapping += array(
+    'term_search' => FEEDS_TAXONOMY_SEARCH_TERM_NAME,
+    'autocreate' => FALSE,
+  );
   // First we define if the entity to change is a term or a node.
   if ($entity->feeds_item->entity_type == 'taxonomy_term') {
     $entity_id_key = 'tid';
@@ -385,6 +391,35 @@ function _know4pol_core_post_process_callback(FeedsSource $source, $entity, $tar
             $entity_id = "";
             if (!empty($etid)) {
               $entity_id = reset($etid);
+            }
+            if ($mapping['autocreate']) {
+              $mapping_target = drupal_substr($mapping['target'], drupal_strlen('og_vocabulary:'));
+              $terms = taxonomy_get_term_by_name($value, $mapping_target);
+              $term = reset($terms);
+              if (empty($term)) {
+                $vocab = taxonomy_vocabulary_machine_name_load($mapping_target);
+                $vocab_id = $vocab->vid;
+                $term = (object) array(
+                  'name' => drupal_substr($value, 0, 255),
+                  'vid' => $vocab_id,
+                  'vocabulary_machine_name' => $mapping_target,
+                );
+                taxonomy_term_save($term);
+              }
+            }
+          }
+          if ($target == 'field_related_organisations') {
+            // Get the related organisation nid.
+            $query = db_select('node', 'n')
+              ->fields('n', array('nid'));
+            $query->join('field_data_field_org_acronym', 'oc', 'oc.entity_id = n.nid');
+            $query->condition('n.type', 'organisation')
+              ->condition('field_org_acronym_value', $value);
+
+            $etid = $query->execute()->fetch();
+            $entity_id = "";
+            if (!empty($etid)) {
+              $entity_id = $etid->nid;
             }
           }
           break;
@@ -660,9 +695,16 @@ function know4pol_core_og_ui_get_group_admin($group_type, $gid) {
       'access arguments' => array('add user', 1, 2),
     );
     $items['know4pol_publications'] = array(
-      'title' => t('Assign Pubsy publications to KS'),
-      'description' => t('Assign Pubsy publications to KS'),
+      'title' => t('Assign publication to KS'),
+      'description' => t('Assign publication to KS'),
       'href' => 'admin/publications',
+      'access callback' => 'og_ui_user_access_group',
+      'access arguments' => array('add user', 1, 2),
+    );
+    $items['know4pol_datasets'] = array(
+      'title' => t('Assign datasets to KS'),
+      'description' => t('Assign datasets to KS'),
+      'href' => 'admin/datasets',
       'access callback' => 'og_ui_user_access_group',
       'access arguments' => array('add user', 1, 2),
     );

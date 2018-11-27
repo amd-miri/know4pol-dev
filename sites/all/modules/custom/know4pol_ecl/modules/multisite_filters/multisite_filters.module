@@ -17,7 +17,7 @@ function multisite_filters_filter_info_alter(&$info) {
   // Alter module since installed and configured in Multisite.
   // Could be easily transformed into its own filter with hook_filter_info.
   $info['collapse_text_filter'] = array(
-    'title'             => t('Explandable component'),
+    'title'             => t('Expandable component'),
     'description'       => t('Transform custom markup [expandable] to implement ECL Expandable'),
     'process callback'  => 'multisite_filters_filter_process',
     'cache'             => TRUE,
@@ -39,7 +39,6 @@ function multisite_filters_filter_process($text, $filter, $format, $langcode, $c
   if (!$found) {
     return $text;
   }
-  // krumo($matches);
   foreach ($matches as $result) {
     // Create drupal render array.
     $element = array(

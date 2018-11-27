@@ -409,3 +409,8 @@ hr.listing__separator {
 .ecl-tag--facet-close .ecl-button--facet-close {
   margin-right: 1.35rem;
 }
+
+/* ECL Link */
+.ecl-link {
+  word-wrap: break-word;
+}
