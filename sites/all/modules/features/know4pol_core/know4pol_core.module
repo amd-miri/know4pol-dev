@@ -157,6 +157,7 @@ function know4pol_core_token_info() {
  */
 function know4pol_core_tokens($type, $tokens, array $data = array(), array $options = array()) {
   $replacements = array();
+
   if ($type == 'site') {
     foreach ($tokens as $name => $original) {
       if ($name == 'know4pol_og_group_ref') {
@@ -181,6 +182,30 @@ function know4pol_core_tokens($type, $tokens, array $data = array(), array $opti
       }
     }
   }
+
+  if ($type == 'entity' && $data['entity_type'] == 'node') {
+    $node = $data['entity'];
+    if (isset($node->revision_uid)) {
+      $revision_author = user_load($node->revision_uid);
+      $sanitize = !empty($options['sanitize']);
+      foreach ($tokens as $name => $original) {
+        switch ($name) {
+          case 'current-revision-author-username':
+            $replacements[$original] = $sanitize ? check_plain($revision_author->name) : $revision_author->name;
+            break;
+
+          case 'current-revision-author-realname':
+            $replacements[$original] = $sanitize ? check_plain($revision_author->realname) : $revision_author->realname;
+            break;
+
+          case 'current-revision-author-mail':
+            $replacements[$original] = $sanitize ? check_plain($revision_author->mail) : $revision_author->mail;
+            break;
+        }
+      }
+    }
+  }
+
   return $replacements;
 }
 
@@ -1092,4 +1117,31 @@ function _know4pol_core_get_og_group_members($gid, array $roles = array()) {
     }
     return count($users) ? user_load_multiple($users) : NULL;
   }
+}
+
+/**
+ * Implements hook_entity_property_info_alter().
+ */
+function know4pol_core_entity_property_info_alter(&$info) {
+  $info['node']['properties']['current-revision-author-username'] = array(
+    'label' => t('Current revision author username'),
+    'type' => 'text',
+    'description' => t('The username of the author of the current revision of the node.'),
+    'computed' => TRUE,
+    'field' => FALSE,
+  );
+  $info['node']['properties']['current-revision-author-realname'] = array(
+    'label' => t('Current revision author realname'),
+    'type' => 'text',
+    'description' => t('The realname of the author of the current revision of the node.'),
+    'computed' => TRUE,
+    'field' => FALSE,
+  );
+  $info['node']['properties']['current-revision-author-mail'] = array(
+    'label' => t('Current revision author email'),
+    'type' => 'text',
+    'description' => t('The email of the author of the current revision of the node.'),
+    'computed' => TRUE,
+    'field' => FALSE,
+  );
 }
