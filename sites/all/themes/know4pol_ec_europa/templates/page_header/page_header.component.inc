@@ -17,7 +17,7 @@ function know4pol_ec_europa_atomium_theme_page_header() {
         'introduction' => NULL,
         'meta' => NULL,
         'breadcrumb' => NULL,
-        'full_banner' => FALSE,
+        'full_banner' => TRUE,
       ),
       'template' => 'page-header',
     ),
@@ -33,9 +33,14 @@ function know4pol_ec_europa_preprocess_page_header(&$variables, $hook) {
   // Node is viewed.
   if ($menu_item['path'] == 'node/%') {
     $node = $menu_item['page_arguments'][0];
+
+    $variables['meta'] = array(
+      '#theme' => 'meta',
+      '#type' => node_type_get_name($node),
+    );
+
     switch ($node->type) {
       case 'knowledge_centre':
-        $variables['full_banner'] = TRUE;
         if (!empty($node->field_short_description[LANGUAGE_NONE][0]['value'])) {
           $variables['introduction'] = $node->field_short_description[LANGUAGE_NONE][0]['value'];
         }
@@ -43,24 +48,25 @@ function know4pol_ec_europa_preprocess_page_header(&$variables, $hook) {
         break;
 
       case 'navigation_page':
-        $variables['full_banner'] = TRUE;
         if (!empty($node->field_nav_description[LANGUAGE_NONE][0]['value'])) {
           $variables['introduction'] = $node->field_nav_description[LANGUAGE_NONE][0]['value'];
         }
+        unset($variables['meta']);
         break;
 
       // Common for those types.
       case 'newsroom_item':
       case 'dataset':
       case 'publication':
-        $variables['full_banner'] = TRUE;
-        $variables['meta'] = array(
-          '#theme' => 'meta',
-          '#type' => $node->type,
-          '#timestamp' => format_date($node->created, 'custom', 'Y-m-d\TH:i:sP'),
-          '#date' => format_date($node->created, 'meta'),
-        );
+        $variables['meta']['#timestamp'] = format_date($node->created, 'custom', 'Y-m-d\TH:i:sP');
+        $variables['meta']['#date'] = format_date($node->created, 'meta');
+        break;
 
+      case 'file':
+      case 'country':
+      case 'page':
+        // No meta for those content types.
+        unset($variables['meta']);
         break;
     }
     // Specific for those types.
@@ -93,13 +99,10 @@ function know4pol_ec_europa_preprocess_page_header(&$variables, $hook) {
     }
   }
   elseif (drupal_is_front_page()) {
-    $variables['full_banner'] = TRUE;
     $variables['introduction'] = variable_get('site_slogan', '');
   }
   // Or it's a SolR page.
   elseif ($adapter = _know4pol_ec_europa_get_solr_instance()) {
-    // Full header.
-    $variables['full_banner'] = TRUE;
     // And custom title.
     $id_suffix = $variables['identity'];
     // If in a KS search, append name of KS to title.
