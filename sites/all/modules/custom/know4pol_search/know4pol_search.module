@@ -858,11 +858,11 @@ function know4pol_search_facetapi_sort_info() {
  *
  * @see uasort()
  */
-function _know4pol_search_facetapi_sort_ogvocab(array $a, array $b) {
-  $a = _know4pol_search_facetapi_load_term($a);
-  $b = _know4pol_search_facetapi_load_term($b);
+function _know4pol_search_facetapi_sort_ogvocab(array &$a, array &$b) {
+  $ta = _know4pol_search_facetapi_load_term($a);
+  $tb = _know4pol_search_facetapi_load_term($b);
   // Compare vid.
-  return ($a->vid == $b->vid) ? 0 : (($a->vid > $b->vid) ? -1 : 1);
+  return ($ta->vid == $tb->vid) ? 0 : (($ta->vid > $tb->vid) ? -1 : 1);
 }
 
 /**
