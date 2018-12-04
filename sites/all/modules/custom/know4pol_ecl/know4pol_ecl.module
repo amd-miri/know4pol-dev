@@ -93,7 +93,7 @@ function _know4pol_ecl_get_wysiwyg_toolbar($format) {
   switch ($format) {
     case 'basic_html':
       $toolbar[] = ['Bold', 'Italic', 'Underline', 'SpecialChar'];
-      $toolbar[] = ['Link', 'NextEuropaToken', 'Unlink'];
+      $toolbar[] = ['Link', 'Unlink'];
       $toolbar[] = ['BulletedList', 'NumberedList'];
       $toolbar[] = ['PasteFromWord', 'PasteText', 'RemoveFormat'];
       break;
