@@ -124,6 +124,10 @@ function know4pol_core_og_permission() {
       'title' => t('Assign publication to KS'),
       'description' => t('Assign publication to the current KS'),
     ),
+    'unpublish ks content' => array(
+      'title' => t('Unpublish KS content'),
+      'description' => t('Unpublish KS content'),
+    ),
   );
 }
 
@@ -213,10 +217,56 @@ function know4pol_core_tokens($type, $tokens, array $data = array(), array $opti
  * Implements hook_form_FORM_ID_alter().
  */
 function know4pol_core_form_node_form_alter(&$form, &$form_state, $form_id) {
+  $form['actions']['unpublish'] = array(
+    '#type' => 'submit',
+    '#value' => 'Unpublish',
+    '#submit' => array('_know4pol_core_unpublish_submit'),
+    '#access' => _know4pol_core_unpublish_access(),
+    '#weight' => 100,
+  );
   $form['#attributes']['class'][] = 'js-confirm-pop-up';
   $form['#attached']['js'] = array(
     drupal_get_path('module', 'know4pol_core') . '/js/js_confirm_pop_up.js',
   );
+}
+
+/**
+ * The callback function for the unpublish button.
+ */
+function _know4pol_core_unpublish_submit($form, &$form_state) {
+  if ($form_state['values']['unpublish'] == 'Unpublish') {
+    drupal_goto('node/' . $form['nid']['#value'] . '/moderation/' . $form['vid']['#value'] . '/unpublish');
+  }
+}
+
+/**
+ * The access function for the unpublish button.
+ */
+function _know4pol_core_unpublish_access($node = array()) {
+  global $user;
+  if (empty($node)) {
+    $node = menu_get_object();
+  }
+  // We should fisr make sure that we're editing
+  // and not creating a new content.
+  if (!empty($node->og_group_ref[LANGUAGE_NONE])) {
+    // If admin/webmaster, we bypass the right.
+    if (in_array('administrator', array_values($user->roles)) || in_array('webmaster', array_values($user->roles))) {
+      return TRUE;
+    }
+    else {
+      // We check if the user has the prmission
+      // in any of the assigned knowledge services.
+      $gids = $node->og_group_ref[LANGUAGE_NONE];
+      foreach ($gids as $gid) {
+        $access = og_user_access('node', $gid['target_id'], 'unpublish ks content');
+        if ($access == TRUE) {
+          return TRUE;
+        }
+      }
+    }
+  }
+  return FALSE;
 }
 
 /**
@@ -758,6 +808,8 @@ function know4pol_core_menu_alter(&$items) {
     'node',
     2,
   );
+  $items['node/%node/moderation/%/unpublish']['access callback'] = '_know4pol_core_unpublish_access';
+  $items['node/%node/moderation/%/unpublish']['access arguments'] = array(1);
 }
 
 /**
