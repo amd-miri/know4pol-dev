@@ -956,7 +956,7 @@ function know4pol_search_apachesolr_index_document_build_node(ApacheSolrDocument
       break;
 
     default:
-      $document->addField('ds_field_last_update', apachesolr_date_iso($entity->field_last_update[LANGUAGE_NONE][0]['value']));
+      $document->addField('ds_field_last_update', apachesolr_date_iso(strtotime($entity->field_last_update[LANGUAGE_NONE][0]['value'])));
       break;
   }
 }
