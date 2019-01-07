@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @file
  * Drupal needs this blank file.
@@ -8,73 +9,30 @@
  * Implements hook__wysiwyg_editor_settings_alter().
  */
 function multisite_wysiwyg_wysiwyg_editor_settings_alter(&$settings, $context) {
-  global $base_url;
-  $ms_wysiwyg = variable_get('multisite_wysiwyg', []);
-  $state = multisite_wysiwyg_set_current_entity_object_state();
+  if ('ckeditor' == $context['profile']->editor) {
+    global $base_url;
 
-  if ($context['profile']->editor == 'ckeditor') {
     $skins_path = drupal_get_path('module', 'multisite_wysiwyg') . '/ckeditor/skins';
     $active_skin = variable_get('multisite_ckeditor_skin', 'moonocolor');
+
     // Set custom skin.
     $settings['skin'] = sprintf('%s,' . '%s/%s/%s/', $active_skin, $base_url, $skins_path, $active_skin);
 
-    // Provide additional custom settings.
-    $settings['customConfig'] = base_path() . drupal_get_path('module', 'multisite_wysiwyg') . '/multisite_wysiwyg_config.js';
+    // Make sure this key exists before doing an array_merge().
+    $settings += array(
+      'contentsCss' => array(),
+    );
+
+    // If a specific css file has been created for CKEditor in the default
+    // theme, we add it to the editor settings; even if it is displayed in
+    // the admin theme.
+    // This approach allows a "soft" configuration of the platform.
+    $settings['contentsCss'] = array_merge($settings['contentsCss'], _multisite_wysiwyg_get_ckeditor_css_paths());
+
+    // This namespace must be applied even if the node edit forms are displayed
+    // with the admin theme.
+    $settings['bodyClass'] = 'ecl-editor';
   }
-
-  // Turn CKEditor Lite tracking off by default.
-  if (module_exists('ckeditor_lite') && $context['profile']->editor == 'ckeditor') {
-    $settings['lite']['isTracking'] = FALSE;
-  }
-
-  // Disable CKEditor Lite change tracking on create content pages.
-  if ($ms_wysiwyg && isset($ms_wysiwyg['dis_change_track_on_create'])) {
-    if ($ms_wysiwyg['dis_change_track_on_create'] && ($state == 'create')) {
-      $extra_plugins = explode(',', $settings['extraPlugins']);
-      foreach ($extra_plugins as $key => $plugin) {
-        if ($plugin == 'lite') {
-          unset($extra_plugins[$key]);
-        }
-      }
-      $settings['extraPlugins'] = implode(',', $extra_plugins);
-    }
-  }
-
-  // Enable CKEditor Lite change tracking on edit entity pages.
-  if ($ms_wysiwyg && isset($ms_wysiwyg['en_change_track_on_edit'])) {
-    if ($ms_wysiwyg['en_change_track_on_edit'] && ($state == 'edit')) {
-      $settings['lite']['isTracking'] = TRUE;
-    }
-  }
-
-}
-
-/**
- * Implements hook_menu().
- */
-function multisite_wysiwyg_menu() {
-  $items['admin/config/content/multisite_wysiwyg'] = [
-    'title' => 'Multisite WYSIWYG',
-    'description' => 'Multisite WYSIWYG: Available options',
-    'position' => 'left',
-    'weight' => -100,
-    'page callback' => 'system_admin_menu_block_page',
-    'access arguments' => ['administer site configuration'],
-    'file' => 'system.admin.inc',
-    'file path' => drupal_get_path('module', 'system'),
-  ];
-
-  $items['admin/config/content/multisite_wysiwyg/setup'] = [
-    'title' => 'Settings',
-    'description' => 'Setup page for Multisite WYSIWYG',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => ['multisite_wysiwyg_settings_form'],
-    'access arguments' => ['administer site configuration'],
-    'file' => 'includes/multisite_wysiwyg.settings.inc',
-    'weight' => 1,
-  ];
-
-  return $items;
 }
 
 /**
@@ -88,10 +46,10 @@ function multisite_wysiwyg_element_info_alter(&$types) {
  * Pre-render callback that persists "create" or "edit" context on AJAX calls.
  *
  * @param mixed $element
- *    Element array.
+ *   Element array.
  *
  * @return mixed
- *    Element array.
+ *   Element array.
  *
  * @see multisite_wysiwyg_element_info_alter()
  */
@@ -120,10 +78,10 @@ function multisite_wysiwyg_pre_render_text_format($element) {
  *  - ignore: not possible to determine any state (i.e. Taxonomy Terms).
  *
  * @param string $state
- *    One of the states above.
+ *   One of the states above.
  *
  * @return string
- *    Current entity object state.
+ *   Current entity object state.
  *
  * @see multisite_wysiwyg_wysiwyg_editor_settings_alter()
  */
@@ -161,4 +119,68 @@ function multisite_wysiwyg_wysiwyg_plugin($editor, $version) {
       ),
     );
   }
+}
+
+/**
+ * Gets the css files paths to use specifically with CKEditor.
+ *
+ * @param string $default_theme
+ *   The site's default theme.
+ *
+ * @return array
+ *   The css file paths or empty.
+ */
+function _multisite_wysiwyg_get_ckeditor_css_paths($default_theme = NULL) {
+  global $base_url;
+
+  $cache_id = 'multisite_wysiwyg_css_paths';
+
+  if ($cache = cache_get($cache_id)) {
+    $css_file_paths = $cache->data;
+    return $css_file_paths;
+  }
+
+  if (is_null($default_theme)) {
+    $default_theme = variable_get('theme_default', '');
+  }
+
+  $css_file_paths = array();
+  $list_theme = list_themes();
+  $implied_themes = !empty($list_theme[$default_theme]->info['base theme']) ? drupal_find_base_themes($list_theme, $default_theme) : array();
+
+  // If drupal_find_base_themes can return an array with only one NULL item.
+  // Note: Prior to PHP 5.5, empty() only supports variables.
+  // Anything else will result in a parse error.
+  if (empty(current($implied_themes))) {
+    $implied_themes = array();
+  }
+
+  // Add the active theme to the list in order to retrieve its css file
+  // reference, if exists.
+  $implied_themes[$default_theme] = $default_theme;
+
+  // Build the css file paths list.
+  foreach (array_keys($implied_themes) as $implied_theme) {
+    $path_to_theme = drupal_get_path('theme', $implied_theme);
+
+    $css_file_paths[] = $path_to_theme . '/wysiwyg/editor.css';
+    $css_file_paths[] = $path_to_theme . '/assets/styles/wysiwyg/editor.css';
+  }
+
+  $css_file_paths = array_values(array_map(
+    function($item) use ($base_url) {
+      return $base_url . DIRECTORY_SEPARATOR . $item;
+    },
+    array_filter(
+      $css_file_paths,
+      function($path) {
+        return file_exists($path);
+      }
+    )
+  ));
+
+  // Save in the Drupal cache.
+  cache_set($cache_id, $css_file_paths, 'cache', CACHE_TEMPORARY);
+
+  return $css_file_paths;
 }

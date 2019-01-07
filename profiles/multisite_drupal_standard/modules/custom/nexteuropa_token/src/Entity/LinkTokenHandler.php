@@ -45,20 +45,21 @@ class LinkTokenHandler extends TokenAbstractHandler {
    */
   public function hookTokens($type, $tokens, array $data = array(), array $options = array()) {
     $replacements = array();
-
     if ($this->isValidTokenType($type)) {
-      foreach ($tokens as $name => $original) {
+      $token_types = token_get_entity_mapping();
+      foreach ($tokens as $original) {
         if ($this->isValidToken($original)) {
-
           $entity_id = $this->getEntityIdFromToken($original);
-          $entity_type = ($type == 'term') ? 'taxonomy_term' : $type;
-
+          $entity_type = $token_types[$type];
           $entity_info = entity_get_info($entity_type);
           // Check if the entity is available.
           if ($entity = $entity_info['load hook']($entity_id)) {
             $label = entity_label($entity_type, $entity);
             $uri = entity_uri($entity_type, $entity);
-            $replacements[$original] = l($label, $uri['path'], array('absolute' => TRUE));
+            $link_from_token = l($label, $uri['path'], array('absolute' => TRUE));
+            // Use trim() in order to remove unwanted characters around the
+            // link that the "link" theming could add.
+            $replacements[$original] = rtrim($link_from_token);
           }
           else {
             $this->watchdogTokenNotFound($data, $original);

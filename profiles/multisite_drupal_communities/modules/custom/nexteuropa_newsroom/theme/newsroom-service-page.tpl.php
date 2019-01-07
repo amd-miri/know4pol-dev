@@ -7,16 +7,14 @@
 global $user;
 ?>
 <div class="newsroom-service-page">
-  <div class="newsroom-service-widget">
+    <h2 id="subscribe-to-newsletters"><?php echo t('Subscribe to newsletters'); ?></h2>
+    <div class="newsroom-service-widget">
+    <h4><?php echo t('Your e-mail'); ?></h4>
     <?php if (user_is_logged_in()): ?>
-      <h2><?php echo t('Your e-mail'); ?></h2>
        <div class="middle-step">
         <?php echo $user->mail; ?>
       </div>
     <?php else: ?>
-      <h2>
-         <?php echo t('Your e-mail'); ?>
-      </h2>
       <div class="middle-step">
         <input type="text" class="newsroom-service-email" id="newsroom-service-email" />
         <div class="newsroom-service-email-description">
@@ -24,15 +22,18 @@ global $user;
         </div>
       </div>
     <?php endif; ?>
+    </div>
+    <div class="newroom-service-central-items">
+        <?php echo $central_items; ?>
+    </div>
+    <div class="newroom-service-basic-items">
+        <?php echo $basic_items; ?>
+    </div>
 
-    <h2><?php echo t('Subscribe to newsletters'); ?></h2>
-  </div>
-
-  <?php echo $central_items; ?>
-  <?php echo $basic_items; ?>    
-
-  <?php if (!empty($privacy_text)): ?>
-    <h2><?php echo t('Privacy Statement'); ?></h2>
-    <?php echo $privacy_text; ?>
-  <?php endif; ?>
+    <?php if (!empty($privacy_text)): ?>
+    <h2 id="privacy-statement"><?php echo t('Privacy Statement'); ?></h2>
+    <div class="newroom-service-privacy">
+        <?php echo $privacy_text; ?>
+    </div>
+    <?php endif; ?>
 </div>

@@ -13,7 +13,8 @@
           <span class="newsroom_type"><?php echo $item->name; ?>: </span>
           <div class="newsroom_title">
             <?php $prefix = $item->new ? '<span class="itemFlag flagHot newItem">New</span> ' : NULL; ?>
-            <?php echo l($prefix . $item->title, 'node/' . $item->nid, ['html' => TRUE]); ?>
+            <?php $title_text = $prefix . check_plain($item->title); ?>
+            <?php echo l($title_text, 'node/' . $item->nid, ['html' => TRUE]); ?>
           </div>
           <span class="newsroom_date">
             <span content="<?php echo $item->created; ?>" datatype="xsd:dateTime" property="dc:date" class="date-display-single"><?php echo $item->created; ?></span>            

@@ -83,28 +83,44 @@ function nexteuropa_newsroom_theme($existing, $type, $theme, $path) {
     ],
     'newsroom_agenda_page' => [
       'variables' => [
+        'is_today' => TRUE,
         'filter_form' => NULL,
         'date_form' => NULL,
         'next_event_items' => [],
+        'past_event_items' => [],
         'items' => [],
-        'navigation' => NULL,
+        'previous_link' => NULL,
+        'next_link' => NULL,
         'is_block' => FALSE,
       ],
       'template' => 'newsroom-agenda-page',
       'path' => $theme_path,
     ],
-    'newsroom_agenda_items' => [
+    'newsroom_agenda_item' => [
+      'variables' => [
+        'date' => NULL,
+        'item' => NULL,
+      ],
+      'template' => 'newsroom-agenda-item',
+      'path' => $theme_path,
+    ],
+    'newsroom_agenda_content_items' => [
       'variables' => [
         'items' => [],
+        'agenda_block' => NULL,
+        'item_type' => NULL,
+        'items_number_to_show_more_button' => 5,
       ],
-      'template' => 'newsroom-agenda-items',
+      'template' => 'newsroom-agenda-content-items',
       'path' => $theme_path,
     ],
     'newsroom_agenda_date' => [
       'variables' => [
+        'weekDay' => NULL,
         'day' => NULL,
         'month' => NULL,
         'year' => NULL,
+        'isPast' => NULL,
       ],
       'template' => 'newsroom-agenda-date',
       'path' => $theme_path,
@@ -163,6 +179,13 @@ function nexteuropa_newsroom_theme($existing, $type, $theme, $path) {
         'height' => 200,
       ],
       'template' => 'newsroom-docsroom',
+      'path' => $theme_path,
+    ],
+    'newsroom_events_related_items' => [
+      'variables' => [
+        'related_items' => NULL,
+      ],
+      'template' => 'newsroom-events-related-items',
       'path' => $theme_path,
     ],
   ];

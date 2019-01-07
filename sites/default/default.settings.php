@@ -646,6 +646,12 @@ $conf['404_fast_html'] = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML+RDFa 1.0//EN"
 # $conf['allow_css_double_underscores'] = TRUE;
 
 /**
+ * Override session cookie lifetime defined above.
+ * Set value to zero for session cookies to be deleted when browser is closed.
+ */
+ini_set('session.cookie_lifetime', 0);
+
+/**
  * Load local development override configuration, if available.
  *
  * Use settings.local.php to override variables on secondary (staging,

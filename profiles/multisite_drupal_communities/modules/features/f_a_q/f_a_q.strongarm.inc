@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @file
  * f_a_q.strongarm.inc
@@ -30,13 +31,6 @@ function f_a_q_strongarm() {
   $strongarm->name = 'comment_default_per_page_f_a_q';
   $strongarm->value = '50';
   $export['comment_default_per_page_f_a_q'] = $strongarm;
-
-  $strongarm = new stdClass();
-  $strongarm->disabled = FALSE; /* Edit this to true to make a default strongarm disabled initially */
-  $strongarm->api_version = 1;
-  $strongarm->name = 'comment_form_location_f_a_q';
-  $strongarm->value = 0;
-  $export['comment_form_location_f_a_q'] = $strongarm;
 
   $strongarm = new stdClass();
   $strongarm->disabled = FALSE; /* Edit this to true to make a default strongarm disabled initially */

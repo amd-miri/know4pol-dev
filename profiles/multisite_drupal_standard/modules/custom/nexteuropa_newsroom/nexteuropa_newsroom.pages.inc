@@ -8,8 +8,6 @@
 /**
  * Agenda menu callback.
  *
- * @param string $view
- *   View: schedule, month, week, day.
  * @param string $type
  *   Type name.
  * @param string $topic
@@ -24,8 +22,14 @@
  * @return string
  *   Agenda content,
  */
-function _nexteuropa_newsroom_agenda($view = NewsroomAgenda::AGENDA_VIEW_SCHEDULE, $type = NULL, $topic = NULL, $arg1 = NULL, $arg2 = NULL, $arg3 = NULL) {
-  return NewsroomBuilder::buildPageAgenda($view, $type, $topic, $arg1, $arg2, $arg3)->getAgenda();
+function _nexteuropa_newsroom_agenda($type = NULL, $topic = NULL, $arg1 = NULL, $arg2 = NULL, $arg3 = NULL) {
+  $build['#markup'] = NexteuropaNewsroomBuilder::buildPageAgenda($type, $topic, $arg1, $arg2, $arg3)->getAgenda();
+  $build['#attached']['js'][] = [
+    'type' => 'file',
+    'data' => drupal_get_path('module', 'nexteuropa_newsroom') . '/js/agenda.js',
+    'weight' => -1000,
+  ];
+  return $build;
 }
 
 /**
@@ -39,18 +43,12 @@ function _nexteuropa_newsroom_agenda($view = NewsroomAgenda::AGENDA_VIEW_SCHEDUL
  *   Start date.
  * @param string $end_date
  *   End date.
- * @param string $ec_content
- *   EC content.
  *
  * @return string
  *   Newsroom page content,
  */
-function _nexteuropa_newsroom_page($type_url = NULL, $topic_url = NULL, $start_date = NULL, $end_date = NULL, $ec_content = NEXTEUROPA_NEWSROOM_EC) {
-  $newsroom_page = NewsroomBuilder::buildNewsroomPage($type_url, $topic_url, $start_date, $end_date, $ec_content);
-  $output = $newsroom_page->getContent();
-  $output .= theme('pager');
-  $build['#markup'] = $output;
-  return $build;
+function _nexteuropa_newsroom_page($type_url = NULL, $topic_url = NULL, $start_date = NULL, $end_date = NULL) {
+  return NexteuropaNewsroomBuilder::buildNewsroomPage($type_url, $topic_url, $start_date, $end_date)->getContent();
 }
 
 /**
@@ -62,7 +60,7 @@ function _nexteuropa_newsroom_page($type_url = NULL, $topic_url = NULL, $start_d
  *   Topic url part.
  */
 function _nexteuropa_newsroom_rss($type_url = NULL, $topic_url = NULL) {
-  $newsroom_page = NewsroomBuilder::buildNewsroomPage($type_url, $topic_url);
+  $newsroom_page = NexteuropaNewsroomBuilder::buildNewsroomPage($type_url, $topic_url);
   drupal_add_http_header('Content-Type', 'application/rss+xml; charset=utf-8');
   echo $newsroom_page->getRssContent();
   module_invoke_all('exit');
@@ -83,9 +81,10 @@ function _nexteuropa_newsroom_newsletters_page() {
 
   if ($view) {
     $subscriptions = _nexteuropa_newsroom_get_user_subscriptions();
+    $universe_id = NexteuropaNewsroomHelper::getUniverseId();
     global $user;
 
-    if (user_access(NEXTEUROPA_NEWSROOM_ADMIN_ACCESS, $user) && (empty(variable_get('newsroom_subscription_url')) || empty(variable_get('newsroom_app')) || empty(variable_get('newsroom_app_key')))) {
+    if (user_access(NEXTEUROPA_NEWSROOM_ADMIN_ACCESS, $user) && (empty(variable_get('nexteuropa_newsroom_subscription_url')) || empty(variable_get('nexteuropa_newsroom_app')) || empty(variable_get('nexteuropa_newsroom_app_key')))) {
       drupal_set_message(t('Please setup newsroom settings: app, key and subscription URL !url.', ['!url' => l(t('Newsroom settings'), 'admin/config/content/newsroom')]), 'warning');
     }
 
@@ -104,18 +103,18 @@ function _nexteuropa_newsroom_newsletters_page() {
       'central_items' => theme('newsroom_services_items',
         [
           'items' => _nexteuropa_newsroom_prepare_newsletters($central_newsletters, $subscriptions),
-          'title' => variable_get('newsroom_central_newsletter_title', t('Central newsletters')),
+          'title' => variable_get('nexteuropa_newsroom_central_newsletter_title', t('Central newsletters')),
           'css_class' => $central_display,
-          'universe_id' => $universe_id = NewsroomHelper::getUniverseId(),
+          'universe_id' => $universe_id,
         ]),
       'basic_items' => theme('newsroom_services_items',
         [
           'items' => _nexteuropa_newsroom_prepare_newsletters($basic_newsletters, $subscriptions),
-          'title' => variable_get('newsroom_other_newsletter_title', t('Other newsletters')),
+          'title' => variable_get('nexteuropa_newsroom_other_newsletter_title', t('Other newsletters')),
           'css_class' => $basic_display,
-          'universe_id' => $universe_id = NewsroomHelper::getUniverseId(),
+          'universe_id' => $universe_id,
         ]),
-      'privacy_text' => variable_get('newsroom_newsletter_privacy', NULL),
+      'privacy_text' => variable_get('nexteuropa_newsroom_newsletter_privacy', NULL),
     ]);
 
     $build['#markup'] = $content;
@@ -143,7 +142,7 @@ function _nexteuropa_newsroom_newsletters_page() {
  * @return array
  *   Newsletter items prepared for output.
  */
-function _nexteuropa_newsroom_prepare_newsletters($newsletters = [], $subscriptions = []) {
+function _nexteuropa_newsroom_prepare_newsletters(array $newsletters = [], array $subscriptions = []) {
   $output = [];
   if (!empty($newsletters)) {
     foreach ($newsletters as $newsletter) {
@@ -189,12 +188,12 @@ function _nexteuropa_newsroom_get_user_subscriptions() {
     global $user;
     $input = [
       'user_email' => $user->mail,
-      'universe_acronym' => NewsroomHelper::getUniverseId(),
-      'app' => variable_get('newsroom_app'),
-      'key' => NewsroomHelper::getEmailHash($user->mail),
+      'universe_acronym' => NexteuropaNewsroomHelper::getUniverseId(),
+      'app' => variable_get('nexteuropa_newsroom_app'),
+      'key' => NexteuropaNewsroomHelper::getEmailHash($user->mail),
       'response_type' => 'json',
     ];
-    $url = variable_get('newsroom_subscription_url');
+    $url = variable_get('nexteuropa_newsroom_subscription_url');
     if ($url) {
       $request = drupal_http_request($url . '?' . drupal_http_build_query($input));
       if (!empty($request->data)) {

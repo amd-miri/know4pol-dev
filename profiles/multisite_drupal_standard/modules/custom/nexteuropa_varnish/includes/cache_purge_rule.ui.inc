@@ -1,13 +1,16 @@
 <?php
+
 /**
  * @file
- * Definition of CachePurgeRuleEntityUIController.
+ * Definition of NexteuropaVarnishCachePurgeRuleEntityUIController.
  */
+
+use Drupal\nexteuropa_varnish\PurgeRuleType;
 
 /**
  * Entity UI controller for cache purge rules.
  */
-class CachePurgeRuleEntityUIController extends EntityDefaultUIController {
+class NexteuropaVarnishCachePurgeRuleEntityUIController extends EntityDefaultUIController {
 
   /**
    * {@inheritdoc}
@@ -28,7 +31,13 @@ class CachePurgeRuleEntityUIController extends EntityDefaultUIController {
    * {@inheritdoc}
    */
   protected function overviewTableRow($conditions, $id, $entity, $additional_cols = array()) {
-    array_unshift($additional_cols, preg_replace("/[\r\n]+/", ", ", $entity->paths));
+    $paths_cell_content = '<em>' . t('paths of the node') . '</em>';
+
+    if ($entity->type() == PurgeRuleType::PATHS) {
+      $paths_cell_content = check_plain(implode(', ', $entity->paths()));
+    }
+
+    array_unshift($additional_cols, $paths_cell_content);
 
     $content_type_names = node_type_get_names();
     $content_type_label = $content_type_names[$entity->content_type];
@@ -47,6 +56,10 @@ class CachePurgeRuleEntityUIController extends EntityDefaultUIController {
    */
   public function overviewTable($conditions = array()) {
 
+    // If the purge mechanism is prevented to work, then a warning message must
+    // be displayed.
+    _nexteuropa_varnish_temporary_message();
+
     $render = parent::overviewTable($conditions);
 
     // Add a unique id to the table. This will make it easier to target it
@@ -54,6 +67,17 @@ class CachePurgeRuleEntityUIController extends EntityDefaultUIController {
     $render['#attributes']['id'] = 'frontend-cache-purge-rules';
 
     return $render;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function hook_menu() {
+    $items = parent::hook_menu();
+    $items[$this->path]['title'] = t('Purge rules');
+    $items[$this->path]['type'] = MENU_LOCAL_TASK;
+
+    return $items;
   }
 
 }

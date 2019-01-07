@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @file
  * newsletters.strongarm.inc
@@ -51,13 +52,6 @@ function newsletters_strongarm() {
   $strongarm->name = 'comment_default_per_page_simplenews';
   $strongarm->value = '50';
   $export['comment_default_per_page_simplenews'] = $strongarm;
-
-  $strongarm = new stdClass();
-  $strongarm->disabled = FALSE; /* Edit this to true to make a default strongarm disabled initially */
-  $strongarm->api_version = 1;
-  $strongarm->name = 'comment_form_location_simplenews';
-  $strongarm->value = 1;
-  $export['comment_form_location_simplenews'] = $strongarm;
 
   $strongarm = new stdClass();
   $strongarm->disabled = FALSE; /* Edit this to true to make a default strongarm disabled initially */

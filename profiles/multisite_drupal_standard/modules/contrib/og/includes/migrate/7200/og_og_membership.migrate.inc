@@ -20,7 +20,7 @@ class OgMigrateMembership extends OgEntityMigration {
    */
   protected $systemOfRecord = Migration::DESTINATION;
 
-  public function __construct($arguments = array()) {
+  public function __construct() {
     $this->description = t('Re-populate group ID and group entity, deprecating the OG group entity.');
 
     $query = db_select('og_membership', 'ogm');
@@ -32,7 +32,7 @@ class OgMigrateMembership extends OgEntityMigration {
     $query->addField('og', 'entity_type', 'group_type');
 
     $this->query = $query;
-    parent::__construct($arguments);
+    parent::__construct();
 
     $fields = array(
       'id',

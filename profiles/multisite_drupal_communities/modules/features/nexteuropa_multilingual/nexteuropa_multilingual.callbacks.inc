@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @file
  * Nexteuropa_multilingual.callbacks.inc.
@@ -10,7 +11,6 @@
 function nexteuropa_multilingual_language_negotiation_provider_callback($languages) {
   $language_url = FALSE;
   $current_path = request_path();
-  $delimiter = variable_get('nexteuropa_multilingual_language_suffix_delimiter', '_');
 
   if (!language_negotiation_get_any('nexteuropa_multilingual_url_suffix')) {
     return $language_url;
@@ -41,9 +41,8 @@ function nexteuropa_multilingual_language_negotiation_url_rewrite_callback(&$pat
     return;
   }
 
-  // Don't add the language suffix for sitemap.*** .
-  // @todo We should use $options['absolute'] (if true) or a variable with exceptions
-  if (strpos($path, 'sitemap.') === 0) {
+  // Don't add the language suffix for sitemap.*** and ecas.
+  if (strpos($path, 'sitemap.') === 0 || strpos($path, 'ecas') === 0) {
     return;
   }
 
@@ -86,6 +85,7 @@ function nexteuropa_multilingual_language_negotiation_url_rewrite_callback(&$pat
 
     $options['alias'] = TRUE;
   }
+
 }
 
 
@@ -97,6 +97,18 @@ function nexteuropa_multilingual_language_negotiation_split_suffix($path, $langu
 
   if (_nexteuropa_multilingual_get_source_path($path) != $path) {
     return array(FALSE, $path);
+  }
+
+  // Handle adding an Entity Translation field to a view with Estonian enabled.
+  // @link https://webgate.ec.europa.eu/CITnet/jira/browse/NEPT-107
+  if (preg_match("/^admin\/structure\/views\/.+\/field\/\w+\_et$/", $path, $matches)) {
+    // Still related to the ticket NEPT-107.
+    // If the Views interface is accessed in Estonian ("_et_et" suffix exist),
+    // then the function process must go on, otherwise we stop here and
+    // it returns FALSE for the path.
+    if (strrpos($path, '_et_et', -6) === FALSE) {
+      return array(FALSE, $path);
+    }
   }
 
   // Forcing to use the prefix at the end of the path with the delimiter '_'.
@@ -187,10 +199,10 @@ function _nexteuropa_multilingual_get_language_suffix($language) {
  * Get source path given its alias. Return input path if no alias is found.
  *
  * @param string $path
- *    Relative Drupal path.
+ *   Relative Drupal path.
  *
  * @return string
- *    Source path if any, input path if none.
+ *   Source path if any, input path if none.
  */
 function _nexteuropa_multilingual_get_source_path($path) {
   $result = db_select('url_alias', 'a')

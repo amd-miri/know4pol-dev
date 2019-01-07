@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @file
  * Install the feature Multisite Media Gallery Core.
@@ -21,6 +22,13 @@ function multisite_mediagallery_core_enable() {
 
   // Activation message.
   drupal_set_message(t('Multisite Media Gallery Core feature is now active on your site.'));
+}
+
+/**
+ * Use soft config for gallerymedia comment form location.
+ */
+function multisite_mediagallery_core_install() {
+  multisite_config_service('comment')->setThreadingCommentForContentType('gallerymedia', 0);
 }
 
 /**

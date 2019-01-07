@@ -25,7 +25,7 @@ class NexteuropaNewsroomAgendaReaction extends context_reaction {
     $form['type_id'] = [
       '#type' => 'select',
       '#title' => t('Type'),
-      '#options' => NewsroomHelper::getNewsroomTypeOptions(TRUE),
+      '#options' => NexteuropaNewsroomHelper::getNewsroomTypeOptions(TRUE),
       '#default_value' => $values,
     ];
 

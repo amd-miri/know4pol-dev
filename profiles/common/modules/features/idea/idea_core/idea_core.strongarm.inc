@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @file
  * idea_core.strongarm.inc
@@ -30,13 +31,6 @@ function idea_core_strongarm() {
   $strongarm->name = 'comment_default_per_page_idea';
   $strongarm->value = '50';
   $export['comment_default_per_page_idea'] = $strongarm;
-
-  $strongarm = new stdClass();
-  $strongarm->disabled = FALSE; /* Edit this to true to make a default strongarm disabled initially */
-  $strongarm->api_version = 1;
-  $strongarm->name = 'comment_form_location_idea';
-  $strongarm->value = 0;
-  $export['comment_form_location_idea'] = $strongarm;
 
   $strongarm = new stdClass();
   $strongarm->disabled = FALSE; /* Edit this to true to make a default strongarm disabled initially */

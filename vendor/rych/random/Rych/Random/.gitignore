@@ -1,5 +1,0 @@
-build/
-nbproject/private/
-vendor/
-composer.lock
-phpunit.xml
