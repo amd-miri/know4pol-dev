@@ -56,10 +56,15 @@ function know4pol_ec_europa_preprocess_page_header(&$variables, $hook) {
 
       // Common for those types.
       case 'newsroom_item':
-      case 'dataset':
       case 'publication':
+      case 'organisation':
+      case 'projects_activities':
         $variables['meta']['#timestamp'] = format_date($node->created, 'custom', 'Y-m-d\TH:i:sP');
         $variables['meta']['#date'] = format_date($node->created, 'meta');
+        break;
+        
+      case 'dataset':
+        $variables['meta']['#date'] = format_date(strtotime($node->field_dst_issue_date[LANGUAGE_NONE][0]['value']), 'meta');
         break;
 
       case 'file':
@@ -95,6 +100,9 @@ function know4pol_ec_europa_preprocess_page_header(&$variables, $hook) {
         }
         if (!empty($node->field_pub_dc_descrip_abstract[LANGUAGE_NONE][0]['value'])) {
           $variables['introduction'] = $node->field_pub_dc_descrip_abstract[LANGUAGE_NONE][0]['value'];
+        }
+        if (!empty($node->field_pub_dc_date_accessioned[LANGUAGE_NONE][0]['value'])) {
+          $variables['meta']['#date'] = format_date(strtotime($node->field_pub_dc_date_accessioned[LANGUAGE_NONE][0]['value']), 'meta');
         }
     }
   }
