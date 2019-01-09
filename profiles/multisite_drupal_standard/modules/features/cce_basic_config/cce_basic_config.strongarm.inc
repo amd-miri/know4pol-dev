@@ -52,15 +52,6 @@ function cce_basic_config_strongarm() {
 
   $strongarm->disabled = FALSE;
   $strongarm->api_version = 1;
-  $strongarm->name = 'comment_form_location_article';
-  $strongarm->value = 1;
-  $export['comment_form_location_article'] = $strongarm;
-
-  $strongarm = new stdClass();
-  /* Edit this to true to make a default strongarm disabled initially */
-
-  $strongarm->disabled = FALSE;
-  $strongarm->api_version = 1;
   $strongarm->name = 'comment_preview_article';
   $strongarm->value = '1';
   $export['comment_preview_article'] = $strongarm;
@@ -143,6 +134,7 @@ function cce_basic_config_strongarm() {
   $strongarm->disabled = FALSE;
   $strongarm->api_version = 1;
   $strongarm->name = 'file_private_path';
+  // @codingStandardsIgnoreLine: NEPT-1308: The default file path is replaced on development and production sites.
   $strongarm->value = 'sites/default/files/private_files';
   $export['file_private_path'] = $strongarm;
 
@@ -395,7 +387,7 @@ example.org';
   $strongarm->disabled = FALSE;
   $strongarm->api_version = 1;
   $strongarm->name = 'multisite_version';
-  $strongarm->value = '2.2';
+  $strongarm->value = '2.3';
   $export['multisite_version'] = $strongarm;
 
   $strongarm = new stdClass();
@@ -710,28 +702,6 @@ example.org';
 
   $strongarm->disabled = FALSE;
   $strongarm->api_version = 1;
-  $strongarm->name = 'search_active_modules';
-  $strongarm->value = array(
-    'apachesolr_search' => 'apachesolr_search',
-    'user' => 'user',
-    'node' => 0,
-  );
-  $export['search_active_modules'] = $strongarm;
-
-  $strongarm = new stdClass();
-  /* Edit this to true to make a default strongarm disabled initially */
-
-  $strongarm->disabled = FALSE;
-  $strongarm->api_version = 1;
-  $strongarm->name = 'search_default_module';
-  $strongarm->value = 'apachesolr_search';
-  $export['search_default_module'] = $strongarm;
-
-  $strongarm = new stdClass();
-  /* Edit this to true to make a default strongarm disabled initially */
-
-  $strongarm->disabled = FALSE;
-  $strongarm->api_version = 1;
   $strongarm->name = 'security_allowed_tags';
   $strongarm->value = 'a
 abbr
@@ -749,6 +719,7 @@ cite
 code
 col
 colgroup
+dt
 dd
 div
 dl
@@ -1054,13 +1025,19 @@ video
   $export['easy_breadcrumb-segments_separator'] = $strongarm;
 
   $strongarm = new stdClass();
+  $strongarm->disabled = FALSE;
+  $strongarm->api_version = 1;
+  $strongarm->name = 'easy_breadcrumb-include_title_segment';
+  $strongarm->value = 0;
+  $export['easy_breadcrumb-include_title_segment'] = $strongarm;
+
+  $strongarm = new stdClass();
   /* Edit this to true to make a default strongarm disabled initially */
 
   $strongarm->disabled = FALSE;
   $strongarm->api_version = 1;
   $strongarm->name = 'cce_basic_config_admin_pages';
   $strongarm->value = array(
-    'admin/structure/feature-set',
     'admin/workbench',
     'admin/content/comment',
     'admin/content/media',

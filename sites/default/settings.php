@@ -269,7 +269,7 @@ $databases = array (
       'database' => 'know4pol',
       'username' => 'root',
       'password' => '',
-      'host' => 'localhost',
+      'host' => '127.0.0.1',
       'port' => '3306',
       'prefix' => '',
     ),
@@ -287,7 +287,7 @@ $databases = array (
  * After finishing the upgrade, be sure to open this file again and change the
  * TRUE back to a FALSE!
  */
-$update_free_access = FALSE;
+$update_free_access = false;
 
 /**
  * Salt for one-time login links and cancel links, form tokens, etc.
@@ -306,7 +306,7 @@ $update_free_access = FALSE;
  *   $drupal_hash_salt = file_get_contents('/home/example/salt.txt');
  *
  */
-$drupal_hash_salt = 'IJ8Bf58edA5ibLikKHkizuZIHRmEdhSLDa0D1ewWWJI';
+$drupal_hash_salt = '';
 
 /**
  * Base URL (optional).
@@ -697,4 +697,5 @@ $conf['stage_file_proxy_origin_dir'] = 'sites/know4pol/files';
 $conf['stage_file_proxy_hotlink'] = 1;
 $conf['file_public_path'] = 'sites/default/files';
 $conf['file_private_path'] = 'sites/default/files/private_files';
-$conf['file_temporary_path'] = 'tmp';
+$conf['file_temporary_path'] = 'sites/default/tmp';
+$base_url = 'https://localhost/know4pol';

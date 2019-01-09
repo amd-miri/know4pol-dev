@@ -77,7 +77,6 @@ function nexteuropa_newsroom_feeds_importer_default() {
     'import_on_create' => 1,
     'process_in_background' => 0,
   );
-
   $export['newsroom_deleted_items'] = $feeds_importer;
 
   $feeds_importer = new stdClass();
@@ -151,7 +150,6 @@ function nexteuropa_newsroom_feeds_importer_default() {
     'import_on_create' => 1,
     'process_in_background' => 0,
   );
-
   $export['newsroom_unpublished_items'] = $feeds_importer;
 
   return $export;

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @file
  * multisite_maps.features.user_permission.inc
@@ -16,6 +17,7 @@ function multisite_maps_user_default_permissions() {
     'roles' => array(
       'administrator' => 'administrator',
       'contributor' => 'contributor',
+      'cem' => 'cem',
     ),
     'module' => 'node',
   );
@@ -35,6 +37,7 @@ function multisite_maps_user_default_permissions() {
     'roles' => array(
       'administrator' => 'administrator',
       'contributor' => 'contributor',
+      'cem' => 'cem',
     ),
     'module' => 'node',
   );
@@ -54,6 +57,7 @@ function multisite_maps_user_default_permissions() {
     'roles' => array(
       'administrator' => 'administrator',
       'contributor' => 'contributor',
+      'cem' => 'cem',
     ),
     'module' => 'node',
   );

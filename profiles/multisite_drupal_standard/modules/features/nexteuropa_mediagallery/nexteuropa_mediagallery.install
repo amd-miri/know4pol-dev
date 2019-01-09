@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @file
  * Install the feature exteuropa Galleries feature.
@@ -39,6 +40,13 @@ function nexteuropa_mediagallery_enable() {
 
   // Activation message.
   drupal_set_message(t('Nexteuropa Gallery feature is now active on your site.'));
+}
+
+/**
+ * nept-758: Use soft config for nexteuropa_mediagallery comment form location.
+ */
+function nexteuropa_mediagallery_install() {
+  multisite_config_service('comment')->setThreadingCommentForContentType('nexteuropa_mediagallery', 0);
 }
 
 /**

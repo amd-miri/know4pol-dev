@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @file
  * multi_user_blog.features.user_permission.inc
@@ -17,6 +18,7 @@ function multi_user_blog_user_default_permissions() {
       'administrator' => 'administrator',
       'contributor' => 'contributor',
       'editor' => 'editor',
+      'cem' => 'cem',
     ),
     'module' => 'node',
   );
@@ -38,6 +40,7 @@ function multi_user_blog_user_default_permissions() {
       'administrator' => 'administrator',
       'contributor' => 'contributor',
       'editor' => 'editor',
+      'cem' => 'cem',
     ),
     'module' => 'node',
   );
@@ -59,6 +62,7 @@ function multi_user_blog_user_default_permissions() {
       'administrator' => 'administrator',
       'contributor' => 'contributor',
       'editor' => 'editor',
+      'cem' => 'cem',
     ),
     'module' => 'node',
   );

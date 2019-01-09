@@ -6,131 +6,6 @@
  */
 
 /**
- * Submit handler for config restore form.
- *
- * @param array $form
- *   Form array.
- * @param array $form_state
- *   Form state.
- *
- * @return string
- *   Form submit result.
- */
-function nexteuropa_newsroom_restore_conf($form, &$form_state) {
-  $voc = $form['vocabulary_machine_name']['#value'];
-  // Get the id coming from the newsroom.
-  $id = _nexteuropa_newsroom_get_ids($voc, $form['#term']);
-  // The name of the variable contains the id.
-  $name = $voc . '_backup';
-  $backup = variable_get($name, []);
-
-  if (empty($backup)) {
-    drupal_set_message(t('No backup has been found for the vocabulary: @voc and the term: @name.', [
-      '@voc' => $voc,
-      '@name' => $form['#term']['name'],
-    ]), 'warning');
-    return '';
-  }
-
-  $term = $backup[$id];
-
-  if (empty($term)) {
-    drupal_set_message(t('No backup has been found for the term: @name.', ['@name' => $form['#term']['name']]), 'warning');
-    return '';
-  }
-
-  // Override values basing on the backup ones.
-  foreach ($term as $propname => $prop) {
-    for ($i = 0; $i < count($prop); $i++) {
-      switch ($propname) {
-        case 'field_newsroom_topic':
-          $form_state['values'][$propname][LANGUAGE_NONE][$i]['tid'] = $prop[$i];
-          break;
-
-        case 'field_newsroom_featured_item':
-          $form_state['values'][$propname][LANGUAGE_NONE][$i]['target_id'] = $prop[$i];
-          break;
-
-        case 'field_newsroom_category_domain':
-          $form_state['values'][$propname][NewsroomHelper::getDefaultLanguage()][$i]['value'] = $prop[$i];
-          break;
-
-        default:
-          $form_state['values'][$propname][LANGUAGE_NONE][$i]['value'] = $prop[$i];
-      }
-    }
-  }
-
-  // Set a message for the user.
-  drupal_set_message(t('The configuration for the term "@name" has been restored from the backup version.', ['@name' => $form['#term']['name']]), 'status');
-  // Submit the form so the term get saved.
-  return taxonomy_form_term_submit($form, $form_state);
-}
-
-/**
- * Checks backup info.
- *
- * @param array $form
- *   Form array.
- * @param array $form_state
- *   Form state array.
- *
- * @return bool
- *   Check result.
- */
-function _nexteuropa_newsroom_check_backup($form, &$form_state) {
-
-  $voc = $form['#vocabulary']->machine_name;
-  // Get the current variable for the specific vocubulary.
-  $backup = variable_get($voc . '_backup', []);
-  return empty($backup);
-}
-
-/**
- * Submit handler for config restore conf all form.
- *
- * @param array $form
- *   Form array.
- * @param array $form_state
- *   Form state.
- */
-function nexteuropa_newsroom_restore_conf_all($form, &$form_state) {
-  $voc = $form['#vocabulary']->machine_name;
-  // Get the current backup.
-  $backup = variable_get($voc . '_backup', []);
-  // Divide terms into chunks, grouping five of them.
-  $chunks = array_chunk($backup, 5, TRUE);
-  $num_operations = $sandbox['limit'] = count($chunks);
-  $operations = [];
-
-  for ($i = 0; $i < $num_operations; $i++) {
-    $operations[] = [
-      'nexteuropa_newsroom_restore_batch',
-      [
-        $chunks[$i],
-        $voc,
-        ['(Operation: ' => $i],
-      ],
-    ];
-  }
-
-  $batch = [
-    'operations' => $operations,
-    'finished' => 'nexteuropa_newsroom_restore_batch_finished',
-    'title' => t('Restore configuration for terms'),
-    'init_message' => t('The restore of your configuration has been started.'),
-    'progress_message' => t(
-      'Current: @current | Remaining:
-      @remaining | Total: @total | Percentage: @percentage | Estimate:
-      @estimate | Elapsed: @elapsed'
-    ),
-    'error_message' => t('The restore did not work.'),
-  ];
-
-  batch_set($batch);
-}
-
-/**
  * Implements hook_form_FORM_ID_alter().
  */
 function nexteuropa_newsroom_form_nexteuropa_newsroom_admin_settings_alter(&$form, &$form_state, $form_id) {
@@ -145,103 +20,10 @@ function nexteuropa_newsroom_form_nexteuropa_newsroom_admin_settings_alter(&$for
 }
 
 /**
- * Submit handler for config form.
- *
- * @param array $form
- *   Form array.
- * @param array $form_state
- *   Form state.
- */
-function nexteuropa_newsroom_backup_conf($form, &$form_state) {
-  // Save the term.
-  taxonomy_form_term_submit($form, $form_state);
-  $voc = $form['vocabulary_machine_name']['#value'];
-  $vocabulary_variable = $voc . '_backup';
-  // Get the current backup.
-  $current_values = variable_get($vocabulary_variable, []);
-  $id = _nexteuropa_newsroom_get_ids($voc, $form_state['values']);
-  $term = (object) $form_state['values'];
-  $new_values = _nexteuropa_newsroom_export_prepare_values($term);
-  // If no backup have been saved, save it for for the first time.
-  if (empty($current_values)) {
-    variable_set($vocabulary_variable, $new_values);
-  }
-  else {
-    // Override the values for the specific term.
-    $new_values = reset($new_values);
-    $current_values[$id] = $new_values;
-  }
-
-  // Set values for the newsroom backup.
-  variable_set($vocabulary_variable, $current_values);
-
-  // Set a message to the user.
-  drupal_set_message(t('We saved a backup of your configuration for the term "@name". If you need to restore the values in the backup click on the "Restore conf & Save" button.', ['@name' => $form['#term']['name']]), 'status');
-}
-
-/**
- * Implements hook_form_FORM_ID_alter().
- */
-function nexteuropa_newsroom_form_taxonomy_form_term_alter(&$form, &$form_state) {
-
-  $voc_name = $form['vocabulary_machine_name']['#value'];
-
-  switch ($voc_name) {
-    case NEXTEUROPA_NEWSROOM_TYPE_VOCABULARY:
-    case NEXTEUROPA_NEWSROOM_SERVICE_VOCABULARY:
-    case NEXTEUROPA_NEWSROOM_TOPIC_VOCABULARY:
-      if (variable_get($voc_name . '_backup', FALSE)) {
-        $form['actions']['restore_config'] = [
-          '#type' => 'submit',
-          '#value' => t('Restore conf & Save'),
-          '#submit' => ['nexteuropa_newsroom_restore_conf'],
-        ];
-      }
-
-      $form['actions']['backup_config'] = [
-        '#type' => 'submit',
-        '#value' => t('Backup conf & Save'),
-        '#submit' => ['nexteuropa_newsroom_backup_conf'],
-      ];
-      break;
-  }
-}
-
-/**
- * Implements hook_form_FORM_ID_alter().
- */
-function nexteuropa_newsroom_form_taxonomy_overview_terms_alter(&$form, &$form_state) {
-
-  $vocs = [
-    NEXTEUROPA_NEWSROOM_TOPIC_VOCABULARY,
-    NEXTEUROPA_NEWSROOM_SERVICE_VOCABULARY,
-    NEXTEUROPA_NEWSROOM_TYPE_VOCABULARY,
-  ];
-
-  $value = _nexteuropa_newsroom_check_backup($form, $form_state) ? t('[Newsroom] Override existing backup') : t('[Newsroom] Backup configuration');
-
-  if (in_array($form['#vocabulary']->machine_name, $vocs)) {
-    $form['actions']['backup_config'] = [
-      '#type' => 'submit',
-      '#value' => $value,
-      '#submit' => ['nexteuropa_newsroom_backup_conf_all'],
-    ];
-
-    if ($check = _nexteuropa_newsroom_check_backup($form, $form_state)) {
-      $form['actions']['restore_config'] = [
-        '#type' => 'submit',
-        '#value' => t('[Newsroom] Restore configuration'),
-        '#submit' => ['nexteuropa_newsroom_restore_conf_all'],
-      ];
-    }
-  }
-}
-
-/**
  * Implements hook_date_popup_process_alter().
  */
 function nexteuropa_newsroom_date_popup_process_alter(&$element, &$form_state, $context) {
-  if ($form_state['build_info']['form_id'] == 'nexteuropa_newsroom_agenda_datepicker_form') {
+  if ($form_state['build_info']['form_id'] == 'nexteuropa_newsroom_agenda_filter_form') {
     unset($element['date']['#title']);
     unset($element['date']['#description']);
   }
@@ -251,131 +33,7 @@ function nexteuropa_newsroom_date_popup_process_alter(&$element, &$form_state, $
 }
 
 /**
- * Implements hook_form_alter().
- */
-function nexteuropa_newsroom_form_field_ui_display_overview_form_alter(&$form, &$form_state, $form_id) {
-  if ($form['#bundle'] == 'newsroom_item') {
-    $form['newsroom_introduction'] = [
-      '#type' => 'markup',
-      '#markup' => '<div class="messages status">' . t('This is the newsroom content type, you can freely customize the teaser and full node view modes without affecting the feature which will stay in default state.') . '</div>',
-      '#weight' => -100,
-    ];
-
-    if ($form['#view_mode'] == 'full' ||  $form['#view_mode'] == 'teaser') {
-      // Existing backup is stored into this variable.
-      $backup = variable_get('nexteuropa_newsroom_view_modes_backup', FALSE);
-      // Get the current export.
-      $current = _nexteuropa_newsroom_export_modes();
-      // Prepare the default value for the  import textarea, if we have it.
-      $default_value = !empty($backup) ? $backup : '';
-      // Show different help text basing on the availability of a backup.
-      $title = empty($backup) ? t('Paste here the code previously exported.') : t('Paste here the serailized export of your configuration to restore it.');
-
-      $form['newsroom_export'] = [
-        '#type' => 'markup',
-        '#markup' => '<div class="newsroom_export"><div id="newsroom_export_content"></div></div>',
-        '#weight' => 95,
-      ];
-
-      $form['newsroom_status'] = [
-        '#type' => 'markup',
-        '#markup' => '<div id="newsroom_status"></div>',
-        '#weight' => 96,
-      ];
-
-      // This is just a toggler, basically.
-      $form['actions']['reveal_modes'] = [
-        '#type' => 'textfield',
-        '#prefix' => '<div class="newsroom-reveal-modes">',
-        '#suffix' => '</div>',
-        '#value' => t('[Newsroom] Export/Import settings'),
-        '#weight' => 97,
-      ];
-
-      $form['export']['export_code'] = [
-        '#type' => 'textarea',
-        '#prefix' => '<div id="newsroom-export-code">',
-        '#suffix' => '</div>',
-        '#title' => t('Copy this text and save it, you can use the import button then to restore your configurations. You can also choose to save the configuration in the database clicking on the backup button.'),
-        '#description' => t('This is the export of your current configurations.'),
-        '#value' => $current,
-        '#format' => 'html',
-        '#resizable' => TRUE,
-        '#wysiwyg' => FALSE,
-        '#rows' => 20,
-        '#weight' => 98,
-      ];
-
-      $form['export_modes'] = [
-        '#type' => 'submit',
-        '#value' => t('[Newsroom] Backup settings in the database'),
-        '#prefix' => '<div id="newsroom-backup-submit">',
-        '#suffix' => '</div>',
-        '#ajax' => [
-          'callback' => '_nexteuropa_newsroom_export_modes_submit',
-          'event' => 'click',
-          'wrapper' => 'newsroom_status',
-          'effect' => 'fade',
-          'method' => 'replace',
-          '#weight' => 99,
-        ],
-      ];
-
-      $form['import']['import_code'] = [
-        '#prefix' => '<div id="newsroom-import-code">',
-        '#suffix' => '</div>',
-        '#type' => 'textarea',
-        '#title' => $title,
-        '#description' => t('Serialized code export'),
-        '#attributes' => ['id' => 'nexteuropa_newsroom_exported_instances'],
-        '#format' => 'plain_text',
-        '#resizable' => TRUE,
-        '#wysiwyg' => FALSE,
-        '#rows' => 20,
-        '#weight' => 100,
-      ];
-
-      $form['import']['import_modes'] = [
-        '#type' => 'submit',
-        '#name' => 'newsroom_import',
-        '#prefix' => '<div id="newsroom_import_submit">',
-        '#suffix' => '</div>',
-        '#value' => t('[Newsroom] Import settings'),
-        '#weight' => 101,
-        '#submit' => ['_nexteuropa_newsroom_restore_modes'],
-        '#validate' => ['_nexteuropa_newsroom_validate_modes'],
-        '#states' => [
-          'visible' => [
-            ':input[id="nexteuropa_newsroom_exported_instances"]' => ['filled' => TRUE],
-          ],
-        ],
-      ];
-
-      if ($export = variable_get('nexteuropa_newsroom_view_modes_backup', FALSE)) {
-        $form['import']['restore_modes'] = [
-          '#type' => 'submit',
-          '#name' => 'newsroom_restore',
-          '#prefix' => '<div id="newsroom_import_backup">',
-          '#suffix' => '</div>',
-          '#value' => t('[Newsroom] Import settings from the existing backup'),
-          '#weight' => 102,
-          '#submit' => ['_nexteuropa_newsroom_restore_modes'],
-        ];
-      }
-
-      // Attach a css to the admin settings form.
-      $form['#attached']['css'] = [
-        drupal_get_path('module', 'nexteuropa_newsroom') . '/styles/nexteuropa_newsroom_admin_setting.css',
-      ];
-      $form['#attached']['js'] = [
-        drupal_get_path('module', 'nexteuropa_newsroom') . '/js/node_view_mode_form.js',
-      ];
-    }
-  }
-}
-
-/**
- * Implements hook_form_alter().
+ * Implements hook_form_newsroom_item_node_form_alter().
  */
 function nexteuropa_newsroom_form_newsroom_item_node_form_alter(&$form, &$form_state, $form_id) {
   // Build language aware options list for taxonomy reference fields.
@@ -386,8 +44,8 @@ function nexteuropa_newsroom_form_newsroom_item_node_form_alter(&$form, &$form_s
     'field_newsroom_highlighted_topic',
   ];
 
-  $type_options = NewsroomHelper::getNewsroomTypeOptions(FALSE, FALSE);
-  $topic_options = NewsroomHelper::getNewsroomTopicOptions([], FALSE);
+  $type_options = NexteuropaNewsroomHelper::getNewsroomTypeOptions(FALSE, FALSE);
+  $topic_options = NexteuropaNewsroomHelper::getNewsroomTopicOptions([], FALSE);
 
   // Fields with wrong translation in node edit form.
   foreach ($taxonomy_fields as $taxonomy_field) {
@@ -407,187 +65,6 @@ function nexteuropa_newsroom_form_newsroom_item_node_form_alter(&$form, &$form_s
 }
 
 /**
- * Exports selected view modes.
- *
- * @param array $view_modes
- *   View modes array.
- * @param string $bundle
- *   Bundle name.
- *
- * @return string
- *   Serialized exported settings.
- */
-function _nexteuropa_newsroom_export_modes($view_modes = ['full', 'teaser'], $bundle = NEXTEUROPA_NEWSROOM_CONTENT_TYPE) {
-  // Get the current instances.
-  $fields = field_info_instances('node', $bundle);
-  $export = [];
-
-  foreach ($fields as $field_name => $field_instance) {
-    foreach ($view_modes as $view_mode) {
-      $export['instances'][$field_name][$view_mode] = !empty($fields[$field_name]['display'][$view_mode]) ? $fields[$field_name]['display'][$view_mode] : NULL;
-    }
-  }
-
-  // Add the groups export.
-  $export['groups'] = _nexteuropa_newsroom_get_real_groups();
-
-  return serialize($export);
-}
-
-/**
- * Submit handler, exports selected view modes.
- *
- * @param array $form
- *   Form array.
- * @param array $form_state
- *   Form state.
- *
- * @return string
- *   Serialized iexported settings for view mode.
- */
-function _nexteuropa_newsroom_export_modes_submit(&$form, &$form_state) {
-  $export = $form_state['values']['export_code'];
-
-  if (!empty($export)) {
-    variable_set('nexteuropa_newsroom_view_modes_backup', $export);
-  }
-
-  $form['newsroom_export'] = [
-    '#type' => 'markup',
-    '#markup' => '<div class="newsroom_export"><div class="messages status"> ' . t('Your settings have been saved in the database.') . '</div></div>',
-    '#weight' => 97,
-  ];
-
-  return $form['newsroom_export'];
-}
-
-/**
- * Validation handler for view mode importer.
- *
- * @param array $form
- *   Form array.
- * @param array $form_state
- *   Form state.
- */
-function _nexteuropa_newsroom_validate_modes(&$form, &$form_state) {
-  if (!empty($form_state['values']['import_code'])) {
-    $export = unserialize($form_state['values']['import_code']);
-
-    if (empty($export['instances'])) {
-      form_set_error('import_code', t("The code you pasted doesn't seem to contain a valid export of your settings."));
-    }
-  }
-  else {
-    form_set_error('import_code', t('There was nothing to restore from, did you paste the exported code?'));
-  }
-}
-
-/**
- * Submit handler, get the settings to be restored.
- *
- * @param array $form
- *   Form array.
- * @param array $form_state
- *   Form state.
- */
-function _nexteuropa_newsroom_restore_modes(&$form, &$form_state) {
-  $trigger = $form_state['triggering_element']['#name'];
-
-  switch ($trigger) {
-    case 'newsroom_restore':
-      $export = unserialize(variable_get('nexteuropa_newsroom_view_modes_backup'));
-      break;
-
-    default:
-      $export = unserialize($form_state['values']['import_code']);
-  }
-
-  _nexteuropa_newsroom_import_modes($export);
-
-}
-
-/**
- * Restores settings.
- *
- * @param array $export
- *   Exported view mode settings.
- *
- * @return string
- *   Message string.
- */
-function _nexteuropa_newsroom_import_modes($export) {
-  $view_modes = ['full', 'teaser'];
-
-  if (!empty($export['groups'])) {
-    $groups = $export['groups'];
-    foreach ($view_modes as $view_mode) {
-      if (!empty($groups[$view_mode])) {
-        // Clean up the groups before the import.
-        $view_mode_groups = field_group_info_groups('node', NEXTEUROPA_NEWSROOM_CONTENT_TYPE, $view_mode, TRUE);
-        // We need to check the disabled groups, which can be deleted through
-        // UI.
-        $view_mode_disabled_groups = field_group_read_groups(
-          [
-            'entity_type' => 'node',
-            'bundle' => NEXTEUROPA_NEWSROOM_CONTENT_TYPE,
-            'mode' => $view_mode,
-          ], FALSE);
-        if ($view_mode_disabled_groups) {
-          $view_mode_groups = array_merge($view_mode_groups, $view_mode_disabled_groups['node'][NEXTEUROPA_NEWSROOM_CONTENT_TYPE][$view_mode]);
-        }
-
-        foreach ($view_mode_groups as $group) {
-          field_group_group_export_delete($group);
-        }
-        // Clean cache to see the actual groups later.
-        cache_clear_all('field_groups', 'cache_field');
-
-        foreach ($groups[$view_mode] as $group_name => $group) {
-          if (field_group_exists($group->group_name, $group->entity_type, $group->bundle, $group->mode)) {
-            $old_group = field_group_load_field_group($group->group_name, $group->entity_type, $group->bundle, $group->mode);
-            if ($old_group) {
-              $group->id = $old_group->id;
-            }
-          }
-          else {
-            // We set export_type to 0, if we need to create a new field group.
-            $group->export_type = 0;
-          }
-          $group->disabled = FALSE;
-
-          field_group_group_save($group);
-          // The group was deleted through UI, it will be marked as disabled in
-          // ctools. We need to enable it.
-          if ((!empty($group->disabled) && ($group->disabled == TRUE)) ? TRUE : FALSE) {
-            ctools_export_crud_enable('field_group', $group->identifier);
-          }
-        }
-      }
-    }
-
-    // We clean the cache for the groups to make them visible.
-    cache_clear_all('field_groups', 'cache_field');
-  }
-
-  if (!empty($export['instances'])) {
-    $fields_instances = field_info_instances('node', NEXTEUROPA_NEWSROOM_CONTENT_TYPE);
-    foreach ($export['instances'] as $field_name => $export_instance) {
-      if (!empty($fields_instances[$field_name])) {
-        foreach ($view_modes as $view_mode) {
-          if (!empty($export_instance[$view_mode])) {
-            $fields_instances[$field_name]['display'][$view_mode] = $export_instance[$view_mode];
-            // Update the instance.
-            field_update_instance($fields_instances[$field_name]);
-          }
-        }
-      }
-    }
-  }
-
-  return drupal_set_message(t('Your settings have been restored.'), 'status');
-}
-
-/**
  * Gets form rendable array for newsroom proposal page.
  *
  * @param array $form
@@ -598,16 +75,16 @@ function _nexteuropa_newsroom_import_modes($export) {
  * @return array
  *   Rendable form array.
  */
-function nexteuropa_newsroom_proposal_form($form, $form_state) {
+function nexteuropa_newsroom_proposal_form(array $form, array $form_state) {
 
   global $user;
 
   $account = user_load($user->uid);
-  $form['#action'] = $newsroom_url = NewsroomHelper::getUniverseUrl() . variable_get('newsroom_proposal_script');
+  $form['#action'] = NexteuropaNewsroomHelper::getUniverseUrl() . variable_get('nexteuropa_newsroom_proposal_script');
   $form['title'] = [
     '#type' => 'textfield',
     '#title' => t('Title'),
-    '#description' => 'Title of your Newsroom item (mandatory).',
+    '#description' => t('Title of your Newsroom item (mandatory).'),
     '#default_value' => '',
     '#required' => TRUE,
   ];
@@ -667,14 +144,14 @@ function nexteuropa_newsroom_proposal_form($form, $form_state) {
   $form['lastname'] = [
     '#title' => t('Last name'),
     '#type' => 'hidden',
-    '#value' => NewsroomHelper::getFieldValue($account, 'field_lastname'),
+    '#value' => NexteuropaNewsroomHelper::getFieldValue($account, 'field_lastname'),
     '#required' => TRUE,
   ];
 
   $form['firstname'] = [
     '#title' => t('First name'),
     '#type' => 'hidden',
-    '#value' => NewsroomHelper::getFieldValue($account, 'field_firstname'),
+    '#value' => NexteuropaNewsroomHelper::getFieldValue($account, 'field_firstname'),
     '#required' => TRUE,
   ];
 
@@ -697,55 +174,50 @@ function nexteuropa_newsroom_proposal_form($form, $form_state) {
  * @return array
  *   Rendable form array.
  */
-function nexteuropa_newsroom_newsletter_subscription_form($form, &$form_state) {
-
+function nexteuropa_newsroom_newsletter_subscription_form(array $form, array &$form_state) {
   $args = $form_state['build_info']['args'][0];
+  $title = t('Subscribe to <em>@name</em>', ['@name' => $args['name']]);
   $form = [];
-  $form['#prefix'] = '<div class="CTAnewsletter">';
+  $form['#prefix'] = '<div class="newsroom-newsletter-subscription">';
   $form['#suffix'] = '</div>';
   $form['#token'] = FALSE;
-  $form['#action'] = NewsroomHelper::getNewsroomUrl('subscription-quick-generic.cfm');
+  $form['#action'] = NexteuropaNewsroomHelper::getNewsroomUrl('subscription-quick-generic.cfm');
   $form['intro'] = [
-    '#markup' => '<div class="title">' . $args['name'] . '</div>',
+    '#markup' => '<div class="newsroom-newsletter-subscription-title">' . $title . '&nbsp;-&nbsp;' . l(t('See previous issues'), NexteuropaNewsroomHelper::getNewsroomUrl('newsletter-specific-archive.cfm?serviceId=' . $args['tid'])) . '</div>',
   ];
-
-  $form['feedback'] = [
-    '#markup' => '<div class="feedback"></div>',
+  $form['label'] = [
+    '#markup' => '<label for="email">' . t('Subscribe email') . '</label><div class="form-group newsroom-subscription-form-group">',
   ];
-
   $form['email'] = [
-    '#prefix' => '<div class="inputMail">',
+    '#theme_wrappers' => [],
+    '#prefix' => '<div class="form-control__wrapper">',
     '#suffix' => '</div>',
     '#type' => 'textfield',
     '#attributes' => [
       'placeholder' => t('Your e-mail'),
-      'class' => [],
+      'class' => ['form-control'],
     ],
   ];
 
-  $form['submit_email_prefix'] = [
-    '#markup' => '<div class="inputSubscribe">',
-  ];
-
   $form['submit_email'] = [
-    '#type' => 'button',
+    '#prefix' => '<span class="input-group">',
+    '#suffix' => '</span>',
+    '#type' => 'submit',
     '#value' => t('Subscribe'),
     '#ajax' => [
       'callback' => '_nexteuropa_newsroom_newsletter_subscription_block_form_ajax',
     ],
+    '#attributes' => [
+      'class' => ['btn btn-primary'],
+    ],
   ];
-
-  $form['submit_email_submit'] = [
+  $form['form_end'] = [
     '#markup' => '</div>',
   ];
 
   $form['service_id'] = [
     '#type' => 'hidden',
     '#value' => $args['tid'],
-  ];
-
-  $form['previous'] = [
-    '#markup' => '<div class="linkPreviousIssues"><a href="' . NewsroomHelper::getNewsroomUrl('newsletter-specific-archive.cfm?serviceId=' . $args['tid']) . '">' . t('Previous issues') . '</a></div>',
   ];
 
   return $form;
@@ -764,8 +236,8 @@ function nexteuropa_newsroom_newsletter_subscription_form($form, &$form_state) {
  */
 function _nexteuropa_newsroom_send_unsubscription_request($url, $email) {
   $input = [
-    'key' => NewsroomHelper::getEmailHash($email),
-    'app' => variable_get('newsroom_app'),
+    'key' => NexteuropaNewsroomHelper::getEmailHash($email),
+    'app' => variable_get('nexteuropa_newsroom_app'),
   ];
   $request = drupal_http_request($url . '&' . drupal_http_build_query($input));
   return !empty($request->data) ? drupal_json_decode($request->data) : NULL;
@@ -795,7 +267,6 @@ function _nexteuropa_newsroom_send_subscription_request($url, $service_id, $emai
   if (!empty($request->data)) {
     $data = drupal_json_decode($request->data);
   }
-
   return !empty($data['subscription']) ? $data['subscription'] : NULL;
 }
 
@@ -810,12 +281,11 @@ function _nexteuropa_newsroom_send_subscription_request($url, $service_id, $emai
  * @return array
  *   Ajax callback array.
  */
-function _nexteuropa_newsroom_newsletter_subscription_block_form_ajax($form, &$form_state) {
-
+function _nexteuropa_newsroom_newsletter_subscription_block_form_ajax(array $form, array &$form_state) {
   $form_id = $form['#form_id'];
   $selector = '#' . str_replace('_', '-', $form_id);
 
-  $subscription = _nexteuropa_newsroom_send_subscription_request($form['#action'], $form_state['input']['service_id'], $form_state['input']['email']);
+  $subscription = _nexteuropa_newsroom_send_subscription_request($form['#action'], $form_state['values']['service_id'], $form_state['values']['email']);
 
   if ($subscription['status'] == 'Failed') {
     form_set_error('email', $subscription['feedbackMessage']);
@@ -827,8 +297,8 @@ function _nexteuropa_newsroom_newsletter_subscription_block_form_ajax($form, &$f
     $commands[] = ajax_command_invoke($selector . ' #edit-email', 'removeClass', ['error']);
   }
 
-  $replacement = theme_status_messages(['display' => NULL]);
-  $commands[] = ajax_command_replace($selector . ' .feedback', '<div class="feedback">' . $replacement . '</div>');
+  $replacement = theme('status_messages', ['display' => NULL]);
+  $commands[] = ajax_command_replace($selector . ' .form-group', '<div class="form-group">' . $replacement . '</div>');
 
   return ['#type' => 'ajax', '#commands' => $commands];
 }
@@ -840,8 +310,6 @@ function _nexteuropa_newsroom_newsletter_subscription_block_form_ajax($form, &$f
  *   Form array.
  * @param array $form_state
  *   Form state array.
- * @param string $view
- *   View type: schedule, month, week, day.
  * @param int $type_id
  *   Newsroom type ID.
  * @param int $topic_id
@@ -854,13 +322,13 @@ function _nexteuropa_newsroom_newsletter_subscription_block_form_ajax($form, &$f
  * @return array
  *   Rendable form array.
  */
-function nexteuropa_newsroom_agenda_filter_form($form, &$form_state, $view, $type_id, $topic_id, $current_date, $result_topics) {
-  $topic_options = NewsroomHelper::getNewsroomTopicOptions($result_topics);
+function nexteuropa_newsroom_agenda_filter_form(array $form, array &$form_state, $type_id, $topic_id, $current_date, array $result_topics) {
+  $topic_options = NexteuropaNewsroomHelper::getNewsroomTopicOptions($result_topics);
   $form = [];
   $form['type_id'] = [
     '#type' => 'select',
     '#title' => t('Type'),
-    '#options' => NewsroomHelper::getNewsroomTypeOptions(TRUE),
+    '#options' => NexteuropaNewsroomHelper::getNewsroomTypeOptions(TRUE),
     '#default_value' => $type_id,
   ];
   $form['topic_id'] = [
@@ -870,39 +338,6 @@ function nexteuropa_newsroom_agenda_filter_form($form, &$form_state, $view, $typ
     '#default_value' => $topic_id,
   ];
   $form['current_date'] = [
-    '#type' => 'hidden',
-    '#value' => $current_date,
-  ];
-  $form['view'] = [
-    '#type' => 'hidden',
-    '#value' => $view,
-  ];
-  $form['button'] = [
-    '#type' => 'button',
-    '#button_type' => 'button',
-    '#ajax' => [
-      'callback' => '_nexteuropa_newsroom_agenda_ajax_form_submit',
-    ],
-    '#value' => t('Filter'),
-  ];
-
-  return $form;
-}
-
-/**
- * Gets form rendable array for date fitler block on the newsroom page.
- *
- * @param array $form
- *   Form array.
- * @param array $form_state
- *   Form state array.
- *
- * @return array
- *   Rendable form array.
- */
-function nexteuropa_newsroom_agenda_datepicker_form($form, &$form_state, $view, $type_id = NULL, $topic_id = NULL, $current_date = NULL) {
-  $form = [];
-  $form['current_date'] = [
     '#type' => 'date_popup',
     '#title' => t('Current date'),
     '#default_value' => $current_date,
@@ -911,24 +346,13 @@ function nexteuropa_newsroom_agenda_datepicker_form($form, &$form_state, $view, 
     '#date_format' => 'd-m-Y',
     '#date_increment' => 1,
     '#date_year_range' => '-2:+2',
-    '#ajax' => [
-      'callback' => '_nexteuropa_newsroom_agenda_ajax_form_submit',
-    ],
   ];
-
-  $form['view'] = [
-    '#type' => 'hidden',
-    '#value' => $view,
-  ];
-
-  $form['type_id'] = [
-    '#type' => 'hidden',
-    '#value' => $type_id,
-  ];
-
-  $form['topic_id'] = [
-    '#type' => 'hidden',
-    '#value' => $topic_id,
+  $form['button'] = [
+    '#type' => 'submit',
+    '#submit' => ['_nexteuropa_newsroom_agenda_form_submit'],
+    '#button_type' => 'button',
+    '#value' => t('Filter'),
+    '#weight' => 2,
   ];
 
   return $form;
@@ -941,35 +365,17 @@ function nexteuropa_newsroom_agenda_datepicker_form($form, &$form_state, $view, 
  *   Form array.
  * @param array $form_state
  *   Form state array.
- *
- * @return array
- *   Ajax callback array.
  */
-function _nexteuropa_newsroom_agenda_ajax_form_submit(&$form, &$form_state) {
+function _nexteuropa_newsroom_agenda_form_submit(array &$form, array &$form_state) {
 
-  $view = !empty($form_state['input']['view']) ? $form_state['input']['view'] : NULL;
+  $topic_id = !empty($form_state['values']['topic_id']) ? $form_state['values']['topic_id'] : NULL;
+  $type_id = !empty($form_state['values']['type_id']) ? $form_state['values']['type_id'] : NULL;
+  $date = !empty($form_state['values']['current_date']) ? $form_state['values']['current_date'] : NexteuropaNewsroomHelper::getFormatedDate();
+  $topic = NexteuropaNewsroomVocabularyHelper::getNewsroomTopic($topic_id);
+  $type = NexteuropaNewsroomVocabularyHelper::getNewsroomType($type_id);
+  $agenda = new NexteuropaNewsroomAgenda($type, $topic, new DateTime($date));
 
-  if (!empty($form_state['input']['current_date']['date'])) {
-    $date = $form_state['input']['current_date']['date'];
-  }
-  elseif (!empty($form_state['input']['current_date'])) {
-    $date = $form_state['input']['current_date'];
-  }
-  else {
-    $date = NewsroomHelper::getFormatedDate();
-  }
-
-  $topic_id = !empty($form_state['input']['topic_id']) ? $form_state['input']['topic_id'] : NULL;
-  $type_id = !empty($form_state['input']['type_id']) ? $form_state['input']['type_id'] : NULL;
-
-  $topic = NewsroomHelper::getNewsroomTopic($topic_id);
-  $type = NewsroomHelper::getNewsroomType($type_id);
-  $agenda = NewsroomBuilder::buildAgenda($view, $type, $topic, new DateTime($date));
-
-  ctools_include('ajax');
-  $commands[] = ctools_ajax_command_redirect($agenda->getNavigationUrl($agenda->getCurrentDate()));
-
-  return ['#type' => 'ajax', '#commands' => $commands];
+  drupal_goto($agenda->getNavigationUrl(NexteuropaNewsroomHelper::checkDateFormat($date)), [], 301);
 }
 
 /**
@@ -985,10 +391,10 @@ function _nexteuropa_newsroom_agenda_ajax_form_submit(&$form, &$form_state) {
  * @return array
  *   Rendable form array.
  */
-function nexteuropa_newsroom_subscription_newsletter_form($form, $form_state, $service_id = NULL) {
+function nexteuropa_newsroom_subscription_newsletter_form(array $form, array $form_state, $service_id = NULL) {
   global $user;
 
-  $form['#action'] = NewsroomHelper::getNewsroomUrl('subscription-quick-generic.cfm');
+  $form['#action'] = NexteuropaNewsroomHelper::getNewsroomUrl('subscription-quick-generic.cfm');
   $form['email'] = [
     '#title' => t('E-mail'),
     '#type' => 'hidden',
@@ -1030,7 +436,7 @@ function nexteuropa_newsroom_subscription_newsletter_form($form, $form_state, $s
  * @return array
  *   Rendable form array.
  */
-function nexteuropa_newsroom_unsubscription_newsletter_form($form, $form_state, $url = NULL) {
+function nexteuropa_newsroom_unsubscription_newsletter_form(array $form, array $form_state, $url = NULL) {
   global $user;
   $form['#action'] = $url;
   $form['email'] = [
@@ -1065,8 +471,9 @@ function nexteuropa_newsroom_unsubscription_newsletter_form($form, $form_state, 
  * @return array
  *   Ajax callback array.
  */
-function _nexteuropa_newsroom_newsletter_subscription_page_form_ajax($form, &$form_state) {
-  $subscription = _nexteuropa_newsroom_send_subscription_request($form['#action'], $form_state['input']['service_id'], $form_state['input']['email']);
+function _nexteuropa_newsroom_newsletter_subscription_page_form_ajax(array $form, array &$form_state) {
+  // @codingStandardsIgnoreLine
+  $subscription = _nexteuropa_newsroom_send_subscription_request($form['#action'], $form_state['values']['service_id'], $form_state['input']['email']);
   $message = $subscription['feedbackMessage'];
   if ($subscription['status'] == 'Failed') {
     $type = 'error';
@@ -1082,9 +489,9 @@ function _nexteuropa_newsroom_newsletter_subscription_page_form_ajax($form, &$fo
   }
 
   drupal_set_message($message, $type);
-  $replacement = theme_status_messages(['display' => NULL]);
+  $replacement = theme('status_messages', ['display' => NULL]);
   $commands[] = ajax_command_replace('#' . $form['#id'] . ' .submit-response', '<div class="submit-response">' . $replacement . '</div>');
-  $commands[] = ajax_command_replace('#' . $form['#id'] . ' input', '');
+  $commands[] = ajax_command_replace('#' . $form['#id'] . ' button', '');
 
   return ['#type' => 'ajax', '#commands' => $commands];
 }
@@ -1100,8 +507,8 @@ function _nexteuropa_newsroom_newsletter_subscription_page_form_ajax($form, &$fo
  * @return array
  *   Ajax callback array.
  */
-function _nexteuropa_newsroom_newsletter_unsubscription_form_ajax($form, &$form_state) {
-  $subscription = _nexteuropa_newsroom_send_unsubscription_request($form['#action'], $form_state['input']['email']);
+function _nexteuropa_newsroom_newsletter_unsubscription_form_ajax(array $form, array &$form_state) {
+  $subscription = _nexteuropa_newsroom_send_unsubscription_request($form['#action'], $form_state['values']['email']);
 
   if ($subscription && $subscription['SUCCESS'] == 1) {
     $text = t('You successfully unsubscribed from this newsletter.');
@@ -1113,201 +520,11 @@ function _nexteuropa_newsroom_newsletter_unsubscription_form_ajax($form, &$form_
   }
 
   drupal_set_message($text, $type);
-  $replacement = theme_status_messages(['display' => NULL]);
+  $replacement = theme('status_messages', ['display' => NULL]);
   $commands[] = ajax_command_replace('#' . $form['#id'] . ' .submit-response', '<div class="submit-response">' . $replacement . '</div>');
-  $commands[] = ajax_command_replace('#' . $form['#id'] . ' input', '');
+  $commands[] = ajax_command_replace('#' . $form['#id'] . ' button', '');
 
   return ['#type' => 'ajax', '#commands' => $commands];
-}
-
-/**
- * The batch operation.
- *
- * @param array $chunk
- *   The terms to be updated.
- * @param string $voc
- *   Vocabulary's machine name.
- * @param array $operation_details
- *   Array of values.
- */
-function nexteuropa_newsroom_restore_batch(array $chunk, $voc, array $operation_details) {
-  // The name of the variable contains the id.
-  $name = $voc . '_backup';
-  $backup = variable_get($name, []);
-
-  foreach ($chunk as $id => $fields) {
-    // Try to find the corresponding term basing on its ID.
-    $term = _nexteuropa_newsroom_get_term_from_id($id, $voc);
-
-    if ($term) {
-      $term_wrapper = entity_metadata_wrapper('taxonomy_term', $term);
-      // Let's work with an array.
-      $term = get_object_vars($term);
-
-      if (!empty($fields)) {
-        // Override values.
-        foreach ($fields as $field_name => $values) {
-          switch ($field_name) {
-            case 'field_newsroom_topic':
-              for ($i = 0; $i < count($fields); $i++) {
-                $term_wrapper->{$field_name}[] = $values[$i];
-              }
-              break;
-
-            default:
-              $term_wrapper->{$field_name}->set($values[0]);
-          }
-        }
-
-        if (!empty($context)) {
-          // Build the worked term name list.
-          $context['results'][] .= $term['name'] . ', ';
-          $context['message'] = t('Restoring "@title" @operations.', [
-            '@title' => $term['name'],
-            '@operations' => $operation_details,
-          ]);
-        }
-
-        $term_wrapper->save();
-      }
-    }
-  }
-}
-
-/**
- * Backups config form submit handler.
- *
- * @param array $form
- *   Form array.
- * @param array $form_state
- *   Form state array.
- */
-function nexteuropa_newsroom_backup_conf_all($form, &$form_state) {
-
-  $voc = $form['#vocabulary']->machine_name;
-  // We need the whole tree here.
-  $tree = taxonomy_get_tree($form['#vocabulary']->vid, 0, NULL, TRUE);
-
-  foreach ($tree as $term) {
-    $id = _nexteuropa_newsroom_get_ids($voc, (array) $term);
-
-    // Working with arrays.
-    $term = _nexteuropa_newsroom_export_prepare_values($term);
-    $term = reset($term);
-    $values[$id] = $term;
-  }
-
-  // Save the variable.
-  variable_set($voc . '_backup', $values);
-
-  // Set a message to the user.
-  drupal_set_message(t('We saved a backup of your configuration for the vocabulary: "@name". If you need to restore the values in the backup click on the "Restore" button.', ['@name' => $voc]), 'status');
-}
-
-/**
- * Gets newsroom id values.
- *
- * @param string $voc
- *   Vocabulary name.
- * @param array $data
- *   Taxonomy term.
- *
- * @return int
- *   Newsroom ID.
- */
-function _nexteuropa_newsroom_get_ids($voc, $data) {
-
-  switch ($voc) {
-    case NEXTEUROPA_NEWSROOM_TYPE_VOCABULARY:
-      $id = $data['field_newsroom_type_id'][LANGUAGE_NONE][0]['value'];
-      break;
-
-    case NEXTEUROPA_NEWSROOM_SERVICE_VOCABULARY:
-      $id = $data['field_newsroom_service_id'][LANGUAGE_NONE][0]['value'];
-      break;
-
-    case NEXTEUROPA_NEWSROOM_TOPIC_VOCABULARY:
-      $id = $data['field_newsroom_topic_id'][LANGUAGE_NONE][0]['value'];
-      break;
-  }
-  return $id;
-}
-
-/**
- * Grabs the newsroom fields from a term.
- *
- * @param object $term
- *   The term to get the values from.
- *
- * @return array
- *   Formatted values for the newsroom related fields.
- */
-function _nexteuropa_newsroom_export_prepare_values($term) {
-  $term_array = get_object_vars($term);
-  $voc = $term->vocabulary_machine_name;
-  $id = _nexteuropa_newsroom_get_ids($voc, $term_array);
-  $values = [];
-  $values[$id] = [];
-  $voc = str_replace('_item', '', $voc);
-
-  foreach ($term_array as $propname => $prop) {
-    // Should work only with custom fields.
-    if (strpos($propname, 'field') === 0) {
-      if ($propname == 'field_' . $voc . '_id') {
-        continue;
-      }
-
-      $check_value = field_get_items('taxonomy_term', $term, $propname);
-
-      if (!empty($check_value)) {
-        foreach ($check_value as $value) {
-          if (!empty($value['value'])) {
-            $values[$id][$propname][] = $value['value'];
-          }
-          elseif (!empty($value['tid'])) {
-            $values[$id][$propname][] = $value['tid'];
-          }
-          elseif (!empty($value['target_id'])) {
-            $values[$id][$propname][] = $value['target_id'];
-          }
-        }
-      }
-    }
-  }
-
-  return $values;
-}
-
-/**
- * Finds a term basing on its newsroom id.
- *
- * @param string $id
- *   The id coming from the newsroom.
- * @param string $voc
- *   Vocabulay's machine name.
- *
- * @return object
- *   The term object.
- */
-function _nexteuropa_newsroom_get_term_from_id($id, $voc) {
-
-  $field = str_replace('_item', '', $voc);
-  $query = new EntityFieldQuery();
-  $query->entityCondition('entity_type', 'taxonomy_term')
-    ->entityCondition('bundle', $voc)
-    ->fieldCondition('field_' . $field . '_id', 'value', $id, '=');
-
-  $results = $query->execute();
-
-  if (!empty($results)) {
-    $result = reset($results['taxonomy_term']);
-    $tid = $result->tid;
-    $term = taxonomy_term_load($tid);
-  }
-  else {
-    $term = FALSE;
-  }
-  return $term;
 }
 
 /**
@@ -1325,20 +542,18 @@ function _nexteuropa_newsroom_get_term_from_id($id, $voc) {
  *   Start date.
  * @param string $end_date
  *   End date.
- * @param string $ec_content
- *   Is EC content.
  *
  * @return array
  *   Rendable form array.
  */
-function nexteuropa_newsroom_page_filter_form($form, &$form_state, $type = NULL, $topic = NULL, $start_date = NULL, $end_date = NULL, $ec_content = NEXTEUROPA_NEWSROOM_EC) {
-  $topic_options = NewsroomHelper::getNewsroomTopicOptions(NewsroomHelper::getPageUsedTopicsIds());
+function nexteuropa_newsroom_page_filter_form(array $form, array &$form_state, $type = NULL, $topic = NULL, $start_date = NULL, $end_date = NULL) {
+  $topic_options = NexteuropaNewsroomHelper::getNewsroomTopicOptions(NexteuropaNewsroomHelper::getPageUsedTopicsIds());
 
   $form = [];
   $form['type_id'] = [
     '#type' => 'select',
     '#title' => t('Type'),
-    '#options' => NewsroomHelper::getNewsroomTypeOptions(),
+    '#options' => NexteuropaNewsroomHelper::getNewsroomTypeOptions(),
     '#default_value' => $type ? $type->tid : NULL,
   ];
   $form['topic_id'] = [
@@ -1368,12 +583,7 @@ function nexteuropa_newsroom_page_filter_form($form, &$form_state, $type = NULL,
     '#date_increment' => 1,
     '#date_year_range' => '-2:+2',
     '#element_validate' => NULL,
-  ];
-  $form['ec_content'] = [
-    '#type' => 'checkbox',
-    '#title' => t('EC content'),
-    '#default_value' => $ec_content == NEXTEUROPA_NEWSROOM_EC ? 1 : 0,
-    '#weight' => 2,
+    '#validate' => ['_nexteuropa_newsroom_validate_date'],
   ];
   $form['button'] = [
     '#type' => 'submit',
@@ -1381,7 +591,7 @@ function nexteuropa_newsroom_page_filter_form($form, &$form_state, $type = NULL,
     '#validate' => ['_nexteuropa_newsroom_validate_date'],
     '#button_type' => 'button',
     '#value' => t('Filter'),
-    '#weight' => 1,
+    '#weight' => 2,
   ];
 
   return $form;
@@ -1395,15 +605,13 @@ function nexteuropa_newsroom_page_filter_form($form, &$form_state, $type = NULL,
  * @param array $form_state
  *   Form state array.
  */
-function _nexteuropa_newsroom_page_filter_form_submit(&$form, &$form_state) {
-  $topic_id = !empty($form_state['input']['topic_id']) ? $form_state['input']['topic_id'] : NULL;
-  $type_id = !empty($form_state['input']['type_id']) ? $form_state['input']['type_id'] : NULL;
-  $start_date = !empty($form_state['input']['start_date']['date']) ? $form_state['input']['start_date']['date'] : NULL;
-  $end_date = !empty($form_state['input']['end_date']['date']) ? $form_state['input']['end_date']['date'] : NULL;
-  $ec_content = !empty($form_state['input']['ec_content']);
+function _nexteuropa_newsroom_page_filter_form_submit(array &$form, array &$form_state) {
+  $topic_id = !empty($form_state['values']['topic_id']) ? $form_state['values']['topic_id'] : NULL;
+  $type_id = !empty($form_state['values']['type_id']) ? $form_state['values']['type_id'] : NULL;
+  $start_date = !empty($form_state['values']['start_date']) ? $form_state['values']['start_date'] : NULL;
+  $end_date = !empty($form_state['values']['end_date']) ? $form_state['values']['end_date'] : NULL;
 
-  $newsroom_page = NewsroomBuilder::buildNewsroomPage($type_id, $topic_id, $start_date, $end_date, $ec_content);
-  // Redirect user to prepared URL.
+  $newsroom_page = NexteuropaNewsroomBuilder::buildNewsroomPage($type_id, $topic_id, $start_date, $end_date);
   drupal_goto($newsroom_page->getNavigationUrl(), [], 301);
 }
 
@@ -1415,20 +623,19 @@ function _nexteuropa_newsroom_page_filter_form_submit(&$form, &$form_state) {
  * @param array $form_state
  *   Form state.
  */
-function _nexteuropa_newsroom_validate_date(&$form, &$form_state) {
+function _nexteuropa_newsroom_validate_date(array &$form, array &$form_state) {
 
   $start_date = NULL;
   $end_date = NULL;
-  $regex = '/^\d{4}-\d{2}-\d{2}$/';
 
   if (!empty($form_state['values']['start_date']) && is_string($form_state['values']['start_date'])) {
-    if (!$start_date = NewsroomHelper::checkDateFormat($form_state['values']['start_date'], $regex)) {
+    if (!$start_date = NexteuropaNewsroomHelper::checkDateFormat($form_state['values']['start_date'])) {
       form_set_error('start_date', t('The wrond date format.'));
     }
   }
 
   if (!empty($form_state['values']['end_date']) && is_string($form_state['values']['end_date'])) {
-    if (!$end_date = NewsroomHelper::checkDateFormat($form_state['values']['end_date'], $regex)) {
+    if (!$end_date = NexteuropaNewsroomHelper::checkDateFormat($form_state['values']['end_date'])) {
       form_set_error('end_date', t('The wrond date format.'));
     }
   }

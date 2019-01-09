@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @file
  * links_core.features.user_permission.inc
@@ -17,6 +18,7 @@ function links_core_user_default_permissions() {
       'administrator' => 'administrator',
       'contributor' => 'contributor',
       'editor' => 'editor',
+      'cem' => 'cem',
     ),
     'module' => 'node',
   );
@@ -28,6 +30,7 @@ function links_core_user_default_permissions() {
       'administrator' => 'administrator',
       'contributor' => 'contributor',
       'editor' => 'editor',
+      'cem' => 'cem',
     ),
     'module' => 'node',
   );
@@ -39,6 +42,7 @@ function links_core_user_default_permissions() {
       'administrator' => 'administrator',
       'contributor' => 'contributor',
       'editor' => 'editor',
+      'cem' => 'cem',
     ),
     'module' => 'node',
   );
@@ -50,6 +54,7 @@ function links_core_user_default_permissions() {
       'administrator' => 'administrator',
       'contributor' => 'contributor',
       'editor' => 'editor',
+      'cem' => 'cem',
     ),
     'module' => 'node',
   );
@@ -61,6 +66,7 @@ function links_core_user_default_permissions() {
       'administrator' => 'administrator',
       'contributor' => 'contributor',
       'editor' => 'editor',
+      'cem' => 'cem',
     ),
     'module' => 'node',
   );

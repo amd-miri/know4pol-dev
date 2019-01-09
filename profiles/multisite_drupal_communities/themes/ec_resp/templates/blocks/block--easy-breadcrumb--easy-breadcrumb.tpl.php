@@ -50,10 +50,10 @@
 
       if ($content):
         $separator = variable_get('easy_breadcrumb-segments_separator');
-        print '<span class="easy-breadcrumb_segment-separator"> ' . $separator . ' </span>';
+        print '<span class="easy-breadcrumb_segment-separator"> ' . filter_xss($separator) . ' </span>';
       endif;
 
-      print_r($content);
+      print($content);
     ?>
   </div>
 </div>

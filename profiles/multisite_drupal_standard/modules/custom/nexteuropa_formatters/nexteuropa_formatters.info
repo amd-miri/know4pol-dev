@@ -1,6 +1,4 @@
-name = Nexteuropa Formatters
-description  = Custom formatters and field groups for BEM components. Suplementary module to "europa" theme.
-package = "Nexteuropa Digital Transformation"
+name = NextEuropa Formatters
+description = This module provides default formatters for NextEuropa components.
+package = NextEuropa
 core = 7.x
-
-dependencies[] = field_group

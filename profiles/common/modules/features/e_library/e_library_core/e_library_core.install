@@ -44,6 +44,14 @@ function e_library_core_enable() {
 }
 
 /**
+ * Set the threading properties for documents comments.
+ */
+function e_library_core_install() {
+  // Use soft config for documents comment form location.
+  multisite_config_service('comment')->setThreadingCommentForContentType('document', 0);
+}
+
+/**
  * Implements hook_disable().
  */
 function e_library_core_disable() {
@@ -70,7 +78,7 @@ function e_library_core_disable() {
 }
 
 /**
- * Implements hook_update_N().
+ * Create default media tags.
  */
 function e_library_core_update_7120() {
   // Check if the taxonomy media_tags already exists.

@@ -93,173 +93,96 @@ function nexteuropa_newsroom_views_default_views() {
   $export['newsletter_subscription'] = $view;
 
   $view = new view();
-  $view->name = 'newsroom_calendar_navigation';
+  $view->name = 'newsroom_related_documents';
   $view->description = '';
-  $view->tag = 'newsroom';
-  $view->base_table = 'taxonomy_term_data';
-  $view->human_name = 'Newsroom Calendar Navigation';
+  $view->tag = 'default';
+  $view->base_table = 'node';
+  $view->human_name = 'Newsroom related documents';
   $view->core = 7;
   $view->api_version = '3.0';
   $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
 
   /* Display: Master */
   $handler = $view->new_display('default', 'Master', 'default');
-  $handler->display->display_options['title'] = 'Newsroom';
-  $handler->display->display_options['css_class'] = 'nav-panel block-menu-block';
+  $handler->display->display_options['title'] = '<none>';
   $handler->display->display_options['use_more_always'] = FALSE;
   $handler->display->display_options['access']['type'] = 'perm';
-  $handler->display->display_options['cache']['type'] = 'time';
-  $handler->display->display_options['cache']['results_lifespan'] = '3600';
-  $handler->display->display_options['cache']['results_lifespan_custom'] = '0';
-  $handler->display->display_options['cache']['output_lifespan'] = '3600';
-  $handler->display->display_options['cache']['output_lifespan_custom'] = '0';
+  $handler->display->display_options['cache']['type'] = 'none';
   $handler->display->display_options['query']['type'] = 'views_query';
-  $handler->display->display_options['query']['options']['distinct'] = TRUE;
-  $handler->display->display_options['query']['options']['pure_distinct'] = TRUE;
   $handler->display->display_options['exposed_form']['type'] = 'basic';
   $handler->display->display_options['pager']['type'] = 'none';
-  $handler->display->display_options['style_plugin'] = 'default';
+  $handler->display->display_options['pager']['options']['offset'] = '0';
+  $handler->display->display_options['style_plugin'] = 'nexteuropa_bem_listing';
   $handler->display->display_options['row_plugin'] = 'fields';
-  /* Relationship: Taxonomy term: Parent term */
-  $handler->display->display_options['relationships']['parent']['id'] = 'parent';
-  $handler->display->display_options['relationships']['parent']['table'] = 'taxonomy_term_hierarchy';
-  $handler->display->display_options['relationships']['parent']['field'] = 'parent';
-  /* Field: Taxonomy term: Term ID */
-  $handler->display->display_options['fields']['tid']['id'] = 'tid';
-  $handler->display->display_options['fields']['tid']['table'] = 'taxonomy_term_data';
-  $handler->display->display_options['fields']['tid']['field'] = 'tid';
-  $handler->display->display_options['fields']['tid']['label'] = '';
-  $handler->display->display_options['fields']['tid']['exclude'] = TRUE;
-  $handler->display->display_options['fields']['tid']['element_label_colon'] = FALSE;
-  $handler->display->display_options['fields']['tid']['separator'] = '';
-  /* Field: Taxonomy term: Term ID */
-  $handler->display->display_options['fields']['tid_1']['id'] = 'tid_1';
-  $handler->display->display_options['fields']['tid_1']['table'] = 'taxonomy_term_data';
-  $handler->display->display_options['fields']['tid_1']['field'] = 'tid';
-  $handler->display->display_options['fields']['tid_1']['relationship'] = 'parent';
-  $handler->display->display_options['fields']['tid_1']['label'] = '';
-  $handler->display->display_options['fields']['tid_1']['exclude'] = TRUE;
-  $handler->display->display_options['fields']['tid_1']['element_label_colon'] = FALSE;
-  $handler->display->display_options['fields']['tid_1']['separator'] = '';
-  /* Field: Taxonomy term: Name */
-  $handler->display->display_options['fields']['name']['id'] = 'name';
-  $handler->display->display_options['fields']['name']['table'] = 'taxonomy_term_data';
-  $handler->display->display_options['fields']['name']['field'] = 'name';
-  $handler->display->display_options['fields']['name']['label'] = '';
-  $handler->display->display_options['fields']['name']['alter']['make_link'] = TRUE;
-  $handler->display->display_options['fields']['name']['alter']['path'] = 'newsroom/[name]/!2';
-  $handler->display->display_options['fields']['name']['alter']['absolute'] = TRUE;
-  $handler->display->display_options['fields']['name']['alter']['replace_spaces'] = TRUE;
-  $handler->display->display_options['fields']['name']['alter']['path_case'] = 'lower';
-  $handler->display->display_options['fields']['name']['alter']['word_boundary'] = FALSE;
-  $handler->display->display_options['fields']['name']['alter']['ellipsis'] = FALSE;
-  $handler->display->display_options['fields']['name']['element_label_colon'] = FALSE;
-  /* Sort criterion: Taxonomy term: Weight */
-  $handler->display->display_options['sorts']['weight']['id'] = 'weight';
-  $handler->display->display_options['sorts']['weight']['table'] = 'taxonomy_term_data';
-  $handler->display->display_options['sorts']['weight']['field'] = 'weight';
-  /* Contextual filter: Global: Null */
-  $handler->display->display_options['arguments']['null']['id'] = 'null';
-  $handler->display->display_options['arguments']['null']['table'] = 'views';
-  $handler->display->display_options['arguments']['null']['field'] = 'null';
-  $handler->display->display_options['arguments']['null']['default_action'] = 'default';
-  $handler->display->display_options['arguments']['null']['default_argument_type'] = 'raw';
-  $handler->display->display_options['arguments']['null']['default_argument_options']['index'] = '1';
-  $handler->display->display_options['arguments']['null']['summary']['number_of_records'] = '0';
-  $handler->display->display_options['arguments']['null']['summary']['format'] = 'default_summary';
-  $handler->display->display_options['arguments']['null']['summary_options']['items_per_page'] = '25';
-  $handler->display->display_options['arguments']['null']['specify_validation'] = TRUE;
-  $handler->display->display_options['arguments']['null']['validate']['fail'] = 'ignore';
-  /* Contextual filter: Global: Null */
-  $handler->display->display_options['arguments']['null_1']['id'] = 'null_1';
-  $handler->display->display_options['arguments']['null_1']['table'] = 'views';
-  $handler->display->display_options['arguments']['null_1']['field'] = 'null';
-  $handler->display->display_options['arguments']['null_1']['default_action'] = 'default';
-  $handler->display->display_options['arguments']['null_1']['default_argument_type'] = 'raw';
-  $handler->display->display_options['arguments']['null_1']['default_argument_options']['index'] = '2';
-  $handler->display->display_options['arguments']['null_1']['summary']['number_of_records'] = '0';
-  $handler->display->display_options['arguments']['null_1']['summary']['format'] = 'default_summary';
-  $handler->display->display_options['arguments']['null_1']['summary_options']['items_per_page'] = '25';
-  $handler->display->display_options['arguments']['null_1']['specify_validation'] = TRUE;
-  $handler->display->display_options['arguments']['null_1']['validate']['fail'] = 'ignore';
-  /* Filter criterion: Taxonomy vocabulary: Machine name */
-  $handler->display->display_options['filters']['machine_name']['id'] = 'machine_name';
-  $handler->display->display_options['filters']['machine_name']['table'] = 'taxonomy_vocabulary';
-  $handler->display->display_options['filters']['machine_name']['field'] = 'machine_name';
-  $handler->display->display_options['filters']['machine_name']['value'] = array(
-    'newsroom_item_type' => 'newsroom_item_type',
-  );
-
-  /* Display: Block */
-  $handler = $view->new_display('block', 'Block', 'block');
-  $handler->display->display_options['defaults']['style_plugin'] = FALSE;
-  $handler->display->display_options['style_plugin'] = 'list';
-  $handler->display->display_options['style_options']['class'] = 'nav nav-pills';
-  $handler->display->display_options['style_options']['wrapper_class'] = '';
-  $handler->display->display_options['defaults']['style_options'] = FALSE;
-  $handler->display->display_options['defaults']['row_plugin'] = FALSE;
-  $handler->display->display_options['row_plugin'] = 'fields';
-  $handler->display->display_options['defaults']['row_options'] = FALSE;
-  $handler->display->display_options['defaults']['relationships'] = FALSE;
-  $handler->display->display_options['defaults']['fields'] = FALSE;
+  $handler->display->display_options['row_options']['default_field_elements'] = FALSE;
+  /* Field: URL */
+  $handler->display->display_options['fields']['field_newsroom_documents']['id'] = 'field_newsroom_documents';
+  $handler->display->display_options['fields']['field_newsroom_documents']['table'] = 'field_data_field_newsroom_documents';
+  $handler->display->display_options['fields']['field_newsroom_documents']['field'] = 'field_newsroom_documents';
+  $handler->display->display_options['fields']['field_newsroom_documents']['ui_name'] = 'URL';
+  $handler->display->display_options['fields']['field_newsroom_documents']['label'] = '';
+  $handler->display->display_options['fields']['field_newsroom_documents']['exclude'] = TRUE;
+  $handler->display->display_options['fields']['field_newsroom_documents']['element_label_colon'] = FALSE;
+  $handler->display->display_options['fields']['field_newsroom_documents']['click_sort_column'] = 'url';
+  $handler->display->display_options['fields']['field_newsroom_documents']['type'] = 'link_plain';
+  $handler->display->display_options['fields']['field_newsroom_documents']['group_rows'] = FALSE;
+  $handler->display->display_options['fields']['field_newsroom_documents']['delta_offset'] = '0';
+  /* Field: Text */
+  $handler->display->display_options['fields']['field_newsroom_documents_1']['id'] = 'field_newsroom_documents_1';
+  $handler->display->display_options['fields']['field_newsroom_documents_1']['table'] = 'field_data_field_newsroom_documents';
+  $handler->display->display_options['fields']['field_newsroom_documents_1']['field'] = 'field_newsroom_documents';
+  $handler->display->display_options['fields']['field_newsroom_documents_1']['ui_name'] = 'Text';
+  $handler->display->display_options['fields']['field_newsroom_documents_1']['label'] = '';
+  $handler->display->display_options['fields']['field_newsroom_documents_1']['exclude'] = TRUE;
+  $handler->display->display_options['fields']['field_newsroom_documents_1']['element_label_colon'] = FALSE;
+  $handler->display->display_options['fields']['field_newsroom_documents_1']['click_sort_column'] = 'url';
+  $handler->display->display_options['fields']['field_newsroom_documents_1']['type'] = 'link_title_plain';
+  $handler->display->display_options['fields']['field_newsroom_documents_1']['group_rows'] = FALSE;
+  $handler->display->display_options['fields']['field_newsroom_documents_1']['delta_offset'] = '0';
   /* Field: Global: Custom text */
   $handler->display->display_options['fields']['nothing']['id'] = 'nothing';
   $handler->display->display_options['fields']['nothing']['table'] = 'views';
   $handler->display->display_options['fields']['nothing']['field'] = 'nothing';
   $handler->display->display_options['fields']['nothing']['label'] = '';
-  $handler->display->display_options['fields']['nothing']['exclude'] = TRUE;
-  $handler->display->display_options['fields']['nothing']['alter']['text'] = 'Agenda';
-  $handler->display->display_options['fields']['nothing']['alter']['make_link'] = TRUE;
-  $handler->display->display_options['fields']['nothing']['alter']['path'] = 'newsroom-agenda/schedule/all/all';
-  $handler->display->display_options['fields']['nothing']['alter']['absolute'] = TRUE;
+  $handler->display->display_options['fields']['nothing']['alter']['text'] = '<div>
+  <span class="icon icon--file file__icon"></span>
+  <div class="file__metadata">
+     <a href="[field_newsroom_documents]">[field_newsroom_documents_1]</a>
+  </div>
+</div>';
   $handler->display->display_options['fields']['nothing']['element_label_colon'] = FALSE;
-  /* Field: Taxonomy term: Term ID */
-  $handler->display->display_options['fields']['tid_1']['id'] = 'tid_1';
-  $handler->display->display_options['fields']['tid_1']['table'] = 'taxonomy_term_data';
-  $handler->display->display_options['fields']['tid_1']['field'] = 'tid';
-  $handler->display->display_options['fields']['tid_1']['label'] = '';
-  $handler->display->display_options['fields']['tid_1']['exclude'] = TRUE;
-  $handler->display->display_options['fields']['tid_1']['element_label_colon'] = FALSE;
-  $handler->display->display_options['fields']['tid_1']['separator'] = '';
-  /* Field: Entity translation: Name: translated */
-  $handler->display->display_options['fields']['name_field_et']['id'] = 'name_field_et';
-  $handler->display->display_options['fields']['name_field_et']['table'] = 'field_data_name_field';
-  $handler->display->display_options['fields']['name_field_et']['field'] = 'name_field_et';
-  $handler->display->display_options['fields']['name_field_et']['label'] = 'URL';
-  $handler->display->display_options['fields']['name_field_et']['exclude'] = TRUE;
-  $handler->display->display_options['fields']['name_field_et']['type'] = 'newsroom_pathauto';
-  /* Field: Entity translation: Name: translated */
-  $handler->display->display_options['fields']['name_field_et_1']['id'] = 'name_field_et_1';
-  $handler->display->display_options['fields']['name_field_et_1']['table'] = 'field_data_name_field';
-  $handler->display->display_options['fields']['name_field_et_1']['field'] = 'name_field_et';
-  $handler->display->display_options['fields']['name_field_et_1']['label'] = '';
-  $handler->display->display_options['fields']['name_field_et_1']['alter']['make_link'] = TRUE;
-  $handler->display->display_options['fields']['name_field_et_1']['alter']['path'] = 'newsroom-agenda/schedule/[name_field_et]/all/';
-  $handler->display->display_options['fields']['name_field_et_1']['element_label_colon'] = FALSE;
-  $handler->display->display_options['defaults']['filter_groups'] = FALSE;
-  $handler->display->display_options['defaults']['filters'] = FALSE;
-  /* Filter criterion: Taxonomy vocabulary: Machine name */
-  $handler->display->display_options['filters']['machine_name']['id'] = 'machine_name';
-  $handler->display->display_options['filters']['machine_name']['table'] = 'taxonomy_vocabulary';
-  $handler->display->display_options['filters']['machine_name']['field'] = 'machine_name';
-  $handler->display->display_options['filters']['machine_name']['value'] = array(
-    'newsroom_item_type' => 'newsroom_item_type',
+  /* Contextual filter: Content: Nid */
+  $handler->display->display_options['arguments']['nid']['id'] = 'nid';
+  $handler->display->display_options['arguments']['nid']['table'] = 'node';
+  $handler->display->display_options['arguments']['nid']['field'] = 'nid';
+  $handler->display->display_options['arguments']['nid']['default_action'] = 'default';
+  $handler->display->display_options['arguments']['nid']['default_argument_type'] = 'node';
+  $handler->display->display_options['arguments']['nid']['summary']['number_of_records'] = '0';
+  $handler->display->display_options['arguments']['nid']['summary']['format'] = 'default_summary';
+  $handler->display->display_options['arguments']['nid']['summary_options']['items_per_page'] = '25';
+  /* Filter criterion: Content: Published */
+  $handler->display->display_options['filters']['status']['id'] = 'status';
+  $handler->display->display_options['filters']['status']['table'] = 'node';
+  $handler->display->display_options['filters']['status']['field'] = 'status';
+  $handler->display->display_options['filters']['status']['value'] = 1;
+  $handler->display->display_options['filters']['status']['group'] = 1;
+  $handler->display->display_options['filters']['status']['expose']['operator'] = FALSE;
+  /* Filter criterion: Content: Type */
+  $handler->display->display_options['filters']['type']['id'] = 'type';
+  $handler->display->display_options['filters']['type']['table'] = 'node';
+  $handler->display->display_options['filters']['type']['field'] = 'type';
+  $handler->display->display_options['filters']['type']['value'] = array(
+    'newsroom_item' => 'newsroom_item',
   );
-  /* Filter criterion: Taxonomy term: Listing behavior (field_newsroom_type) */
-  $handler->display->display_options['filters']['field_newsroom_type_value']['id'] = 'field_newsroom_type_value';
-  $handler->display->display_options['filters']['field_newsroom_type_value']['table'] = 'field_data_field_newsroom_type';
-  $handler->display->display_options['filters']['field_newsroom_type_value']['field'] = 'field_newsroom_type_value';
-  $handler->display->display_options['filters']['field_newsroom_type_value']['operator'] = 'not';
-  $handler->display->display_options['filters']['field_newsroom_type_value']['value'] = array(
-    'default' => 'default',
-  );
-  /* Filter criterion: Taxonomy term: Newsroom Type ID (field_newsroom_type_id) */
-  $handler->display->display_options['filters']['field_newsroom_type_id_value']['id'] = 'field_newsroom_type_id_value';
-  $handler->display->display_options['filters']['field_newsroom_type_id_value']['table'] = 'field_data_field_newsroom_type_id';
-  $handler->display->display_options['filters']['field_newsroom_type_id_value']['field'] = 'field_newsroom_type_id_value';
-  $handler->display->display_options['filters']['field_newsroom_type_id_value']['operator'] = '!=';
-  $handler->display->display_options['filters']['field_newsroom_type_id_value']['value'] = '300';
-  $export['newsroom_calendar_navigation'] = $view;
+  /* Filter criterion: Content: Related Documents (field_newsroom_documents:url) */
+  $handler->display->display_options['filters']['field_newsroom_documents_url']['id'] = 'field_newsroom_documents_url';
+  $handler->display->display_options['filters']['field_newsroom_documents_url']['table'] = 'field_data_field_newsroom_documents';
+  $handler->display->display_options['filters']['field_newsroom_documents_url']['field'] = 'field_newsroom_documents_url';
+  $handler->display->display_options['filters']['field_newsroom_documents_url']['operator'] = 'not empty';
+
+  /* Display: Block */
+  $handler = $view->new_display('block', 'Block', 'block');
+  $export['newsroom_related_documents'] = $view;
 
   $view = new view();
   $view->name = 'newsroom_services';

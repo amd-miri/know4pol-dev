@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @file
  * Multi_user install file.
@@ -22,6 +23,13 @@ function multi_user_blog_disable() {
 
   // Activation message.
   drupal_set_message(t('multi user blogs feature is now disable on your site.'));
+}
+
+/**
+ * Use soft config for blog comment form location.
+ */
+function multi_user_blog_install() {
+  multisite_config_service('comment')->setThreadingCommentForContentType('blog_post', 0);
 }
 
 /**

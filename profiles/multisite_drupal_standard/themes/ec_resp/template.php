@@ -5,197 +5,11 @@
  */
 
 /**
- * Implements template_preprocess().
- */
-function ec_resp_preprocess_feature_set_admin_form(&$variables) {
-  // Add specific javascript.
-  drupal_add_js(drupal_get_path('theme', 'ec_resp') . '/scripts/feature-set.js', array(
-    'scope' => 'footer',
-    'weight' => 13,
-  ));
-
-  $categories_list = '';
-  $features_list = '';
-
-  foreach ($variables['feature_set_category']['category'] as $category => $features) {
-
-    // Create category id.
-    $category_id = preg_replace("/[^a-z0-9_\s-]/", "", strtolower($category));
-    $category_id = preg_replace("/[\s-]+/", " ", $category_id);
-    $category_id = preg_replace("/[\s_]/", "-", $category_id);
-
-    // Format categories.
-    $categories_list .= theme('html_tag', array(
-      'element' => array(
-        '#tag' => 'li',
-        '#attributes' => array(
-          'class' => 'feature-set__category',
-          'role' => 'presentation',
-        ),
-        '#value' => l(
-          $category . ' (' . count($features) . ')',
-          '',
-          array(
-            'fragment' => $category_id,
-            'external' => TRUE,
-          )
-        ),
-      ),
-    ));
-
-    // Format features.
-    $feature_full = '';
-    foreach ($features as $key => $item) {
-      // Get the icon if available.
-      if (!empty($item['#featuresetinfo']['font'])) {
-        $feature_icon = theme('html_tag', array(
-          'element' => array(
-            '#tag' => 'div',
-            '#attributes' => array(
-              'class' => array(
-                'feature-set__icon',
-                $item['#featuresetinfo']['font'],
-              ),
-            ),
-            '#value' => '',
-          ),
-        ));
-      }
-      elseif (!empty($item['#featuresetinfo']['icon'])) {
-        $image = array(
-          'path' => $item['#featuresetinfo']['icon'],
-          'alt' => t('@feature-set icon', array('@feature-set' => $item['#featuresetinfo']['featureset'])),
-          'attributes' => array(
-            'class' => 'feature-set__icon',
-          ),
-        );
-        $feature_icon = theme_image($image);
-      }
-      else {
-        $feature_icon = '';
-      }
-
-      // Format feature name.
-      $feature_name = theme('html_tag', array(
-        'element' => array(
-          '#tag' => 'div',
-          '#attributes' => array(
-            'class' => 'feature-set__name',
-          ),
-          '#value' => $item['#featuresetinfo']['featureset'],
-        ),
-      ));
-
-      // Format feature documentation.
-      $feature_documentation = !empty($item['#featuresetinfo']['documentation'])
-        ? l(
-          t('See @name documentation', array('@name' => $item['#featuresetinfo']['featureset'])),
-          $item['#featuresetinfo']['documentation'],
-          array('attributes' => array('target' => '_blank')))
-        : '';
-
-      // Format feature description.
-      $feature_description_value = '';
-      $feature_description_value .= !empty($item['#featuresetinfo']['description'])
-        ? $item['#featuresetinfo']['description']
-        : '';
-      $feature_description_value .= !empty($feature_documentation)
-        ? theme('html_tag', array(
-          'element' => array(
-            '#tag' => 'footer',
-            '#attributes' => array(
-              'class' => 'feature-set__doc',
-            ),
-            '#value' => $feature_documentation,
-          ),
-        ))
-        : '';
-
-      $feature_description = theme('html_tag', array(
-        'element' => array(
-          '#tag' => 'blockquote',
-          '#attributes' => array(
-            'class' => 'feature-set__desc',
-          ),
-          '#value' => $feature_description_value,
-        ),
-      ));
-
-      // Format feature requirements.
-      $feature_require = theme('html_tag', array(
-        'element' => array(
-          '#tag' => 'div',
-          '#attributes' => array(
-            'class' => 'feature-set__doc',
-          ),
-          '#value' => !empty($item['#featuresetinfo']['require'])
-          ? $item['#featuresetinfo']['require']
-          : '',
-        ),
-      ));
-
-      // Format switcher.
-      $feature_switcher = theme('html_tag', array(
-        'element' => array(
-          '#tag' => 'div',
-          '#attributes' => array(
-            'class' => 'feature-set__switch',
-          ),
-          '#value' => render($item),
-        ),
-      ));
-
-      // Group content.
-      $feature_header = theme('html_tag', array(
-        'element' => array(
-          '#tag' => 'div',
-          '#attributes' => array(
-            'class' => 'feature-set__header',
-          ),
-          '#value' => $feature_icon . $feature_name . $feature_switcher,
-        ),
-      ));
-      $feature_content = theme('html_tag', array(
-        'element' => array(
-          '#tag' => 'div',
-          '#attributes' => array(
-            'class' => 'feature-set__content',
-          ),
-          '#value' => $feature_description . $feature_require,
-        ),
-      ));
-      $feature_full .= theme('html_tag', array(
-        'element' => array(
-          '#tag' => 'div',
-          '#attributes' => array(
-            'class' => 'feature-set__feature',
-          ),
-          '#value' => $feature_header . $feature_content,
-        ),
-      ));
-    }
-
-    // Update feature list.
-    $features_list .= theme('html_tag', array(
-      'element' => array(
-        '#tag' => 'div',
-        '#attributes' => array(
-          'id' => $category_id,
-          'class' => 'feature-set__feature-group',
-        ),
-        '#value' => $feature_full,
-      ),
-    ));
-  }
-
-  $variables['feature_set_categories_list'] = $categories_list;
-  $variables['feature_set_features_list'] = $features_list;
-}
-
-/**
  * Implements template_preprocess_page().
  */
 function ec_resp_preprocess_page(&$variables) {
+  global $theme_key;
+
   $title = drupal_get_title();
   // Format regions.
   $regions = array();
@@ -295,8 +109,14 @@ function ec_resp_preprocess_page(&$variables) {
   }
 
   // Adding pathToTheme for Drupal.settings to be used in js files.
-  $base_theme = multisite_drupal_toolbox_get_base_theme();
-  drupal_add_js('jQuery.extend(Drupal.settings, { "pathToTheme": "' . drupal_get_path('theme', $base_theme) . '" });', 'inline');
+  $base_theme = $theme_key;
+  $available_themes = list_themes();
+  if (isset($available_themes[$theme_key]->info['base theme'])) {
+    $base_theme = current(array_keys(drupal_find_base_themes($available_themes, $theme_key)));
+  }
+
+  // Adding pathToTheme for Drupal.settings to be used in js files.
+  drupal_add_js(array('pathToTheme' => drupal_get_path('theme', $base_theme)), 'setting');
 }
 
 /**
@@ -915,29 +735,32 @@ function ec_resp_page_alter(&$page) {
  * Implements hook_block_view_alter().
  */
 function ec_resp_block_view_alter(&$data, $block) {
+  if (empty($block->region) || !in_array($block->region, array('sidebar_left', 'sidebar_right'))) {
+    return;
+  }
 
-  if ($block->region == 'sidebar_left' || $block->region == 'sidebar_right') {
-    // Add classes to list.
-    $data['content'] = (isset($data['content']) ? str_replace('<ul>', '<ul class="list-group list-group-flush list-unstyled">', $data['content']) : '');
+  if (empty($data['content']) || is_array($data['content'])) {
+    return;
+  }
 
-    // Add classes to list items.
-    if (!is_array($data['content'])) {
-      preg_match_all('/<a(.*?)>/s', $data['content'], $matches);
+  // Add classes to list.
+  $content = &$data['content'];
+  $content = str_replace('<ul>', '<ul class="list-group list-group-flush list-unstyled">', $content);
+  // Add classes to list items.
+  preg_match_all('/<a(.*?)>/s', $data['content'], $matches);
 
-      if (isset($matches[0])) {
-        foreach ($matches[0] as $link) {
-          if (strpos($link, ' class="') !== FALSE) {
-            $new_link = str_replace(' class="', ' class="list-group-item ', $link);
-          }
-          elseif (strpos($link, " class='") !== FALSE) {
-            $new_link = str_replace(" class='", " class='list-group-item ", $link);
-          }
-          else {
-            $new_link = str_replace(' href=', ' class="list-group-item" href=', $link);
-          }
-          $data['content'] = str_replace($link, $new_link, $data['content']);
-        }
+  if (isset($matches[0])) {
+    foreach ($matches[0] as $link) {
+      if (strpos($link, ' class="') !== FALSE) {
+        $new_link = str_replace(' class="', ' class="list-group-item ', $link);
       }
+      elseif (strpos($link, " class='") !== FALSE) {
+        $new_link = str_replace(" class='", " class='list-group-item ", $link);
+      }
+      else {
+        $new_link = str_replace(' href=', ' class="list-group-item" href=', $link);
+      }
+      $content = str_replace($link, $new_link, $content);
     }
   }
 }
@@ -1128,7 +951,7 @@ function ec_resp_menu_link__menu_breadcrumb_menu(array $variables) {
   // Format output.
   $element['#localized_options']['html'] = TRUE;
   $output = l($element['#title'], $element['#href'], $element['#localized_options']);
-  $suffix = ($last ? '' : '<span class="easy-breadcrumb_segment-separator"> ' . $separator . ' </span>');
+  $suffix = ($last ? '' : '<span class="easy-breadcrumb_segment-separator"> ' . filter_xss($separator) . ' </span>');
   return $output . $sub_menu . $suffix;
 }
 
@@ -1184,6 +1007,7 @@ function ec_resp_menu_local_tasks(&$variables) {
 function ec_resp_form_alter(&$form, &$form_state, $form_id) {
   switch ($form_id) {
     case 'nexteuropa_europa_search_search_form':
+      $form['search_input_group']['QueryText']['#title_display'] = 'invisible';
       if (theme_get_setting('enable_interinstitutional_theme')) {
         $form['search_input_group']['europa_search_submit']['#type'] = 'image_button';
         $form['search_input_group']['europa_search_submit']['#src'] = drupal_get_path('theme', 'ec_resp') . '/images/search-button.gif';
@@ -1236,15 +1060,6 @@ function ec_resp_form_alter(&$form, &$form_state, $form_id) {
       }
       break;
 
-    case 'feature_set_admin_form':
-      if (isset($form['submit']) && $form['submit']['#type'] == "submit") {
-        $form['submit']['#value'] = t('Validate');
-        $form['submit']['#attributes']['class'][] = 'btn';
-        $form['submit']['#attributes']['class'][] = 'btn-lg';
-        $form['submit']['#attributes']['class'][] = 'btn-success';
-      }
-      break;
-
     default:
       break;
   }
@@ -1283,10 +1098,6 @@ function ec_resp_link($variables) {
   $action_bar_after = '';
   $btn_group_before = '';
   $btn_group_after = '';
-
-  if (!isset($variables['options']['attributes']['class'])) {
-    $variables['options']['attributes']['class'] = '';
-  }
 
   if (isset($variables['options']['attributes']['action_bar'])) {
     switch ($variables['options']['attributes']['action_bar']) {
@@ -1369,17 +1180,22 @@ function ec_resp_link($variables) {
         break;
     }
 
-    if (is_array($variables['options']['attributes']['class'])) {
+    if (!empty($classes)) {
+      // Merge in defaults.
+      $variables['options']['attributes'] += array('class' => array());
+
       $variables['options']['attributes']['class'] = array_merge($variables['options']['attributes']['class'], $classes);
-    }
-    else {
-      $variables['options']['attributes']['class'] = $classes;
     }
   }
   $path = ($variables['path'] == '<nolink>') ? '#' : check_plain(url($variables['path'], $variables['options']));
+
+  $variables += array('options' => array());
+  $variables['options'] += array('attributes' => array());
+  $options_attributes = drupal_attributes($variables['options']['attributes']);
+
   $output = $action_bar_before . $btn_group_before .
     '<a href="' . $path . '"' .
-    drupal_attributes($variables['options']['attributes']) . '>' . $decoration .
+    $options_attributes . '>' . $decoration .
     ($variables['options']['html'] ? $variables['text'] : check_plain($variables['text'])) .
     '</a>' . $btn_group_after . $action_bar_after;
   return $output;
@@ -1753,9 +1569,8 @@ function ec_resp_preprocess_username(&$vars) {
 /**
  * Returns HTML for a dropdown.
  */
-function ec_resp_dropdown($variables) {
+function ec_resp_dropdown(array $variables) {
   $items = $variables['items'];
-  $attributes = array();
   $output = "";
 
   if (!empty($items)) {
@@ -1764,7 +1579,6 @@ function ec_resp_dropdown($variables) {
     }
     else {
       $output .= "<ul class='dropdown-menu'>";
-      $num_items = count($items);
       foreach ($items as $i => $item) {
         $data = '';
         if (is_array($item)) {
@@ -1775,7 +1589,7 @@ function ec_resp_dropdown($variables) {
           }
         }
         else {
-          $data = $item;
+          $data = l($i, $item);
         }
         $output .= '<li>' . $data . "</li>\n";
       }
@@ -1958,8 +1772,8 @@ function ec_resp_nexteuropa_multilingual_language_list(array $variables) {
   $first_half = array_slice($variables['languages'], 0, $half);
   $second_half = array_slice($variables['languages'], $half);
 
-  $content .= _ec_resp_nexteuropa_multilingual_language_list_column($first_half, $variables['path'], $options);
-  $content .= _ec_resp_nexteuropa_multilingual_language_list_column($second_half, $variables['path'], $options);
+  $content .= _ec_resp_nexteuropa_multilingual_language_list_column($first_half, $variables['path'], $options, $variables['all_paths']);
+  $content .= _ec_resp_nexteuropa_multilingual_language_list_column($second_half, $variables['path'], $options, $variables['all_paths']);
 
   $content .= '</div>';
 
@@ -1975,18 +1789,28 @@ function ec_resp_nexteuropa_multilingual_language_list(array $variables) {
  *   The internal path being linked to.
  * @param array $options
  *   An associative array of additional options.
+ * @param array $all_paths
+ *   An associative array of paths keyed by their language code.
+ *   If it is not empty, the array items will be used to generate the links of
+ *   language list.
  *
  * @return string
  *   Formatted HTML column displaying the list of provided languages.
  */
-function _ec_resp_nexteuropa_multilingual_language_list_column($languages, $path, $options) {
+function _ec_resp_nexteuropa_multilingual_language_list_column($languages, $path, $options, $all_paths = array()) {
   $content = '<div class="col-sm-6">';
   foreach ($languages as $language) {
     $options['attributes']['lang'] = $language->language;
     $options['attributes']['hreflang'] = $language->language;
     $options['attributes']['class'] = 'btn splash-page__btn-language';
     $options['language'] = $language;
-    $content .= l($language->native, $path, $options);
+
+    $translated_path = $path;
+    if (!empty($all_paths[$language->language])) {
+      $translated_path = $all_paths[$language->language];
+    }
+
+    $content .= l($language->native, $translated_path, $options);
   }
   $content .= '</div>';
 

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @file
  * nexteuropa_metatags.features.metatag.inc
@@ -24,7 +25,7 @@ function nexteuropa_metatags_metatag_export_default() {
         'value' => '',
       ),
       'keywords' => array(
-        'value' => 'European Comission, European Union, EU',
+        'value' => 'European Commission, European Union, EU',
       ),
       'viewport' => array(
         'value' => 'width=device-width, initial-scale=1.0',
@@ -56,7 +57,7 @@ function nexteuropa_metatags_metatag_export_default() {
         'value' => '',
       ),
       'generator' => array(
-        'value' => 'Drupal 7 (http://drupal.org)',
+        'value' => 'Drupal 7 (https://drupal.org)',
       ),
       'rights' => array(
         'value' => '',

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @file
  * nexteuropa_mediagallery.strongarm.inc
@@ -44,13 +45,6 @@ function nexteuropa_mediagallery_strongarm() {
   $strongarm->name = 'comment_default_per_page_nexteuropa_mediagallery';
   $strongarm->value = '10';
   $export['comment_default_per_page_nexteuropa_mediagallery'] = $strongarm;
-
-  $strongarm = new stdClass();
-  $strongarm->disabled = FALSE; /* Edit this to true to make a default strongarm disabled initially */
-  $strongarm->api_version = 1;
-  $strongarm->name = 'comment_form_location_nexteuropa_mediagallery';
-  $strongarm->value = 0;
-  $export['comment_form_location_nexteuropa_mediagallery'] = $strongarm;
 
   $strongarm = new stdClass();
   $strongarm->disabled = FALSE; /* Edit this to true to make a default strongarm disabled initially */

@@ -192,7 +192,7 @@ function nexteuropa_newsroom_field_formatter_view($entity_type, $entity, $field,
     case 'newsroom_main_link':
       foreach ($items as $delta => $item) {
         if (!empty($item['url'])) {
-          $item['url'] = NewsroomHelper::getNodeMainUrl($entity, $display['settings']['display_type']);
+          $item['url'] = NexteuropaNewsroomHelper::getNodeMainUrl($entity, $display['settings']['display_type']);
         }
 
         $elements[$delta] = [
@@ -287,7 +287,7 @@ function nexteuropa_newsroom_field_formatter_view($entity_type, $entity, $field,
       if (!empty($docsroom_ids)) {
         $display_type = !empty($display['settings']['display_type']) ? $display['settings']['display_type'] : 'default';
         $url = url(
-          variable_get('newsroom_docsroom_url'),
+          variable_get('nexteuropa_newsroom_docsroom_url'),
           [
             'external' => TRUE,
             'query' => [

@@ -5,15 +5,17 @@
  * Upgrade group visibility (e.g. open, moderated, closed) from OG6.
  */
 
-class OgUiPopulateField extends Migration {
+class OgUiPopulateField extends DynamicMigration {
 
   /**
    * Indicate we are updating existing data.
    */
   protected $systemOfRecord = Migration::DESTINATION;
 
-  public function __construct($arguments = array()) {
-    parent::__construct($arguments);
+
+  public function __construct(array $arguments) {
+    $this->arguments = $arguments;
+    parent::__construct();
     $bundle = $arguments['bundle'];
     $this->description = t('Upgrade group visibility (e.g. open, moderated, closed) from OG6.');
 

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @file
  * Callbacks used by the administration area.
@@ -7,71 +8,129 @@
 /**
  * Generates the cache purge rule editing form.
  */
-function nexteuropa_varnish_cache_purge_rule_form($form, &$form_state, $purge_rule, $op = 'edit', $entity_type = NULL) {
-  $form['content_type'] = array(
-    '#title' => t('Content Type'),
-    '#type' => 'select',
-    '#empty_option' => '',
-    '#options' => node_type_get_names(),
-    '#default_value' => isset($purge_rule->content_type) ? $purge_rule->content_type : '',
-    '#required' => TRUE,
+function nexteuropa_varnish_admin_settings_form($form, $form_state) {
+
+  if (!empty($form_state['value'])) {
+    nexteuropa_varnish_purge_all_form($form, $form_state);
+  }
+
+  $form['purge_cache'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Purge caches'),
+    '#description' => t('Flush all caches (Drupal & Varnish)'),
   );
 
-  $form['paths'] = array(
-    '#title' => t('Paths'),
-    '#type' => 'textarea',
-    '#default_value' => isset($purge_rule->paths) ? $purge_rule->paths : '',
-    '#required' => TRUE,
-    '#description' => _nexteuropa_varnish_paths_description(),
-  );
+  // If the purge mechanism is prevented to work, then the button must be
+  // disabled and a warning message must be displayed.
+  $disabled = _nexteuropa_varnish_temporary_message();
 
-  $form['actions'] = array('#type' => 'actions');
-  $form['actions']['submit'] = array(
+  $form['purge_cache']['purge'] = array(
     '#type' => 'submit',
-    '#value' => t('Save'),
-    '#weight' => 40,
+    '#value' => t('Purge all caches'),
+    '#submit' => array('nexteuropa_varnish_purge_all_confirm'),
+    '#disabled' => $disabled,
   );
 
-  return $form;
+  $form['settings'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Settings'),
+  );
+
+  $form['settings']['nexteuropa_varnish_default_purge_rule'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Enable the default purge rule'),
+    '#description' => t('Activates the default purge rule for all content types.
+      The rule invalidates the Varnish cache entries whenever content changes
+      are having an impact on the published/unpublished state.'),
+    '#default_value' => variable_get('nexteuropa_varnish_default_purge_rule', FALSE),
+  );
+
+  $form['#submit'][] = 'nexteuropa_varnish_admin_settings_cache_clear_submit';
+
+  return system_settings_form($form);
 }
 
 /**
- * Get the description for the purge paths field.
+ * Submit callback for clearing the purge rules cache table.
  *
- * @return string
- *   Description for the field.
+ * @see nexteuropa_varnish_admin_settings_form()
  */
-function _nexteuropa_varnish_paths_description() {
-  $wildcard_descriptions = array(
-    t('* (asterisk) matches any number of any characters including none'),
-    t('? (question mark) matches any single character'),
-  );
-
-  $description = '<p>' . t('Paths to purge. One per line. The paths should be relative to the base URL. Use / for the front page.') . '</p>';
-
-  $description .= '<p>' . t('You can use the following wildcard patterns:') . '</p>';
-
-  $wildcard_description = array(
-    '#theme' => 'item_list',
-    '#type' => 'ul',
-    '#items' => $wildcard_descriptions,
-  );
-
-  $description .= drupal_render(
-    $wildcard_description
-  );
-
-  $description .= '<p>' . t('In all cases above, the / (forward slash) will never be matched.') . '</p>';
-
-  return $description;
+function nexteuropa_varnish_admin_settings_cache_clear_submit($form, &$form_state) {
+  cache_clear_all('*', NEXTEUROPA_VARNISH_CACHE_TABLE, TRUE);
 }
 
 /**
- * Form API submit callback for the cache purge rule editing form.
+ * Redirect the user from "General" page to the "purge all" confirmation form.
  */
-function nexteuropa_varnish_cache_purge_rule_form_submit(&$form, &$form_state) {
-  $purge_rule = entity_ui_form_submit_build_entity($form, $form_state);
-  entity_save('nexteuropa_varnish_cache_purge_rule', $purge_rule);
+function nexteuropa_varnish_purge_all_confirm($form, &$form_state) {
+  $form_state['redirect'] = 'admin/config/system/nexteuropa-varnish/purge_all';
+}
 
-  $form_state['redirect'] = 'admin/config/frontend_cache_purge_rules';
+/**
+ * Generates the form allowing triggering the full cache purge.
+ */
+function nexteuropa_varnish_purge_all_form($form, &$form_state) {
+  $description = t("The action you are about to perform has a deep impact on the site's performance!");
+  $confirm_message = t("Are you sure you want to purge all site's caches (Varnish included)?");
+  return confirm_form($form,
+    $confirm_message,
+    'admin/config/system/nexteuropa-varnish/general',
+    $description,
+    t('Continue'),
+    t('Cancel')
+  );
+}
+
+/**
+ * Processes the full flush cache triggered by the "Purge all caches" button.
+ *
+ * @see nexteuropa_varnish_admin_settings_form()
+ */
+function nexteuropa_varnish_purge_all_form_submit($form, &$form_state) {
+  $confirm_message = t('The Drupal and Varnish caches have been fully flushed.');
+  $message_level = 'status';
+  // First clear the actual backend cache (usually DrupalDatabaseCache).
+  // Otherwise the web frontend cache will receive again outdated cached
+  // versions of pages.
+  drupal_flush_all_caches();
+
+  // Treating Varnish flushing (inspired by "flexibe_purge" contrib module).
+  $send_success = _nexteuropa_varnish_varnish_requests_send();
+  if (!$send_success) {
+    $confirm_message = t('The Varnish caches have not been purged correctly. Please consult logs for more information.');
+    $message_level = 'error';
+  }
+
+  drupal_set_message($confirm_message, $message_level);
+  $form_state['redirect'] = 'admin/config/system/nexteuropa-varnish/general';
+}
+
+/**
+ * Implements hook_FORM_ID_form_validate().
+ */
+function nexteuropa_varnish_admin_settings_form_validate($form, &$form_state) {
+  $rule_state = $form_state['values']['nexteuropa_varnish_default_purge_rule'];
+  if ($rule_state && _nexteuropa_varnish_check_node_rules()) {
+    form_set_error(
+      'settings',
+      t('You can not enable the default purge rule while "Purge rules" of type "node" exist.')
+    );
+  }
+}
+
+/**
+ * Checks if rules type of node exist.
+ *
+ * @return bool
+ *   TRUE / FALSE depends on the results of the query.
+ */
+function _nexteuropa_varnish_check_node_rules() {
+  $query = new EntityFieldQuery();
+  $query
+    ->entityCondition('entity_type', 'nexteuropa_varnish_cache_purge_rule')
+    ->propertyCondition('paths', '');
+
+  $result = $query->execute();
+
+  return isset($result['nexteuropa_varnish_cache_purge_rule']);
 }

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @file
  * Code for the Survey core install file.
@@ -19,6 +20,13 @@ function survey_core_enable() {
 
   // Activation message.
   drupal_set_message(t('Survey feature is now active on your site.'));
+}
+
+/**
+ * Use soft config for webform comment form location.
+ */
+function survey_core_install() {
+  multisite_config_service('comment')->setThreadingCommentForContentType('webform', 0);
 }
 
 /**

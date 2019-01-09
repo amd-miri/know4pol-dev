@@ -5,9 +5,15 @@
  * Code for the CCE_basic_config feature.
  */
 
+include_once 'cce_basic_config.helpers.inc';
 include_once 'cce_basic_config.features.inc';
 include_once 'cce_basic_config.file_default_displays.inc';
 include_once 'cce_basic_config.default_password_policy.inc';
+
+/**
+ * CEM role machine name.
+ */
+define('CCE_BASIC_CONFIG_CEM_ROLE_NAME', 'cem');
 
 /**
  * Implements hook_menu_alter().
@@ -32,7 +38,7 @@ function cce_basic_config_form_system_site_information_settings_alter(&$form, &$
   $classification = taxonomy_get_tree($vid_classification[0]->vid);
 
   $list = array();
-  foreach ($classification as $key => $obj_term) {
+  foreach ($classification as $obj_term) {
     $list[$obj_term->name] = $obj_term->name . ' - ' . strip_tags($obj_term->description);
   }
 
@@ -55,17 +61,19 @@ function cce_basic_config_form_system_site_information_settings_alter(&$form, &$
     '#description' => t('Choose the classification for your website. This classification respects the !url', array('!url' => l(t('IPG guidelines'), "http://ec.europa.eu/ipg/content/optimise/metadata/annex2_en.htm"))),
   );
 
+  // @codingStandardsIgnoreStart: NEPT-1304: $form_state['values'] is not populated at this stage.
   // Get the 'code' and set meta_configuration variable.
   if (isset($form_state['input']['op']) && $form_state['input']['op'] == 'Save configuration') {
     if (isset($form_state['input']['classification'])) {
       $pattern = '@(^[0-9]+).*@';
       $subject = $form_state['input']['classification'];
-      $result = preg_match($pattern, $subject, $matches);
+      preg_match($pattern, $subject, $matches);
       if (isset($matches[1])) {
         variable_set('meta_configuration', $matches[1]);
       }
     }
   }
+  // @codingStandardsIgnoreEnd
 }
 
 /**
@@ -89,16 +97,15 @@ function cce_basic_config_form_media_format_form_alter(&$form) {
  * The output variable $videos is being rendered by the field--video.tpl.php.
  */
 function cce_basic_config_preprocess_field(&$variables) {
-  global $base_url, $theme;
+  global $base_url;
   if ('video' === $variables['element']['#field_type']) {
 
     if (isset($variables['element']['#items'])) {
       $output = '';
       $field = $variables['element']['#field_name'];
       $delta = 0;
-      $themepath = drupal_get_path('theme', $theme);
 
-      foreach ($variables['element']['#items'] as $key => $value) {
+      foreach ($variables['element']['#items'] as $value) {
         if (isset($value['playablefiles'][0]->uri)) {
           $video_path = str_replace('http:', '', $base_url) . '/' . file_stream_wrapper_get_instance_by_uri('public://')->getDirectoryPath() . str_replace('public://', '/', $value['playablefiles'][0]->uri);
         }
@@ -164,6 +171,12 @@ function cce_basic_config_form_alter(&$form, &$form_state, $form_id) {
       '#default_value' => $settings['presets']['#default_value'],
     );
   }
+
+  // NEPT-1679: Add validation on subject field. To be removed in NEPT-1817.
+  if (isset($form['subject'])) {
+    $form['#validate'][] = '_cce_basic_config_subject_validate';
+  }
+
   return $form;
 }
 
@@ -296,7 +309,11 @@ function cce_basic_config_field_default_fields_instances_alter(&$fields) {
  * @see https://www.drupal.org/node/2412221
  */
 function cce_basic_config_form_node_form_alter(&$form, $form_state) {
+
   $form['#after_build'][] = 'cce_basic_config_form_node_form_after_build';
+
+  // NEPT-1679: Add validation on title field... to be removed in NEPT-1817.
+  $form['#validate'][] = '_cce_basic_config_title_validate';
 }
 
 /**
@@ -322,6 +339,122 @@ function cce_basic_config_tmgmt_dgt_html_filter_formats_containing_html() {
     'basic_html',
     'filtered_html',
     'full_html',
-    'full_html_track',
   );
+}
+
+/**
+ * Implements hook_preprocess_container().
+ *
+ * It preprocesses the container theme in order to inject
+ * theme_hook_suggestions.
+ */
+function cce_basic_config_preprocess_container(&$variables) {
+  $element = $variables['element'];
+  $prefix = 'container';
+  $suggestion = $prefix;
+
+  if (!empty($element['#entity_type'])) {
+    $suggestion .= '__' . $element['#entity_type'];
+    $variables['theme_hook_suggestions'][] = $suggestion;
+  }
+
+  if (!empty($element['#bundle'])) {
+    $suffix = '__' . $element['#bundle'];
+    $suggestion .= $suffix;
+    $variables['theme_hook_suggestions'][] = $suggestion;
+    $variables['theme_hook_suggestions'][] = $prefix . $suffix;
+  }
+
+  if (!empty($element['#view_mode'])) {
+    $hook_suggestions = $variables['theme_hook_suggestions'];
+    $suffix = '__' . $element['#view_mode'];
+    foreach ($hook_suggestions as $hook_suggestion) {
+      $variables['theme_hook_suggestions'][] = $hook_suggestion . $suffix;
+    }
+    $variables['theme_hook_suggestions'][] = $prefix . $suffix;
+  }
+}
+
+/**
+ * Implements hook_field_widget_WIDGET_TYPE_form_alter().
+ *
+ * It implements it for "Text area" widget.
+ * NEPT-1679
+ * To be removed in NEPT-1817
+ *
+ * @see https://www.drupal.org/project/drupal/issues/2488180
+ * @see https://www.drupal.org/node/2754539
+ */
+function cce_basic_config_field_widget_text_textarea_form_alter(&$element, &$form_state, $context) {
+  _cce_basic_config_field_widget_form_alter($element, $form_state, $context);
+}
+
+/**
+ * Implements hook_field_widget_WIDGET_TYPE_form_alter().
+ *
+ * It implements it for "Text area with a summary" widget.
+ *
+ * @see NEPT-1679
+ * @see https://www.drupal.org/project/drupal/issues/2488180
+ * @see https://www.drupal.org/node/2754539
+ * To be removed in NEPT-1817
+ */
+function cce_basic_config_field_widget_text_textarea_with_summary_form_alter(&$element, &$form_state, $context) {
+  _cce_basic_config_field_widget_form_alter($element, $form_state, $context);
+}
+
+/**
+ * Implements hook_field_widget_WIDGET_TYPE_form_alter().
+ *
+ * It implements it for "Text field" widget.
+ *
+ * @see NEPT-1679
+ * @see https://www.drupal.org/project/drupal/issues/2488180
+ * @see https://www.drupal.org/node/2754539
+ * To be removed in NEPT-1817
+ */
+function cce_basic_config_field_widget_text_textfield_form_alter(&$element, &$form_state, $context) {
+  _cce_basic_config_field_widget_form_alter($element, $form_state, $context);
+}
+
+/**
+ * Implements hook_field_widget_WIDGET_TYPE_form_alter().
+ *
+ * It implements it for "taxonomy autocomplete" widget.
+ *
+ * @see NEPT-1679
+ * @see https://www.drupal.org/project/drupal/issues/2488180
+ * @see https://www.drupal.org/node/2754539
+ * To be removed in NEPT-1817
+ */
+function cce_basic_config_field_widget_taxonomy_autocomplete_form_alter(&$element, &$form_state, $context) {
+  _cce_basic_config_field_widget_form_alter($element, $form_state, $context);
+}
+
+/**
+ * Implements hook_field_widget_WIDGET_TYPE_form_alter().
+ *
+ * It implements it for "entityreference autocomplete" widget.
+ *
+ * @see NEPT-1679
+ * @see https://www.drupal.org/project/drupal/issues/2488180
+ * @see https://www.drupal.org/node/2754539
+ * To be removed in NEPT-1817
+ */
+function cce_basic_config_field_widget_entityreference_autocomplete_form_alter(&$element, &$form_state, $context) {
+  _cce_basic_config_field_widget_form_alter($element, $form_state, $context);
+}
+
+/**
+ * Implements hook_field_widget_WIDGET_TYPE_form_alter().
+ *
+ * It implements it for "entityreference autocomplete tags" widget.
+ *
+ * @see NEPT-1679
+ * @see https://www.drupal.org/project/drupal/issues/2488180
+ * @see https://www.drupal.org/node/2754539
+ * To be removed in NEPT-1817
+ */
+function cce_basic_config_field_widget_entityreference_autocomplete_tags_form_alter(&$element, &$form_state, $context) {
+  _cce_basic_config_field_widget_form_alter($element, $form_state, $context);
 }

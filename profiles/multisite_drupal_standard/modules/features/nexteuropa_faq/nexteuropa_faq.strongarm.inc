@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @file
  * nexteuropa_faq.strongarm.inc
@@ -30,13 +31,6 @@ function nexteuropa_faq_strongarm() {
   $strongarm->name = 'comment_default_per_page_nexteuropa_faq';
   $strongarm->value = '50';
   $export['comment_default_per_page_nexteuropa_faq'] = $strongarm;
-
-  $strongarm = new stdClass();
-  $strongarm->disabled = FALSE; /* Edit this to true to make a default strongarm disabled initially */
-  $strongarm->api_version = 1;
-  $strongarm->name = 'comment_form_location_nexteuropa_faq';
-  $strongarm->value = 1;
-  $export['comment_form_location_nexteuropa_faq'] = $strongarm;
 
   $strongarm = new stdClass();
   $strongarm->disabled = FALSE; /* Edit this to true to make a default strongarm disabled initially */

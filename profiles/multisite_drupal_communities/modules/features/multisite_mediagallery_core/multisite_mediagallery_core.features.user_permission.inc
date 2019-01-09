@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @file
  * multisite_mediagallery_core.features.user_permission.inc
@@ -17,6 +18,7 @@ function multisite_mediagallery_core_user_default_permissions() {
       'administrator' => 'administrator',
       'contributor' => 'contributor',
       'editor' => 'editor',
+      'cem' => 'cem',
     ),
     'module' => 'node',
   );
@@ -38,6 +40,7 @@ function multisite_mediagallery_core_user_default_permissions() {
       'administrator' => 'administrator',
       'contributor' => 'contributor',
       'editor' => 'editor',
+      'cem' => 'cem',
     ),
     'module' => 'node',
   );
@@ -59,6 +62,7 @@ function multisite_mediagallery_core_user_default_permissions() {
       'administrator' => 'administrator',
       'contributor' => 'contributor',
       'editor' => 'editor',
+      'cem' => 'cem',
     ),
     'module' => 'node',
   );

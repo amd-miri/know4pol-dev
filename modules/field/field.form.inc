@@ -223,7 +223,12 @@ function field_multiple_value_form($field, $instance, $langcode, $items, &$form,
       // For multiple fields, title and description are handled by the wrapping
       // table.
       if ($multiple) {
-        $element['#title'] = $title . ' ' . t('(value @number)', array('@number' => $delta + 1));
+        if ($delta == 0) {
+          $element['#title'] = t('!title', array('!title' => $title));
+        }
+        else {
+          $element['#title'] = t('!title (value @number)', array('@number' => $delta + 1, '!title' => $title));
+        }
         $element['#title_display'] = 'invisible';
         $element['#description'] = '';
       }

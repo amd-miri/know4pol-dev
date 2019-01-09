@@ -1807,7 +1807,7 @@ function system_file_system_settings() {
     '#default_value' => variable_get('file_temporary_maximum_age', DRUPAL_MAXIMUM_TEMP_FILE_AGE),
     '#options' => $period,
     '#description' => t('Orphaned files are not referenced from any content but remain in the file system and may appear in administrative listings. <strong>Warning:</strong> If enabled, orphaned files will be permanently deleted and may not be recoverable.'),
-  );
+   );
 
   $form['file_public_path'] = array(
     '#type' => 'textfield',

@@ -94,6 +94,8 @@ function idea_core_install() {
   );
   taxonomy_term_save($term);
 
+  // Use soft config for article comment form location.
+  multisite_config_service('comment')->setThreadingCommentForContentType('idea', 0);
 }
 
 /**
@@ -139,7 +141,7 @@ function idea_core_disable() {
 }
 
 /**
- * Implements hook_update_N().
+ * Add default tags to feature vocabularies..
  */
 function idea_core_update_7120() {
   // Add default categories.

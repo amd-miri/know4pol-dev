@@ -1,34 +1,17 @@
 <?php
+
 /**
  * @file
  * Code for the NextEuropa Editorial feature.
  */
 
 include_once 'nexteuropa_editorial.features.inc';
-include_once 'includes/nexteuropa_editorial.tracking.inc';
 
 /**
  * Editorial team member role name.
  */
 define('NEXTEUROPA_EDITORIAL_TEAM_MEMBER_ROLE', 'editorial team member');
 
-/**
- * Implements hook_menu().
- */
-function nexteuropa_editorial_menu() {
-
-  $items['admin/config/content/multisite_wysiwyg/workbench'] = [
-    'title' => 'WYSIWYG workflow settings',
-    'description' => 'Setup page for Multisite WYSIWYG workflow',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => ['nexteuropa_editorial_wysiwyg_tracking_settings_form'],
-    'access arguments' => ['administer site configuration'],
-    'file' => 'includes/nexteuropa_editorial.tracking.inc',
-    'weight' => 1,
-  ];
-
-  return $items;
-}
 /**
  * Implements hook_workbench_block().
  */
@@ -47,27 +30,39 @@ function nexteuropa_editorial_workbench_block() {
  * Implements hook_og_membership_insert().
  */
 function nexteuropa_editorial_og_membership_insert(OgMembership $og_membership) {
+  _nexteuropa_editorial_sync_editorial_team_role($og_membership);
+}
 
-  // Automatically assign "editorial team member" to a user joining
-  // an editorial team organic group.
-  if ($og_membership->entity_type == 'user') {
-    if (multisite_config_service('nexteuropa_editorial')->isEditoralTeamMember($og_membership->etid)) {
-      multisite_config_service('user')->assignRoleToUser(NEXTEUROPA_EDITORIAL_TEAM_MEMBER_ROLE, $og_membership->etid);
-    }
-  }
+/**
+ * Implements hook_og_membership_update().
+ */
+function nexteuropa_editorial_og_membership_update(OgMembership $og_membership) {
+  _nexteuropa_editorial_sync_editorial_team_role($og_membership);
 }
 
 /**
  * Implements hook_og_membership_delete().
  */
 function nexteuropa_editorial_og_membership_delete(OgMembership $og_membership) {
+  _nexteuropa_editorial_sync_editorial_team_role($og_membership);
+}
 
-  // Automatically revoke "editorial team member" to a leaving
-  // an editorial team organic group.
-  if ($og_membership->entity_type == 'user') {
-    if (!multisite_config_service('nexteuropa_editorial')->isEditoralTeamMember($og_membership->etid)) {
-      multisite_config_service('user')->revokeRoleFromUser(NEXTEUROPA_EDITORIAL_TEAM_MEMBER_ROLE, $og_membership->etid);
-    }
+/**
+ * Helper function for OG membership operations hooks.
+ *
+ * Grants/revokes the "editorial team member" role to the related user
+ * depending on whether or not he has at least 1 active OG membership
+ * bound to an Editorial Team group.
+ *
+ * @param \OgMembership $og_membership
+ *   The OG membership being inserted/updated/deleted.
+ */
+function _nexteuropa_editorial_sync_editorial_team_role(OgMembership $og_membership) {
+  if ($og_membership->field_name == 'og_user_node' && $og_membership->entity_type == 'user' && $og_membership->etid) {
+    $uid = $og_membership->etid;
+    $is_member = multisite_config_service('nexteuropa_editorial')->isEditorialTeamMember($uid);
+    $function = $is_member ? 'assignRoleToUser' : 'revokeRoleFromUser';
+    multisite_config_service('user')->$function(NEXTEUROPA_EDITORIAL_TEAM_MEMBER_ROLE, $uid);
   }
 }
 
@@ -96,6 +91,23 @@ function nexteuropa_editorial_form_user_profile_form_alter(&$form, $form_state) 
  */
 function nexteuropa_editorial_form_diff_node_revisions_alter(&$form, $form_state) {
   $form['submit']['#submit'] = array('nexteuropa_editorial_diff_node_revisions_submit');
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function nexteuropa_editorial_form_user_admin_account_alter(&$form, $form_state) {
+
+  if (isset($form['options']['operation']['#options'])) {
+    $role = user_role_load_by_name(NEXTEUROPA_EDITORIAL_TEAM_MEMBER_ROLE);
+    $options = &$form['options']['operation']['#options'];
+    if (isset($options[t('Add a role to the selected users')])) {
+      unset($options[t('Add a role to the selected users')]["add_role-{$role->rid}"]);
+    }
+    if (isset($options[t('Remove a role from the selected users')])) {
+      unset($options[t('Remove a role from the selected users')]["remove_role-{$role->rid}"]);
+    }
+  }
 }
 
 /**
@@ -131,70 +143,4 @@ function nexteuropa_editorial_module_implements_alter(&$implementations, $hook) 
     unset($implementations['nexteuropa_editorial']);
     $implementations['nexteuropa_editorial'] = $group;
   }
-}
-
-
-/**
- * Implements hook_form_FORM_ID_alter().
- */
-function nexteuropa_editorial_form_workbench_moderation_moderate_form_alter(&$form, &$form_state, $form_id) {
-  if (isset($form['node'])) {
-    $entity = $form['node']['#value'];
-    $tracking_settings = _nexteuropa_editorial_wysiwyg_tracking_settings($entity);
-    if ($tracking_settings['is_activate']) {
-      $form['#validate'][] = '_nexteuropa_editorial_tracking_wbm_validate';
-    }
-  }
-}
-/**
- * Implements hook_field_widget_WIDGET_TYPE_form_alter().
- *
- * It implements it for "Text area" widget.
- */
-function nexteuropa_editorial_field_widget_text_textarea_form_alter(&$element, &$form_state, $context) {
-  _nexteuropa_editorial_field_widget_tracking_form_alter($element, $form_state, $context);
-}
-
-/**
- * Implements hook_field_widget_WIDGET_TYPE_form_alter().
- *
- * It implements it for "Text area with a summary" widget.
- */
-function nexteuropa_editorial_field_widget_text_textarea_with_summary_form_alter(&$element, &$form_state, $context) {
-  _nexteuropa_editorial_field_widget_tracking_form_alter($element, $form_state, $context);
-}
-
-/**
- * Implements hook_field_widget_WIDGET_TYPE_form_alter().
- *
- * It implements it for "Text field" widget.
- */
-function nexteuropa_editorial_field_widget_text_textfield_form_alter(&$element, &$form_state, $context) {
-  _nexteuropa_editorial_field_widget_tracking_form_alter($element, $form_state, $context);
-}
-
-/**
- * Implements hook_field_attach_form().
- */
-function nexteuropa_editorial_field_attach_form($entity_type, $entity, &$form, &$form_state, $langcode) {
-  // Only node entities are supported.
-  $tracking_settings = _nexteuropa_editorial_wysiwyg_tracking_settings($entity);
-  if (($entity_type == 'node') && $tracking_settings['is_activate']) {
-    if (!isset($form['language'])) {
-      // The form item containing the entity can change from an entity to
-      // another. Then we set it like that to easy future treatment.
-      $form['language'] = array(
-        '#type' => 'value',
-        '#value' => $langcode,
-      );
-    }
-    $form['#validate'][] = '_nexteuropa_editorial_tracking_entity_validate';
-  }
-}
-
-/**
- * Implements hook_entity_view_alter().
- */
-function nexteuropa_editorial_entity_view_alter(&$build, $type) {
-  _nexteuropa_editorial_ckeditor_lite_view_alter($build, $type);
 }

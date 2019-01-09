@@ -17,6 +17,9 @@ function nexteuropa_editorial_install() {
   // See: nexteuropa_editorial_og_membership_delete().
   multisite_config_service('user')->createRole(NEXTEUROPA_EDITORIAL_TEAM_MEMBER_ROLE, 2);
 
+  // Use soft config for editorial_teams comment form location.
+  multisite_config_service('comment')->setThreadingCommentForContentType('editorial_team', 1);
+
   // Set "editorial team member" permissions.
   $permissions = array(
 
@@ -30,9 +33,6 @@ function nexteuropa_editorial_install() {
 
     // Contextual.
     'access contextual links',
-
-    // Ckedtior lite.
-    'ckeditor_lite highlight changes',
 
     // Entity Translation.
     'translate any entity',
@@ -79,13 +79,77 @@ function nexteuropa_editorial_install() {
     'use workbench_moderation my drafts tab',
     'use workbench_moderation needs review tab',
 
+    // WYSIWYG Editor.
+    'use media wysiwyg',
+
     // System.
     'access administration pages',
   );
-  multisite_config_service('user')->grantPermission(NEXTEUROPA_EDITORIAL_TEAM_MEMBER_ROLE, $permissions);
+  multisite_config_service('user')->grantPermission(NEXTEUROPA_EDITORIAL_TEAM_MEMBER_ROLE, $permissions, 'nexteuropa_editorial');
 
   // Set "administrator" permissions.
   multisite_config_service('user')->grantPermission('administrator', $permissions);
+
+  // Set "administrator" permissions.
+  $cem_permissions = array(
+
+    // Admin menu.
+    'access administration menu',
+
+    // Bean.
+    'access bean overview',
+    'view bean page',
+    'view bean revisions',
+
+    // Contextual.
+    'access contextual links',
+
+    // Entity Translation.
+    'translate any entity',
+
+    // File entity.
+    'create files',
+    'view own private files',
+    'view own files',
+
+    // Menu.
+    'administer menu',
+
+    // Node.
+    'view own unpublished content',
+    'view revisions',
+    'access content overview',
+
+    // Path.
+    'create url aliases',
+
+    // Scheduler.
+    'schedule (un)publishing of nodes',
+
+    // Scheduler Workbench Integration.
+    'override default scheduler time',
+
+    // Translation Management.
+    'submit translation jobs',
+    'create translation jobs',
+
+    // Workbench.
+    'access workbench',
+
+    // Workbench Moderation.
+    'view all unpublished content',
+    'view moderation history',
+    'view moderation messages',
+    'use workbench_moderation my drafts tab',
+    'use workbench_moderation needs review tab',
+
+    // WYSIWYG Editor.
+    'use media wysiwyg',
+
+    // System.
+    'access administration pages',
+  );
+  multisite_config_service('user')->grantPermission(CCE_BASIC_CONFIG_CEM_ROLE_NAME, $cem_permissions);
 
   // Rebuilds the node access database.
   node_access_rebuild();
@@ -141,15 +205,6 @@ function nexteuropa_editorial_install() {
 
   // Linkchecker: checks for both internal and external links.
   multisite_config_service('system')->setVariable('linkchecker_check_links_types', 0);
-
-  // Workbench moderation state for WYSIWYG tracking settings.
-  $wbm_state = array(
-    'validated' => 'validated',
-    'published' => 'published',
-  );
-  variable_set('nexteuropa_editorial_tracking_wbm_states', $wbm_state);
-  // WYSIWYG tracking settings for "Published" status case.
-  variable_set('nexteuropa_editorial_tracking_status', 1);
 }
 
 /**

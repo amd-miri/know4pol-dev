@@ -367,7 +367,7 @@ function file_field_delete_file($item, $field, $entity_type, $id, $count = 1) {
     // used to handle that.
     $file_usage = file_usage_list($file);
     if (empty($file_usage['file'])) {
-      $file->status = 0;
+       $file->status = 0;
       file_save($file);
     }
   }
