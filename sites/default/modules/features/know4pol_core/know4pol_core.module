@@ -1197,3 +1197,12 @@ function know4pol_core_entity_property_info_alter(&$info) {
     'field' => FALSE,
   );
 }
+
+
+/**
+ * Implements hook_multisite_drupal_toolbox_filter_options_alter().
+ */
+function know4pol_core_multisite_drupal_toolbox_filter_options_alter(&$filter_options) {
+  // Enable the <object> tag, strongly not advised of course.
+  $filter_options['valid_elements']['iframe'] = array('*' => TRUE);
+}
