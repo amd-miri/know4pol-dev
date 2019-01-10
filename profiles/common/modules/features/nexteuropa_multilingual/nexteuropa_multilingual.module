@@ -179,7 +179,6 @@ function nexteuropa_multilingual_language_negotiation_info() {
   return $providers;
 }
 
-
 /**
  * Implements hook_menu().
  */
@@ -333,8 +332,7 @@ function _nexteuropa_multilingual_get_und_entity_alias_info($entity_type, $entit
   $language_none_path = path_load(array('source' => $entity_path, 'language' => LANGUAGE_NONE));
   $language_none_alias = ($language_none_path) ? $language_none_path['alias'] : FALSE;
 
-  // Check if pathauto is activated in LANGUAGE_NONE case.
-  // Logic is taken from Pathauto itself.
+  // Logic below is taken from Pathauto itself.
   // @see pathauto_entity_presave() & pathauto_field_attach_form().
   if (isset($entity->path['pathauto'])) {
     return array(
@@ -345,6 +343,7 @@ function _nexteuropa_multilingual_get_und_entity_alias_info($entity_type, $entit
     );
   }
 
+  // Check if pathauto is activated in LANGUAGE_NONE case.
   module_load_include('inc', 'pathauto');
   $pathauto_alias = pathauto_create_alias($entity_type, 'return', $entity_path, array($entity_type => $entity), $bundle, LANGUAGE_NONE);
   $pathauto = ($language_none_alias != $entity_path && $language_none_alias == $pathauto_alias);
@@ -362,15 +361,23 @@ function _nexteuropa_multilingual_get_und_entity_alias_info($entity_type, $entit
  */
 function _nexteuropa_multilingual_warning_message(&$form, $node) {
   $translatable = variable_get('language_content_type_' . $node->type, 0);
+  // If the node type is not translatable, there is no need to display
+  // warning message.
+  // If there is no nid, means the node is not created yet and no translation
+  // exists. So there is no need to display any warning message.
+  if (!$translatable || empty($node->nid)) {
+    return;
+  }
   $warning_message_languages = variable_get('nexteuropa_multilingual_warning_message_languages');
-  if (!empty($warning_message_languages) && $translatable !== '0') {
+  if (!empty($warning_message_languages)) {
     $message = token_replace($warning_message_languages, array('node' => $node));
+    $allow_tags = array('a', 'em', 'strong', 'cite', 'code', 'b', 'i', 'span');
+    $message = filter_xss($message, $allow_tags);
     $variables = array(
       'message' => $message,
       'message_attributes' => array('id' => 'nexteuropa-multilingual-warning-message-languages'),
     );
     $warning_message = theme('nexteuropa_multilingual_message', $variables);
-
     $form['warning_languages_message'] = array(
       '#markup' => $warning_message,
       '#weight' => 105,
@@ -719,4 +726,11 @@ function nexteuropa_multilingual_entity_info_alter(&$entity_info) {
       $entity_info['file']['translation']['entity_translation']['class'] = 'NexteuropaMultilingualEntityTranslationFileHandler';
     }
   }
+}
+
+/**
+ * Implements hook_xmlsitemap_url_based_negotiation_alter().
+ */
+function nexteuropa_multilingual_xmlsitemap_url_based_negotiation_alter(&$method_list) {
+  $method_list[] = 'nexteuropa_multilingual_url_suffix';
 }

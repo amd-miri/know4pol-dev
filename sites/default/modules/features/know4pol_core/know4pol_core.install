@@ -537,3 +537,15 @@ function know4pol_core_update_7024() {
     'multisite_filters',
   ), TRUE);
 }
+
+/**
+ * Uninstall ds_format.
+ */
+function know4pol_core_update_7025() {
+  module_disable(array(
+    'ds_format',
+  ), FALSE);
+  drupal_uninstall_modules(array(
+    'ds_format',
+  ), FALSE);
+}
