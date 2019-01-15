@@ -2,5 +2,8 @@
 sites/*/settings*.php
 
 # Ignore paths that contain user-generated content.
+.project
 sites/*/files
 sites/*/private
+sites/know4pol
+sites/know4pol/*
