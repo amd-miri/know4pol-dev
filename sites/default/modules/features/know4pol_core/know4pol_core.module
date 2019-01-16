@@ -102,27 +102,12 @@ function _know4pol_core_form_user_admin_permissions_alter_submit(&$form, &$form_
 }
 
 /**
- * Implements hook_permission().
- */
-function know4pol_core_permission() {
-  return array(
-    'menu view unpublished' => array(
-      'title' => t('View unpublished menu links'),
-    ),
-  );
-}
-
-/**
  * Implements hook_og_permission().
  */
 function know4pol_core_og_permission() {
   return array(
     'view manage KS content section' => array(
       'title' => t('View "manage KS content" in admin toolbar'),
-    ),
-    'assign publication to ks' => array(
-      'title' => t('Assign publication to KS'),
-      'description' => t('Assign publication to the current KS'),
     ),
     'unpublish ks content' => array(
       'title' => t('Unpublish KS content'),
@@ -769,17 +754,10 @@ function know4pol_core_og_ui_get_group_admin($group_type, $gid) {
       'access callback' => 'og_ui_user_access_group',
       'access arguments' => array('add user', 1, 2),
     );
-    $items['know4pol_publications'] = array(
-      'title' => t('Assign publication to KS'),
-      'description' => t('Assign publication to KS'),
-      'href' => 'admin/publications',
-      'access callback' => 'og_ui_user_access_group',
-      'access arguments' => array('add user', 1, 2),
-    );
-    $items['know4pol_datasets'] = array(
-      'title' => t('Assign datasets to KS'),
-      'description' => t('Assign datasets to KS'),
-      'href' => 'admin/datasets',
+    $items['know4pol_sharing_content'] = array(
+      'title' => t('Assign/Unassign content to KS'),
+      'description' => t('Assign/Unassign content to KS'),
+      'href' => 'admin/sharing-content',
       'access callback' => 'og_ui_user_access_group',
       'access arguments' => array('add user', 1, 2),
     );
@@ -792,6 +770,7 @@ function know4pol_core_og_ui_get_group_admin($group_type, $gid) {
  */
 function know4pol_core_menu_alter(&$items) {
   $items['node/add']['access callback'] = '_know4pol_core_node_add_access';
+  $items['admin/index']['access callback'] = '_know4pol_core_node_add_access';
   $items['admin/workbench/create']['access callback'] = '_know4pol_core_node_add_access';
   $items['group/node/%/admin/content']['access callback'] = '_know4pol_core_get_og_access';
   $items['group/node/%/admin/content']['access arguments'] = array('view manage KS content section',
@@ -803,8 +782,8 @@ function know4pol_core_menu_alter(&$items) {
     'node',
     2,
   );
-  $items['group/node/%/admin/publications']['access callback'] = '_know4pol_core_get_og_access';
-  $items['group/node/%/admin/publications']['access arguments'] = array('view manage KS content section',
+  $items['group/node/%/admin/sharing-content']['access callback'] = '_know4pol_core_get_og_access';
+  $items['group/node/%/admin/sharing-content']['access arguments'] = array('view manage KS content section',
     'node',
     2,
   );
@@ -1198,11 +1177,10 @@ function know4pol_core_entity_property_info_alter(&$info) {
   );
 }
 
-
 /**
  * Implements hook_multisite_drupal_toolbox_filter_options_alter().
  */
 function know4pol_core_multisite_drupal_toolbox_filter_options_alter(&$filter_options) {
-  // Enable the <object> tag, strongly not advised of course.
+  // Enable the <iframe> tag, strongly not advised of course.
   $filter_options['valid_elements']['iframe'] = array('*' => TRUE);
 }

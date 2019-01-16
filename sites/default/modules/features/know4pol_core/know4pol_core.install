@@ -549,3 +549,15 @@ function know4pol_core_update_7025() {
     'ds_format',
   ), FALSE);
 }
+
+/**
+ * Uninstall metatag_mobile.
+ */
+function know4pol_core_update_7026() {
+  module_disable(array(
+    'metatag_mobile',
+  ), FALSE);
+  drupal_uninstall_modules(array(
+    'metatag_mobile',
+  ), FALSE);
+}

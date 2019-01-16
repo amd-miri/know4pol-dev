@@ -45,6 +45,7 @@ function know4pol_ec_europa_preprocess_page_header(&$variables, $hook) {
           $variables['introduction'] = $node->field_short_description[LANGUAGE_NONE][0]['value'];
         }
         $variables['title'] = $node->field_ks_fullname[LANGUAGE_NONE][0]['value'];
+        unset($variables['meta']['#type']);
         break;
 
       case 'navigation_page':
@@ -62,7 +63,7 @@ function know4pol_ec_europa_preprocess_page_header(&$variables, $hook) {
         $variables['meta']['#timestamp'] = format_date($node->created, 'custom', 'Y-m-d\TH:i:sP');
         $variables['meta']['#date'] = format_date($node->created, 'meta');
         break;
-        
+
       case 'dataset':
         $variables['meta']['#date'] = format_date(strtotime($node->field_dst_issue_date[LANGUAGE_NONE][0]['value']), 'meta');
         break;
