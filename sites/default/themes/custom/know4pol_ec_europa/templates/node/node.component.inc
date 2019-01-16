@@ -11,8 +11,14 @@
 function know4pol_ec_europa_preprocess_node(&$variables, $hook) {
   // For all content types.
   drupal_add_js('https://visualise.jrc.ec.europa.eu/javascripts/api/viz_v1.js', 'external');
-  if ($variables['type'] == 'file') {
-    _know4pol_ec_europa_preprocess_node__file($variables);
+  switch ($variables['type']) {
+    case 'file':
+      _know4pol_ec_europa_preprocess_node__file($variables);
+      break;
+
+    case 'external_page':
+      _know4pol_ec_europa_preprocess_node__external_page($variables);
+      break;
   }
 }
 
@@ -47,5 +53,22 @@ function _know4pol_ec_europa_preprocess_node__file(array &$variables) {
       );
       $node->translations->data[] = $t_node;
     }
+  }
+}
+
+/**
+ * Implements template_preprocess_node().
+ *
+ * @param array $variables
+ *   The original variables from the preprocess_node hook.
+ */
+function _know4pol_ec_europa_preprocess_node__external_page(array &$variables) {
+  // Default values if empty.
+  if (!isset($variables['field_frame_height'][0]['value'])) {
+    $variables['field_frame_height'] = [['value' => 350]];
+  }
+  // Default values if empty.
+  if (!isset($variables['field_frame_width'][0]['value'])) {
+    $variables['field_frame_width'] = [['value' => '100%']];
   }
 }
