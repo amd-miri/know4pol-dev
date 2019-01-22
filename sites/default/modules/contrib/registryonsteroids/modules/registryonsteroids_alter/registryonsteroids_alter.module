@@ -39,3 +39,26 @@ function registryonsteroids_alter_module_implements_alter(array &$implementation
     $implementations['registryonsteroids_alter'] = $group;
   }
 }
+
+/**
+ * Implements hook_init().
+ */
+function registryonsteroids_alter_init() {
+  // Detect the suggestions related to the current page and save them in a
+  // static variable to avoid infinite recursion with menu_get_item().
+  $page_suggestions_parts = &drupal_static(__FUNCTION__, []);
+
+  // Add suggestions if an entity is found on the current page.
+  if ($entity = registryonsteroids_alter_menu_get_entity()) {
+    $page_suggestions_parts[] = $entity['entity type'];
+
+    if (isset($entity['entity']->{$entity['entity info']['entity keys']['bundle']})) {
+      $page_suggestions_parts[] = $entity['entity']->{$entity['entity info']['entity keys']['bundle']};
+    }
+  }
+
+  $page_suggestions_parts = array_merge(
+    $page_suggestions_parts,
+    explode('/', $_GET['q'])
+  );
+}

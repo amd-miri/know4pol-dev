@@ -1,0 +1,5 @@
+name = Registry on steroids alter contrib
+description = Dynamically modifies <code>#theme</code> and <code>#theme_wrappers</code> properties of various render arrays through alter hooks provided by contrib modules.
+core = 7.x
+php = 5.6
+dependencies[] = registryonsteroids_alter

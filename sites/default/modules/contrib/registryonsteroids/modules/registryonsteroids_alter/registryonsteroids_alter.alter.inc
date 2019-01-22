@@ -109,19 +109,65 @@ function registryonsteroids_alter_block_view_alter(&$data, $block) {
   $block_theme_suggestions = [];
   _registryonsteroids_alter_add_default_pre_render_variables($data);
 
-  // Specific handling for core menu blocks.
-  if ($block->module === 'system') {
-    $menus = menu_get_menus(TRUE);
+  // Specific handling for menus blocks.
+  if ($block->module === 'system' || $block->module === 'menu') {
+    switch ($block->module) {
+      case 'system':
+        $menus = menu_list_system_menus();
+        break;
 
+      case 'menu':
+        $menus = menu_get_menus(FALSE);
+        break;
+
+      default:
+        $menus = array();
+    }
+
+    // Update the block content.
     if (isset($menus[$block->delta])) {
-      $content = registryonsteroids_menu_tree(
-        $block->delta,
-        [
-          'block' => $block,
-          'suggestions parts' => [],
-        ]
+      $context = [
+        'block' => $block,
+        'suggestions parts' => [],
+      ];
+
+      // Alteration of the original menu build array.
+      registryonsteroids_alter_recursive_menu_tree(
+        $data['content'],
+        function (&$element, $key, &$recursive_context) {
+          _registryonsteroids_alter_add_default_pre_render_callback($element);
+          _registryonsteroids_alter_add_default_pre_render_variables($element);
+
+          $suggestions = [
+            $recursive_context['block']->module,
+            $recursive_context['block']->delta,
+            $recursive_context['block']->region,
+            'level' . $recursive_context['level'],
+          ];
+
+          $element['#registryonsteroids']['suggestions']['theme_wrappers'] = array_merge(
+            $element['#registryonsteroids']['suggestions']['theme'],
+            $element['#registryonsteroids']['suggestions']['theme_wrappers'],
+            $suggestions,
+            $recursive_context['suggestions parts']
+          );
+
+          $element['#registryonsteroids']['suggestions']['theme'] = array_merge(
+            $element['#registryonsteroids']['suggestions']['theme'],
+            $recursive_context['suggestions parts']
+          );
+        },
+        NULL,
+        $context
       );
-      $content['#contextual_links'] = $data['content']['#contextual_links'];
+
+      $content = $data['content'];
+
+      // Add the contextual links if any.
+      if (isset($data['content']['#contextual_links'])) {
+        $content['#contextual_links'] = $data['content']['#contextual_links'];
+      }
+
       $data['content'] = $content;
 
       // Delete this to avoid duplicates later.

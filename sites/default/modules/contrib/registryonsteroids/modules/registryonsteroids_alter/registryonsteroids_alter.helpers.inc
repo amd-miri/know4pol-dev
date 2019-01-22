@@ -211,41 +211,6 @@ function registryonsteroids_alter_recursive_element_children(array &$root_elemen
 }
 
 /**
- * Recursive function that goes through all children of a Drupal's menu build.
- *
- * @param array $root_element
- *   The root element.
- * @param callable $callback
- *   A custom callback to apply to each element.
- * @param string|null $root_element_key
- *   The root element key.
- * @param array $context
- *   The context.
- */
-function registryonsteroids_alter_recursive_menu_tree(array &$root_element, callable $callback, $root_element_key = NULL, array &$context = []
-) {
-  $context += ['level' => 0];
-
-  $callback($root_element, $root_element_key, $context);
-
-  foreach (element_children($root_element) as $sub_element_key) {
-    if (!is_array($root_element[$sub_element_key])) {
-      continue;
-    }
-
-    registryonsteroids_alter_recursive_menu_tree($root_element[$sub_element_key], $callback, $sub_element_key, $context);
-
-    if (!isset($root_element[$sub_element_key]['#below'])) {
-      continue;
-    }
-
-    $context['level']++;
-    registryonsteroids_alter_recursive_menu_tree($root_element[$sub_element_key]['#below'], $callback, $sub_element_key, $context);
-    $context['level']--;
-  }
-}
-
-/**
  * Populate an element with a specific pre-render callback.
  *
  * @param array $element
@@ -387,19 +352,9 @@ function _registryonsteroids_alter_form_alter_pre_render(array $form) {
  * @return string[]
  */
 function _registryonsteroids_get_current_page_suggestions() {
-  $page_suggestions_parts = [];
-
-  // Add suggestions if an entity is found on the current page.
-  if ($entity = registryonsteroids_alter_menu_get_entity()) {
-    $page_suggestions_parts[] = $entity['entity type'];
-
-    if (isset($entity['entity']->{$entity['entity info']['entity keys']['bundle']})) {
-      $page_suggestions_parts[] = $entity['entity']->{$entity['entity info']['entity keys']['bundle']};
-    }
-  }
-
-  return array_merge(
-    $page_suggestions_parts,
-    explode('/', $_GET['q'])
-  );
+  // As this function is meant to be called multiple times per request,
+  // we use a static variable initialized in registryonsteroids_alter_init()
+  // to avoid any kind of infinite recursion with menu_get_item() in
+  // registryonsteroids_alter_menu_get_entity().
+  return drupal_static('registryonsteroids_alter_init', []);
 }

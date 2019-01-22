@@ -58,8 +58,7 @@
   "extra": {
     "patches": {
       "drupal/drupal": {
-        "https://www.drupal.org/node/2482549": "https://www.drupal.org/files/issues/ignore_node_module-2482549-27_0.patch",
-        "https://www.drupal.org/node/2947772": "https://www.drupal.org/files/issues/2018-03-27/drupal-7-php-7-2-2947772-14.patch"
+        "https://www.drupal.org/node/2482549": "https://www.drupal.org/files/issues/ignore_node_module-2482549-27_0.patch"
       }
     },
     "installer-paths": {
