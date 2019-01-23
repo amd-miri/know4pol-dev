@@ -414,3 +414,12 @@ hr.listing__separator {
 .ecl-link {
   word-wrap: break-word;
 }
+
+/* My workbench */
+div.admin.my-workbench .left {
+  display: none;
+}
+
+div.admin.my-workbench .right {
+  width: 100% !important;
+}
