@@ -21,6 +21,7 @@ function multisite_filters_filter_info_alter(&$info) {
     'description'       => t('Transform custom markup [expandable] to implement ECL Expandable'),
     'process callback'  => 'multisite_filters_filter_process',
     'cache'             => TRUE,
+    'module'            => 'collapse_text',
   );
 }
 
