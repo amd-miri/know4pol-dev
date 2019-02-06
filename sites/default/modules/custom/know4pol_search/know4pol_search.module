@@ -859,10 +859,15 @@ function know4pol_search_facetapi_sort_info() {
  * @see uasort()
  */
 function _know4pol_search_facetapi_sort_ogvocab(array &$a, array &$b) {
+  global $_know4pol_search_vid;
+
   $ta = _know4pol_search_facetapi_load_term($a);
   $tb = _know4pol_search_facetapi_load_term($b);
-  // Compare vid.
-  return ($ta->vid == $tb->vid) ? 0 : (($ta->vid > $tb->vid) ? -1 : 1);
+  $va = (int) $_know4pol_search_vid[$ta->vid]->weight;
+  $vb = (int) $_know4pol_search_vid[$tb->vid]->weight;
+
+  // Compare weight of vocabularies or vid if same weight.
+  return ($va == $vb) ? ($ta->vid == $tb->vid ? 0 : ($ta->vid > $tb->vid) ? 1 : -1) : (($va > $vb) ? 1 : -1);
 }
 
 /**
@@ -889,6 +894,8 @@ function know4pol_search_facetapi_filters() {
  *   The stored or loaded term by taxonomy_term_load().
  */
 function _know4pol_search_facetapi_load_term(array &$facetapi_term) {
+  global $_know4pol_search_vid;
+
   if (!isset($facetapi_term['term'])) {
     // Parse tid from indexed value.
     if (preg_match('/\:([0-9]+)$/', $facetapi_term['#indexed_value'], $r) != 1) {
@@ -896,6 +903,15 @@ function _know4pol_search_facetapi_load_term(array &$facetapi_term) {
     }
     // Load term and store for next usage (performance)
     $facetapi_term['term'] = taxonomy_term_load($r[1]);
+
+    // Need to store vocabulary data as well for sorting by weight.
+    if (!isset($_know4pol_search_vid)) {
+      $_know4pol_search_vid = array();
+    }
+    if (!isset($_know4pol_search_vid[$facetapi_term['term']->vid])) {
+      $_know4pol_search_vid[$facetapi_term['term']->vid] = taxonomy_vocabulary_load($facetapi_term['term']->vid);
+    }
+
   }
   return $facetapi_term['term'];
 }
