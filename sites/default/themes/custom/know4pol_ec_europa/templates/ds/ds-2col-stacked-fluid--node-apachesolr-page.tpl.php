@@ -27,7 +27,7 @@
     <<?php print $left_wrapper ?> class="group-left<?php print $left_classes; ?>">
       <?php print $left; ?>
     </<?php print $left_wrapper ?>>
-  <?php endif; ?> 
+  <?php endif; ?>
 
   <<?php print $footer_wrapper ?> class="group-footer<?php print $footer_classes; ?>">
     <?php print $footer; ?>
