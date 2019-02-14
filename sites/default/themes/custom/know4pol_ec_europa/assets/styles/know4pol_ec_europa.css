@@ -202,7 +202,8 @@ li.statistics_counter,
   max-width: 100%;
 }
 
-.media-element-container .file-image {
+.media-element-container .file-image,
+.node-topic .field-type-image {
   line-height: 1em;
   font-size: .8em;
   color: #555;
@@ -211,6 +212,22 @@ li.statistics_counter,
   background-color: #fff;
   box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.25);
   position: relative;
+}
+
+
+.node-topic .field-type-image {
+  max-width: 150px;
+}
+@media (min-width: 480px) {
+  .node-topic .field-type-image {
+    float: right;
+    margin-left: 1rem;
+  }
+}
+@media (min-width: 768px) {
+  .node-topic .field-type-image {
+    max-width: 250px;
+  }
 }
 
 .media-element-container .file-image .below-image-text {
