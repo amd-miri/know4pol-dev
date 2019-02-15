@@ -360,10 +360,11 @@ function multisite_formatters_field_formatter_settings_summary($field, $instance
   // Smarter trim.
   elseif ($display['type'] == 'smarter_trim') {
     if ($field['type'] == 'text_with_summary') {
-      $summary[] = [
+      $summary_type = array(
         'full' => t('Uses summary, no trim'),
         'trim' => t('Uses summary, perform trim'),
-      ][$settings['summary_handler']];
+      );
+      $summary[] = $summary_type[$settings['summary_handler']];
     }
     switch ($settings['trim_type']) {
       case 'first_p':
@@ -449,7 +450,8 @@ function multisite_formatters_field_formatter_prepare_view($entity_type, $entiti
                 $item['drupal_link'] = TRUE;
                 $item['label'] = $terms[$tid]->name;
                 $item['title'] = $terms[$tid]->name;
-                $item['url'] = taxonomy_term_uri($tid)['path'] . $tid;
+                $term_uri = taxonomy_term_uri($tid);
+                $item['url'] = $term_uri['path'] . $tid;
                 $item['object'] = array('term' => $terms[$tid]);
                 $item['facet_id'] = $prefix . $tid;
                 // Has a group ?

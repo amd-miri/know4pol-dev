@@ -6,6 +6,16 @@
  */
 
 /**
+ * Implements hook_field_default_field_instances_alter().
+ */
+function know4pol_core_field_default_field_instances_alter(&$fields) {
+  // Event content type.
+  if (!empty($fields['node-page-field_ne_body'])) {
+    $fields['node-page-field_ne_body']['settings']['entity_translation_sync'] = FALSE;
+  }
+}
+
+/**
  * Implements hook_views_pre_build().
  */
 function know4pol_core_views_pre_build(&$view) {
@@ -574,9 +584,11 @@ function know4pol_core_feeds_presave(FeedsSource $source, $entity, $item, $entit
           $poparray = function ($value) {
             return $value['tid'];
           };
-          $entity_tags = array_map($poparray, $entity->field_tags[LANGUAGE_NONE]);
-          if (!in_array($matched_term_in_tags->tid, $entity_tags)) {
-            $entity->field_tags[LANGUAGE_NONE][]['tid'] = $matched_term_in_tags->tid;
+          if (!empty($entity->field_tags[LANGUAGE_NONE])) {
+            $entity_tags[] = array_map($poparray, $entity->field_tags[LANGUAGE_NONE]);
+            if (!in_array($matched_term_in_tags->tid, $entity_tags)) {
+              $entity->field_tags[LANGUAGE_NONE][]['tid'] = $matched_term_in_tags->tid;
+            }
           }
         }
       }
@@ -1107,8 +1119,8 @@ function know4pol_core_webform_submission_presave(&$node, &$submission) {
     // KS field filled && OG module enabled.
     if (module_exists('og') && drupal_strlen($submission->data[1][0])) {
       // Get OG group editors and append mails.
-      foreach (_know4pol_core_get_og_group_members($submission->data[1][0], array('editor member')) as $user) {
-        $node->webform['emails'][1]['email'] .= ',' . $user->mail;
+      foreach (_know4pol_core_get_og_group_members_mails($submission->data[1][0], array('editor member')) as $user_mail) {
+        $node->webform['emails'][1]['email'] .= ',' . $user_mail;
       }
     }
   }
@@ -1125,28 +1137,33 @@ function know4pol_core_webform_submission_presave(&$node, &$submission) {
  * @return array
  *   An array of users
  */
-function _know4pol_core_get_og_group_members($gid, array $roles = array()) {
+function _know4pol_core_get_og_group_members_mails($gid, array $roles = array()) {
   // Check it's a group and load it.
   if (og_is_group('node', $gid)) {
+    // Check if the $roles list is an array.
     if (!is_array($roles)) {
       $roles = array($roles);
     }
+    // Get the group node information.
     $group = node_load($gid);
+
+    // Get the mail list of the members.
+    $mail_list = "";
     $members = og_get_group_members_properties($group, array(), 'members__' . OG_STATE_ACTIVE, 'node');
-
-    $users = array();
-    // No role condition ?
-    if (count($roles) == 0) {
-      return user_load_multiple($members);
-    }
-
     foreach ($members as $uid) {
-      // No roles asked or has any of them ?
       if (count(array_intersect(og_get_user_roles($group->entity_type, $gid, $uid), $roles)) > 0) {
-        $users[] = $uid;
+        $user = user_load($uid);
+        $mail_list[$user->mail] = $user->mail;
       }
     }
-    return count($users) ? user_load_multiple($users) : NULL;
+
+    // Add the Official KS mails, if exist.
+    if (!empty($group->field_official_ks_notif_mails[LANGUAGE_NONE])) {
+      foreach ($group->field_official_ks_notif_mails[LANGUAGE_NONE] as $ks_mail) {
+        $mail_list[$ks_mail['email']] = $ks_mail['email'];
+      }
+    }
+    return count($mail_list) ? $mail_list : NULL;
   }
 }
 

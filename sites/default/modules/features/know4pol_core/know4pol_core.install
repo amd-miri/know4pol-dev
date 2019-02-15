@@ -561,3 +561,21 @@ function know4pol_core_update_7026() {
     'metatag_mobile',
   ), FALSE);
 }
+
+/**
+ * Enable views_json module.
+ */
+function know4pol_core_update_7027() {
+  module_enable(array(
+    'views_json',
+  ), TRUE);
+}
+
+/**
+ * Remove a corrupted record in DB .
+ */
+function know4pol_core_update_7028() {
+  db_delete('og_membership')
+    ->condition('id', 1, '=')
+    ->execute();
+}

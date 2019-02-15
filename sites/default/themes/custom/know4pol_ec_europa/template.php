@@ -114,8 +114,9 @@ function _know4pol_ec_europa_file_size_human($size, $i = 0, $base = 1024) {
     $size /= $base;
   }
   // Return rounded number and unit.
+  $size_types = array("bytes", "KB", "MB", "GB", "TB", "PB", "><");
   return round($size, $i > 0 ? 2 : 0) . ' ' .
-    ["bytes", "KB", "MB", "GB", "TB", "PB", "><"][$i];
+    $size_types[$i];
 }
 
 /**
@@ -130,7 +131,8 @@ function _know4pol_ec_europa_get_solr_instance() {
   if (!isset($searcher) || !count($searcher)) {
     return NULL;
   }
-  $searcher = array_values($searcher)[0];
+  $searcher = array_values($searcher);
+  $searcher = $searcher[0];
   if (!facetapi_is_active_searcher($searcher)) {
     return NULL;
   }
