@@ -471,3 +471,14 @@ div.admin.my-workbench .right {
     width: 100%;
   }
 }
+
+/* KNOW4POL-402 - Highcharts issue with caption on ECL v0 */
+[aria-hidden=true] {
+  display: unset;
+}
+
+
+[class^="ecl-"][aria-hidden=true],
+[class*=" ecl-"][aria-hidden=true] {
+  display: none;
+}
