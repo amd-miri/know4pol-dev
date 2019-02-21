@@ -212,6 +212,39 @@ function know4pol_core_tokens($type, $tokens, array $data = array(), array $opti
  * Implements hook_form_FORM_ID_alter().
  */
 function know4pol_core_form_node_form_alter(&$form, &$form_state, $form_id) {
+  // Disable all fields if it's coming from Pubsy.
+  if ($form['#node']->type == 'publication' && $form['#node']->uid == '1') {
+    $form['title']['#disabled'] = TRUE;
+    $form['field_pub_image']['#disabled'] = TRUE;
+    $form['body']['#disabled'] = TRUE;
+    $form['field_pub_links']['#disabled'] = TRUE;
+    $form['field_pub_files_ref']['#disabled'] = TRUE;
+    $form['field_last_update']['#disabled'] = TRUE;
+    $form['field_pub_type']['#disabled'] = TRUE;
+    $form['field_related_organisations']['#disabled'] = TRUE;
+    $form['field_project_activity']['#disabled'] = TRUE;
+    $form['field_pub_dc_date_accessioned']['#disabled'] = TRUE;
+    $form['field_pub_dc_date_available']['#disabled'] = TRUE;
+    $form['field_pub_dc_date_created']['#disabled'] = TRUE;
+    $form['field_pub_dc_date_submitted']['#disabled'] = TRUE;
+    $form['field_pub_dc_date_issued']['#disabled'] = TRUE;
+    $form['field_pub_dc_rel_ispartofseries']['#disabled'] = TRUE;
+    $form['field_pub_pubsy_identities']['#disabled'] = TRUE;
+    $form['field_pub_dc_identifier_doi']['#disabled'] = TRUE;
+    $form['field_pub_dc_identifier_isbn']['#disabled'] = TRUE;
+    $form['field_pub_dc_identifier_issn']['#disabled'] = TRUE;
+    $form['field_pub_dc_identifier_eur']['#disabled'] = TRUE;
+    $form['field_pub_dc_identifier_opoce']['#disabled'] = TRUE;
+    $form['field_pub_dc_identifier_uri']['#disabled'] = TRUE;
+    $form['field_pub_dc_publisher']['#disabled'] = TRUE;
+    $form['field_pub_dc_contributor_authors']['#disabled'] = TRUE;
+    $form['field_pub_dc_descrip_abstract']['#disabled'] = TRUE;
+    $form['field_pub_dc_descrip_sponsorship']['#disabled'] = TRUE;
+    $form['field_pub_dc_format_medium']['#disabled'] = TRUE;
+    $form['field_pub_dc_language']['#disabled'] = TRUE;
+    $form['field_pub_dc_type']['#disabled'] = TRUE;
+  }
+
   $form['actions']['unpublish'] = array(
     '#type' => 'submit',
     '#value' => 'Unpublish',

@@ -477,7 +477,6 @@ div.admin.my-workbench .right {
   display: unset;
 }
 
-
 [class^="ecl-"][aria-hidden=true],
 [class*=" ecl-"][aria-hidden=true] {
   display: none;
