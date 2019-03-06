@@ -472,17 +472,8 @@ div.admin.my-workbench .right {
   }
 }
 
-/* KNOW4POL-402 - Highcharts issue with caption on ECL v0 */
-[aria-hidden=true] {
-  display: unset;
-}
-
-[class^="ecl-"][aria-hidden=true],
-[class*=" ecl-"][aria-hidden=true] {
-  display: none;
-}
-
-/* KNOW4POL-414 - Broken InpageNav by KNOW4POL-402 */
-[class^="ecl-navigation-inpage"][aria-hidden=true] {
+/* KNOW4POL-402 KNOW4POL-414 - Highcharts issue with caption on ECL v0 */
+.highcharts-title[aria-hidden=true],
+.highcharts-label [aria-hidden=true] {
   display: unset;
 }
