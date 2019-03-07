@@ -1,4 +1,5 @@
-* Related KS topic view */ .view-related-ks-topic-content .views-row {
+/* Related KS topic view */
+.view-related-ks-topic-content .views-row {
   margin-top: 1.66rem;
 }
 .view-related-ks-topic-content .views-row:last-child hr {
