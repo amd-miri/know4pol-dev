@@ -1,5 +1,4 @@
-/* Related KS topic view */
-.view-related-ks-topic-content .views-row {
+* Related KS topic view */ .view-related-ks-topic-content .views-row {
   margin-top: 1.66rem;
 }
 .view-related-ks-topic-content .views-row:last-child hr {
@@ -476,4 +475,9 @@ div.admin.my-workbench .right {
 .highcharts-title[aria-hidden=true],
 .highcharts-label [aria-hidden=true] {
   display: unset;
+}
+
+/* KNOW4POL-400 */
+.node-visualisation .field-name-field-vis-caption {
+  font-weight: bold;
 }
