@@ -18,6 +18,7 @@ function know4pol_ec_europa_atomium_theme_page_header() {
         'meta' => NULL,
         'breadcrumb' => NULL,
         'full_banner' => TRUE,
+        'background_image' => NULL,
       ),
       'template' => 'page-header',
     ),
@@ -38,6 +39,35 @@ function know4pol_ec_europa_preprocess_page_header(&$variables, $hook) {
       '#theme' => 'meta',
       '#type' => node_type_get_name($node),
     );
+
+    // KNOW4POL-397 - If background image field exists.
+    if (isset($node->field_banner_image)) {
+      // There is an image.
+      if (isset($node->field_banner_image[LANGUAGE_NONE][0]['filename'])) {
+        $variables['background_image'] = file_create_url($node->field_banner_image[LANGUAGE_NONE][0]['uri']);
+      }
+      // Only content type having the field (override) can be affected.
+      elseif (
+        $node->type != 'knowledge_centre' &&
+        // Content views has only one KS attached.
+        isset($node->og_group_ref[LANGUAGE_NONE]) &&
+        count($node->og_group_ref[LANGUAGE_NONE]) == 1
+        ) {
+        $og_gref = &$node->og_group_ref[LANGUAGE_NONE][0];
+        if (!isset($og_gref['object']['node'])) {
+          $og_gref['object'] = array('node' => node_load($og_gref['target_id']));
+        }
+        // Has option to inherit background image on content set to on.
+        if (
+            isset($og_gref['object']['node']->field_banner_img_subpages[LANGUAGE_NONE][0]['value']) &&
+            $og_gref['object']['node']->field_banner_img_subpages[LANGUAGE_NONE][0]['value'] == 1 &&
+            // Ks has an background image.
+            isset($og_gref['object']['node']->field_banner_image[LANGUAGE_NONE][0]['uri'])
+             ) {
+          $variables['background_image'] = file_create_url($og_gref['object']['node']->field_banner_image[LANGUAGE_NONE][0]['uri']);
+        }
+      }
+    }
 
     switch ($node->type) {
       case 'knowledge_centre':

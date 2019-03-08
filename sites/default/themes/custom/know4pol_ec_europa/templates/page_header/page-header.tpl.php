@@ -5,7 +5,12 @@
  * Contains template file.
  */
 ?>
-<div class="ecl-page-header">
+<div class="ecl-page-header
+  <?php if ($background_image): ?> page-header--image<?php
+  endif; ?>"
+  <?php if ($background_image): ?> style="background-image: url('<?php print ($background_image); ?>');"<?php
+  endif; ?>
+    >
   <?php print render($breadcrumb); ?>
   <div class="ecl-page-header__body">
       <div class="ecl-container">
