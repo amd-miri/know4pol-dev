@@ -477,3 +477,8 @@ div.admin.my-workbench .right {
 .highcharts-label [aria-hidden=true] {
   display: unset;
 }
+
+/* KNOW4POL-400 */
+.node-visualisation .field-name-field-vis-caption {
+  font-weight: bold;
+}
