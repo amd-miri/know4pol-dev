@@ -21,7 +21,7 @@ function know4pol_ec_europa_preprocess_node(&$variables, $hook) {
       break;
 
     case 'visualisation':
-      if ($variables['view_mode'] == 'node_embed' && !isset($variables['field_vis_link_embed']['und'][0])) {
+      if ($variables['view_mode'] == 'node_embed' && !isset($variables['field_vis_link_embed'][LANGUAGE_NONE][0])) {
         /* KNOW4POL-400 no link if flag checked */
         unset($variables['content']['node_link']);
         $variables['content']['title'][0]['#markup'] = strip_tags($variables['content']['title']['#items'][0]['value'], '<h3>');

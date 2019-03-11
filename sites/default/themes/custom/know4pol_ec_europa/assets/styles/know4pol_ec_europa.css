@@ -476,10 +476,11 @@ div.admin.my-workbench .right {
 .highcharts-title[aria-hidden=true],
 .highcharts-label [aria-hidden=true] {
   display: unset;
+}
 
 /* KNOW4POL-397 */
 .page-header--image {
-  background: #004494 url(data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP//yH5BAEAAAAALAAAAAABAAEAAAIBRAA7) 50%/cover no-repeat
+  background: #004494 url(data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP//yH5BAEAAAAALAAAAAABAAEAAAIBRAA7) 50%/cover no-repeat;
 }
 
 /* KNOW4POL-400 */
