@@ -1,0 +1,7 @@
+name = Brexit Scheduler
+description = Allow automated publication of draft for Brexit excercise.
+core = 7.x
+package = JRC
+php = 5.2.4
+multisite_version = 2.5
+configure = admin/config/content/brexit
