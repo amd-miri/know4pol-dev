@@ -1,0 +1,40 @@
+<?php
+
+/**
+ * @file
+ * Installation file for Brexit module.
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function brexit_schema() {
+  return array(
+    'brexit' => array(
+      'description' => 'The main table to hold the brexit data.',
+      'fields' => array(
+        'nid' => array(
+          'description' => 'The foreign key to node.nid',
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+        ),
+        'vid' => array(
+          'description' => 'The foreign key to node.vid',
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+        ),
+      ),
+      'primary key' => array('nid'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function brexit_uninstall() {
+  variable_del('brexit_active');
+  variable_del('brexit_publication_datetime');
+}
