@@ -51,18 +51,10 @@ function brexit_form_alter(&$form, $form_state) {
   // User can use Brexit update.
   if (!empty($form['#node_edit_form']) && user_access('schedule publishing brexit update')) {
     $node = $form['#node'];
-    $default = 0;
-    if (isset($node->nid) && $node->nid > 0) {
-      // Load the values from the database if we are viewing an existing node.
-      $query = db_select('brexit', 's');
-      $query->fields('s', array('nid'));
-      $query->condition('s.nid', $node->nid, '=');
-      $default = $query->execute()->rowCount();
-    }
     $form['options']['brexit'] = array(
       '#type' => 'checkbox',
       '#title' => t('Enable Brexit scheduled publishing (Leave this revision in draft)'),
-      '#default_value' => $default,
+      '#default_value' => (isset($node->brexit) && $node->brexit) ? 1 : 0,
       '#weight' => 3,
     );
   }
