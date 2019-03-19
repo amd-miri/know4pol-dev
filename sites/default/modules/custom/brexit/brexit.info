@@ -1,5 +1,5 @@
 name = Brexit Scheduler
-description = Allow automated publication of draft for Brexit excercise.
+description = Allow automated publication of draft for Brexit exercise.
 core = 7.x
 package = JRC
 php = 5.2.4

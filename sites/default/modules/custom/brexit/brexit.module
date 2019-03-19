@@ -45,7 +45,7 @@ function brexit_menu() {
 }
 
 /**
- * Implements hook_form_node_type_form_alter().
+ * Implements hook_form_alter().
  */
 function brexit_form_alter(&$form, $form_state) {
   // User can use Brexit update.
@@ -85,8 +85,9 @@ function brexit_node_load($nodes, $types) {
  */
 function brexit_node_view($node, $view_mode, $langcode) {
   // If the node is viewed by users who can use brexit update, show a notice.
-  if ($view_mode == 'full' && !empty($node->brexit) && node_is_page($node) && arg(2) != 'edit' && user_access('schedule publishing brexit update')) {
-    drupal_set_message(t('This content has revision bor Brexit Sheduled'), 'status');
+  $args = explode('/', drupal_get_path_alias());
+  if ($view_mode == 'full' && !empty($node->brexit) && node_is_page($node) && $args(2) != 'edit' && user_access('schedule publishing brexit update')) {
+    drupal_set_message(t('This content has revision for Brexit Sheduled'), 'status');
   }
 }
 
@@ -95,7 +96,7 @@ function brexit_node_view($node, $view_mode, $langcode) {
  */
 function brexit_node_presave($node) {
   // Set for Brexit update.
-  if ($node->brexit) {
+  if (isset($node->brexit)) {
     drupal_set_message(t('Brexit sheduled publication set'), 'status');
   }
 }
@@ -116,8 +117,9 @@ function brexit_node_insert($node) {
  * Implements hook_node_update().
  */
 function brexit_node_update($node) {
-  // Update DB with checkbox value, if not draft condiser this is not checked.
-  if ($node->brexit) {
+  // Update DB with checkbox value.
+  // If not draft, consider this is not checked.
+  if (isset($node->brexit)) {
     if ($node->workbench_moderation_state_new != 'published') {
       db_merge('brexit')->key(array('nid' => $node->nid))->fields(array(
         'vid' => $node->vid,
