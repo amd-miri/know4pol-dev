@@ -29,7 +29,7 @@ function brexit_views_data() {
       'handler' => 'views_handler_filter_boolean_operator',
       'label' => t('Has revision for Brexit'),
       'type' => 'yes-no',
-      // Cheating a bit with the filter, since vid <> 0 will achieve the boolean indicator.
+      // Cheating a bit with the filter, <> 0 will achieve this.
       'use equal' => FALSE,
       // Since left join.
       'accept null' => TRUE,

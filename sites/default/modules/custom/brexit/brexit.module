@@ -88,7 +88,7 @@ function brexit_node_view($node, $view_mode, $langcode) {
  */
 function brexit_node_presave($node) {
   // Set for Brexit update.
-  if (isset($node->brexit)) {
+  if (isset($node->brexit) && $node->brexit) {
     drupal_set_message(t('Brexit sheduled publication set'), 'status');
   }
 }
@@ -97,7 +97,7 @@ function brexit_node_presave($node) {
  * Implements hook_node_insert().
  */
 function brexit_node_insert($node) {
-  if ($node->brexit) {
+  if (isset($node->brexit) && $node->brexit) {
     db_insert('brexit')->fields(array(
       'nid' => $node->nid,
       'vid' => $node->vid,
@@ -110,8 +110,8 @@ function brexit_node_insert($node) {
  */
 function brexit_node_update($node) {
   // Update DB with checkbox value.
-  // If not draft, consider this is not checked.
-  if (isset($node->brexit)) {
+  if (isset($node->brexit) && $node->brexit) {
+    // If not draft, consider this is not checked.
     if ($node->workbench_moderation_state_new != 'published') {
       db_merge('brexit')->key(array('nid' => $node->nid))->fields(array(
         'vid' => $node->vid,
