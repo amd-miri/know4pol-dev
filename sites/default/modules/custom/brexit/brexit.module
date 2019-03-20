@@ -48,15 +48,37 @@ function brexit_menu() {
  * Implements hook_form_alter().
  */
 function brexit_form_alter(&$form, $form_state) {
-  // User can use Brexit update.
-  if (!empty($form['#node_edit_form']) && user_access('schedule publishing brexit update')) {
+  // On edit node form.
+  if (!empty($form['#node_edit_form'])) {
     $node = $form['#node'];
-    $form['options']['brexit'] = array(
-      '#type' => 'checkbox',
-      '#title' => t('Enable Brexit scheduled publishing (Leave this revision in draft)'),
-      '#default_value' => (isset($node->brexit) && $node->brexit) ? 1 : 0,
-      '#weight' => 3,
-    );
+
+    // Get status and display message.
+    if ($brexit = (isset($node->brexit) && $node->brexit)) {
+      $locked = t('This content is locked since there is a revision scheduled for Brexit update.');
+      drupal_set_message($locked, 'status');
+    }
+
+    // Allowed to manage the scheduling.
+    if (user_access('schedule publishing brexit update')) {
+      $form['options']['brexit'] = array(
+        '#type' => 'checkbox',
+        '#title' => t('Enable Brexit scheduled publishing (Leave this revision in draft)'),
+        '#default_value' => $brexit ? 1 : 0,
+        '#weight' => 3,
+      );
+    }
+    // If not allwowed and revision is sheduled, lock the content.
+    elseif ($brexit) {
+      // Lock all fileds and buttons.
+      foreach ([$form, $form['actions']] as $item) {
+        foreach ($item as $key => $value) {
+          if (substr($key, 0, 1) != '#' && is_array($form[$key])) {
+            $form[$key]['#disabled'] = TRUE;
+            $form[$key]['#attributes']['title'] = $locked;
+          }
+        }
+      }
+    }
   }
 }
 
@@ -76,9 +98,7 @@ function brexit_node_load($nodes, $types) {
  * Implements hook_node_view().
  */
 function brexit_node_view($node, $view_mode, $langcode) {
-  // If the node is viewed by users who can use brexit update, show a notice.
-  $args = explode('/', drupal_get_path_alias());
-  if ($view_mode == 'full' && !empty($node->brexit) && node_is_page($node) && $args(2) != 'edit' && user_access('schedule publishing brexit update')) {
+  if ($view_mode == 'full' && isset($node->brexit) && $node->brexit && node_is_page($node) && user_access('schedule publishing brexit update')) {
     drupal_set_message(t('This content has revision for Brexit Sheduled'), 'status');
   }
 }
