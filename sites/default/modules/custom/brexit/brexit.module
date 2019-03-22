@@ -69,10 +69,10 @@ function brexit_form_alter(&$form, $form_state) {
     }
     // If not allwowed and revision is sheduled, lock the content.
     elseif ($brexit) {
-      // Lock all fileds and buttons.
+      // Lock all fields and buttons.
       foreach ([$form, $form['actions']] as $item) {
         foreach ($item as $key => $value) {
-          if (substr($key, 0, 1) != '#' && is_array($form[$key])) {
+          if (drupal_substr($key, 0, 1) != '#' && is_array($form[$key])) {
             $form[$key]['#disabled'] = TRUE;
             $form[$key]['#attributes']['title'] = $locked;
           }
