@@ -52,11 +52,11 @@
           <div class="field-item <?php print $delta % 2 ? 'odd' : 'even'; ?>"<?php print $item_attributes[$delta]; ?>>
             <?php print render($item); ?>
             <span class="below-image-text">
-              <?php if(isset($item['#item']['field_caption'][en][0]['safe_value'])): ?>
-              <div class="caption"><?php print $item['#item']['field_caption'][en][0]['safe_value']; ?></div>
+              <?php if(isset($item['#item']['field_caption']['en'][0]['safe_value'])): ?>
+              <div class="caption"><?php print $item['#item']['field_caption']['en'][0]['safe_value']; ?></div>
               <?php endif; ?>
-              <?php if(isset($item['#item']['field_newsroom_copyrights'][en][0]['safe_value'])): ?>
-               <div class="copyright">&copy;<?php print $item['#item']['field_newsroom_copyrights'][en][0]['safe_value']; ?></div>
+              <?php if(isset($item['#item']['field_newsroom_copyrights']['en'][0]['safe_value'])): ?>
+               <div class="copyright">&copy;<?php print $item['#item']['field_newsroom_copyrights']['en'][0]['safe_value']; ?></div>
               <?php endif; ?>
             </span>
           </div>

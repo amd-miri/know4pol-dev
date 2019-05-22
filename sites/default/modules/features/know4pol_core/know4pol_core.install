@@ -588,3 +588,34 @@ function know4pol_core_update_7029() {
     'brexit',
   ), TRUE);
 }
+
+/**
+ * Enable nexteuropa_scheduler_message module.
+ */
+function know4pol_core_update_7030() {
+  module_disable(array(
+    'nexteuropa_scheduler_message',
+  ), FALSE);
+  drupal_uninstall_modules(array(
+    'nexteuropa_scheduler_message',
+  ), FALSE);
+}
+
+/**
+ * Migrate data to an existing common field.
+ */
+function know4pol_core_update_7031() {
+  db_delete('field_data_field_geographic_coverage')
+    ->condition('bundle', 'publication')
+    ->execute();
+
+  $query = db_select('field_data_field_pub_related_countries', 'fc')
+    ->fields('fc', array('entity_id', 'field_pub_related_countries_tid'));
+  $result = $query->execute()->fetchAll();
+
+  foreach ($result as $row) {
+    $node = node_load($row->entity_id);
+    $node->field_geographic_coverage[LANGUAGE_NONE][]['tid'] = $row->field_pub_related_countries_tid;
+    node_save($node);
+  }
+}

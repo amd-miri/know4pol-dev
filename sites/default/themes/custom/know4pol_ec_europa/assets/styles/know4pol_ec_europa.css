@@ -109,11 +109,6 @@ ul li.leaf {
   margin-top: 10px;
 }
 
-.ecl-message--warning,
-.ecl-message--error {
-  display: none;
-}
-
 .region-utility {
   display: flex;
 }

@@ -123,15 +123,44 @@ function know4pol_core_og_permission() {
       'title' => t('Unpublish KS content'),
       'description' => t('Unpublish KS content'),
     ),
+    /* Define a permission to view moderation history to allow users to see content they can moderate */
+    'view moderation history' => array(
+      'title' => t('View moderation history'),
+    ),
   );
 }
 
 /**
  * Implements hook_workbench_moderation_access_alter().
+ *
+ * Grants access to drafts and revisions to users with the 'view moderation
+ * history' group permission.
+ *
+ * Note that the current user only needs the permission in one of the groups
+ * this node belongs to in order to see drafts and moderation history.
+ *
+ * @see _workbench_moderation_access_current_draft()
  */
 function know4pol_core_workbench_moderation_access_alter(&$access, $op, $node) {
-  if ($op == 'view revisions') {
-    $access = user_access('view revisions');
+  if ($access || !($op == 'view history' || $op == 'view revisions')) {
+    return;
+  }
+
+  // Get groups for this node.
+  $og_groups = og_get_entity_groups('node', $node, array(OG_STATE_ACTIVE));
+
+  // Bail if this node isn't in a group.
+  if (!isset($og_groups['node'])) {
+    return;
+  }
+
+  foreach ($og_groups['node'] as $group_id) {
+    // Check if the user can view moderation history in this group. If that is
+    // correct, access is granted.
+    if ($access = og_user_access_entity('view moderation history', 'node', $group_id)) {
+      // When access has been granted, no need to check further.
+      return;
+    }
   }
 }
 
@@ -367,6 +396,7 @@ function _know4pol_core_get_accessible_vocabs($bundle, array $gids) {
  * Implements hook_feeds_processor_targets_alter().
  */
 function know4pol_core_feeds_processor_targets_alter(&$targets, $entity_type, $bundle_name) {
+  $targets['field_tags']['callback'] = '_konw4pol_core_taxonomy_feeds_set_target';
   $targets['field_related_organisations:acronym']['callback'] = '_know4pol_core_post_process_callback';
   $targets['og_group_ref:label']['callback'] = '_know4pol_core_post_process_callback';
   $targets['og_group_ref:etid']['callback'] = '_know4pol_core_post_process_callback';
@@ -380,6 +410,135 @@ function know4pol_core_feeds_processor_targets_alter(&$targets, $entity_type, $b
       $targets['og_vocabulary:' . $vocab->machine_name]['summary_callbacks'] = array('taxonomy_feeds_summary_callback');
       $targets['og_vocabulary:' . $vocab->machine_name]['form_callbacks'] = array('taxonomy_feeds_form_callback');
     }
+  }
+}
+
+/**
+ * Callback for mapping taxonomy terms.
+ */
+function _konw4pol_core_taxonomy_feeds_set_target(FeedsSource $source, $entity, $target, array $terms, array $mapping) {
+  $language = $mapping['language'];
+
+  // Add in default values.
+  $mapping += array(
+    'term_search' => FEEDS_TAXONOMY_SEARCH_TERM_NAME,
+    'autocreate' => FALSE,
+  );
+
+  $info = field_info_field($target);
+
+  $cache = &drupal_static(__FUNCTION__);
+  if (!isset($cache['allowed_values'][$target])) {
+    $cache['allowed_values'][$target] = taxonomy_allowed_values($info);
+  }
+
+  if (!isset($cache['allowed_vocabularies'][$target])) {
+    foreach ($info['settings']['allowed_values'] as $tree) {
+      if ($vocabulary = taxonomy_vocabulary_machine_name_load($tree['vocabulary'])) {
+        $cache['allowed_vocabularies'][$target][$vocabulary->vid] = $vocabulary->machine_name;
+      }
+    }
+  }
+
+  // Some kind of configuration issue. Perhaps the vocabulary was deleted.
+  // Nothing we can do about it.
+  if (empty($cache['allowed_vocabularies'][$target])) {
+    return;
+  }
+
+  $query = new EntityFieldQuery();
+  $query->entityCondition('entity_type', 'taxonomy_term')
+    ->entityCondition('bundle', $cache['allowed_vocabularies'][$target])
+    ->range(0, 1);
+
+  $field = isset($entity->$target) ? $entity->$target : array($language => array());
+
+  if (!isset($field[$language])) {
+    $field[$language] = array();
+  }
+
+  // Allow for multiple mappings to the same target.
+  $delta = count($field[$language]);
+
+  // Iterate over all values.
+  foreach ($terms as $term) {
+
+    if ($info['cardinality'] == $delta) {
+      break;
+    }
+
+    $tid = FALSE;
+
+    // FeedsTermElement already is a term.
+    if ($term instanceof FeedsTermElement) {
+      $tid = $term->tid;
+    }
+    else {
+      switch ($mapping['term_search']) {
+
+        // Lookup by name.
+        case FEEDS_TAXONOMY_SEARCH_TERM_NAME:
+          $term = trim($term);
+          $name_query = clone $query;
+          if (drupal_strlen($term) && $tids = $name_query->propertyCondition('name', $term)->execute()) {
+
+            // Find the first allowed term.
+            foreach ($tids['taxonomy_term'] as $possible_term) {
+              if (isset($cache['allowed_values'][$target][$possible_term->tid])) {
+                $tid = $possible_term->tid;
+                break;
+              }
+            }
+          }
+          elseif ($mapping['autocreate'] && drupal_strlen($term)) {
+            $term = (object) array(
+              'name' => drupal_substr($term, 0, 255),
+              'vid' => key($cache['allowed_vocabularies'][$target]),
+              'vocabulary_machine_name' => reset($cache['allowed_vocabularies'][$target]),
+            );
+            // Set language if the taxonomy is multilingual.
+            if ($language !== LANGUAGE_NONE) {
+              $info = entity_get_info('taxonomy_term');
+              if (!empty($info['entity keys']['language'])) {
+                $term->{$info['entity keys']['language']} = $language;
+              }
+            }
+            taxonomy_term_save($term);
+            $tid = $term->tid;
+            // Add to the list of allowed values.
+            $cache['allowed_values'][$target][$tid] = $term->name;
+          }
+          break;
+
+        // Lookup by tid.
+        case FEEDS_TAXONOMY_SEARCH_TERM_ID:
+          if (is_numeric($term)) {
+            $tid = (int) $term;
+          }
+          break;
+
+        // Lookup by GUID.
+        case FEEDS_TAXONOMY_SEARCH_TERM_GUID:
+          $tid = taxonomy_feeds_term_lookup_term_by_guid($term);
+          break;
+      }
+    }
+
+    if ($tid && isset($cache['allowed_values'][$target][$tid])) {
+      $field[$language][] = array('tid' => $tid);
+      $delta++;
+    }
+  }
+
+  // Then we get the status before processing the import.
+  $entity_unchanged = entity_load_unchanged($entity->feeds_item->entity_type, $entity->nid);
+  // The customisation of the callback is only for the field "og_group_ref".
+  $existing_field_tags = $entity_unchanged->field_tags;
+  if (!empty($existing_field_tags) && $target == 'field_tags') {
+    $entity->field_tags = drupal_array_merge_deep($existing_field_tags, $field);
+  }
+  else {
+    $entity->$target = $field;
   }
 }
 
@@ -820,6 +979,13 @@ function know4pol_core_og_ui_get_group_admin($group_type, $gid) {
       'access callback' => 'og_ui_user_access_group',
       'access arguments' => array('add user', 1, 2),
     );
+    $items['know4pol_pubsy'] = array(
+      'title' => t('Assign/Unassign Pubsy publications'),
+      'description' => t('Assign/Unassign Pubsy publications'),
+      'href' => 'admin/pubsy',
+      'access callback' => 'og_ui_user_access_group',
+      'access arguments' => array('add user', 1, 2),
+    );
   }
   return $items;
 }
@@ -843,6 +1009,11 @@ function know4pol_core_menu_alter(&$items) {
   );
   $items['group/node/%/admin/sharing-content']['access callback'] = '_know4pol_core_get_og_access';
   $items['group/node/%/admin/sharing-content']['access arguments'] = array('view manage KS content section',
+    'node',
+    2,
+  );
+  $items['group/node/%/admin/pubsy']['access callback'] = '_know4pol_core_get_og_access';
+  $items['group/node/%/admin/pubsy']['access arguments'] = array('view manage KS content section',
     'node',
     2,
   );
@@ -1247,4 +1418,89 @@ function know4pol_core_entity_property_info_alter(&$info) {
 function know4pol_core_multisite_drupal_toolbox_filter_options_alter(&$filter_options) {
   // Enable the <iframe> tag, strongly not advised of course.
   $filter_options['valid_elements']['iframe'] = array('*' => TRUE);
+}
+
+/**
+ * Implements hook_views_api().
+ */
+function know4pol_core_views_api() {
+  return array(
+    'api' => 3,
+  );
+}
+
+/**
+ * Implements hook_views_data().
+ */
+function know4pol_core_views_data() {
+  $data = array();
+
+  // Create a custom views filter.
+  $data['node']['pubsy_only'] = array(
+    'group' => t('Custom'),
+    'real field' => 'field_pub_dc_rel_ispartofseries',
+    'title' => t('Pubsy only'),
+    'help' => t('Show only the Pubsy publications.'),
+    'filter' => array(
+      'handler' => 'Know4polCoreHandlerFilterPubsyOnly',
+    ),
+  );
+
+  return $data;
+}
+
+/**
+ * Implements hook_facet_items_alter().
+ */
+function know4pol_core_facet_items_alter(&$build, &$settings) {
+  if ($settings->facet == "dm_field_pub_dc_date_issued") {
+    // First make sure to have an empty array.
+    $all_years_array = array();
+    foreach ($build as $key => $item) {
+      // Then split the search values into two "year" part.
+      // Example : [2004-01-01T00:00:00Z TO 2005-01-01T00:00:00Z]
+      // For the first year filter, we need to get the first and second year.
+      if (empty($all_years_array)) {
+        preg_match('/\[(\d{4})/i', $key, $matches);
+        $all_years_array[] = $matches[1];
+      }
+      // Then we only get the second years.
+      if (!empty($all_years_array)) {
+        preg_match('/TO (\d{4})/i', $key, $matches);
+        $all_years_array[] = $matches[1];
+      }
+    }
+
+    // And we reconstruct the build variable.
+    foreach ($all_years_array as $year) {
+      $query = db_select('apachesolr_index_entities_node', 'a');
+      $query->fields('a');
+      $query->leftJoin('field_data_field_pub_dc_date_issued', 'f', 'a.entity_id = f.entity_id');
+      $query->condition('f.field_pub_dc_date_issued_value', $year . '-01-01 00:00:00', '=');
+      $results = $query->execute();
+      $publications_count = $results->rowCount();
+      $override_string = "[" . $year . "-01-01T00:00:00Z TO " . $year . "-12-31T00:00:00Z]";
+      $current_page_query = drupal_get_query_parameters();
+      $new_build[$override_string] = array(
+        '#markup' => $year,
+        '#path' => 'search/site/',
+        '#html' => FALSE,
+        '#indexed_value' => $override_string,
+        '#count' => $publications_count,
+        '#active' => 0,
+        '#item_parents' => array(),
+        '#item_children' => array(),
+        '#query' => $current_page_query,
+      );
+      $new_build[$override_string]['#query']['f'][] = 'dm_field_pub_dc_date_issued:' . $override_string;
+    }
+    // Set the filter element as active if it's the only one.
+    if (count($new_build) == 1) {
+      foreach ($new_build as $key => $value) {
+        $new_build[$key]['#active'] = 1;
+        $new_build[$key]['#query'] = array();
+      }
+    }
+    $build = $new_build;
+  }
 }

@@ -816,7 +816,7 @@ function _know4pol_search_facet_filter_field_ks_related_topics(array $build) {
   $params = drupal_get_query_parameters();
   foreach ($params['f'] as $param) {
     $field = explode(':', $param);
-    if ($field[0] == sm_og_group_ref) {
+    if ($field[0] == 'sm_og_group_ref') {
       $gid = $field[2];
     }
   }

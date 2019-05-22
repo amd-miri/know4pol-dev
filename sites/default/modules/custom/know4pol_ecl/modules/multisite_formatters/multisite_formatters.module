@@ -628,7 +628,7 @@ function multisite_formatters_field_formatter_view($entity_type, $entity, $field
       $output = _text_sanitize($instance, $langcode, $item, 'value');
       $process_trim = TRUE;
       // Only check summary settings if present.
-      if (drupal_strlen($item[summary])) {
+      if (drupal_strlen($item['summary'])) {
         switch (($field['type'] == 'text_with_summary') ? $settings['summary_handler'] : '') {
           case 'full':
             $process_trim = FALSE;
@@ -751,27 +751,30 @@ function _multisite_formatters_trim_html_text($html, $max_len, $type, $suffix) {
     $current_pos = $word[1] + drupal_strlen($word[0]);
     // Catch up with the tags length to this word.
     // Go trought tags with array boundaries as safeguard.
-    while ($tags[$index_tag][1] - $offset_tags <= $current_pos && $index_tag++ < count($tags)) {
-      $tag = $tags[$index_tag - 1];
-      // Minus one as indxed increased in condition. Needed since the continues.
-      $offset_tags += drupal_strlen($tag[0]);
-      // Self-ending tag, eg BR or IMG ?
-      if (preg_match('/<(img|hr|br)|\s?\/\s?>$/i', $tag[0])) {
-        continue;
+    if (!empty($tags[$index_tag])) {
+      while ($tags[$index_tag][1] - $offset_tags <= $current_pos && $index_tag++ < count($tags)) {
+        $tag = $tags[$index_tag - 1];
+        // Minus one as indxed increased in condition.
+        // Needed since the continues.
+        $offset_tags += drupal_strlen($tag[0]);
+        // Self-ending tag, eg BR or IMG ?
+        if (preg_match('/<(img|hr|br)|\s?\/\s?>$/i', $tag[0])) {
+          continue;
+        }
+        // Starting tag ?
+        if (preg_match('/<([[:alpha:]]+)/i', $tag[0], $match)) {
+          $tag_stack[] = $match[1];
+          continue;
+        }
+        // Ending tag ?
+        if (preg_match('/<\/([[:alpha:]]+)/i', $tag[0])) {
+          // In theory no need to check the tag matches
+          // the stack if the HTML structure is valid.
+          array_pop($tag_stack);
+          continue;
+        }
+        // Weird tag, do nothing.
       }
-      // Starting tag ?
-      if (preg_match('/<([[:alpha:]]+)/i', $tag[0], $match)) {
-        $tag_stack[] = $match[1];
-        continue;
-      }
-      // Ending tag ?
-      if (preg_match('/<\/([[:alpha:]]+)/i', $tag[0])) {
-        // In theory no need to check the tag matches
-        // the stack if the HTML structure is valid.
-        array_pop($tag_stack);
-        continue;
-      }
-      // Weird tag, do nothing.
     }
     $last_word = $index;
     // Max lenght reached ?
