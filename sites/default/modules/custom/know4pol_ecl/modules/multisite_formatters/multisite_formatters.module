@@ -451,7 +451,6 @@ function multisite_formatters_field_formatter_prepare_view($entity_type, $entiti
                 $item['label'] = $terms[$tid]->name;
                 $item['title'] = $terms[$tid]->name;
                 $item['url'] = taxonomy_term_uri($terms[$tid])["path"];
-                print_r($item['url']);
                 $item['object'] = array('term' => $terms[$tid]);
                 $item['facet_id'] = $prefix . $tid;
                 // Has a group ?
@@ -815,7 +814,7 @@ function _multisite_formatters_get_facet($field_name) {
     $_multisite_formatters_field_facet = array();
   }
   // If the facet name is known already.
-  if ($_multisite_formatters_field_facet[$field_name]) {
+  if (array_key_exists($field_name, $_multisite_formatters_field_facet)) {
     return $_multisite_formatters_field_facet[$field_name];
   }
 
