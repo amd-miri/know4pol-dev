@@ -450,8 +450,8 @@ function multisite_formatters_field_formatter_prepare_view($entity_type, $entiti
                 $item['drupal_link'] = TRUE;
                 $item['label'] = $terms[$tid]->name;
                 $item['title'] = $terms[$tid]->name;
-                $term_uri = taxonomy_term_uri($tid);
-                $item['url'] = $term_uri['path'] . $tid;
+                $item['url'] = taxonomy_term_uri($terms[$tid])["path"];
+                print_r($item['url']);
                 $item['object'] = array('term' => $terms[$tid]);
                 $item['facet_id'] = $prefix . $tid;
                 // Has a group ?
