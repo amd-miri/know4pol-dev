@@ -1504,3 +1504,60 @@ function know4pol_core_facet_items_alter(&$build, &$settings) {
     $build = $new_build;
   }
 }
+
+// The default time that will be used, until Admin sets a different value.
+define('KNOW4POL_CORE_LASTUPDATE_DATE_FORMAT', 'Y-m-d H:i:s');
+
+/**
+ * Implements hook_form_alter().
+ */
+function know4pol_core_form_alter(&$form, $form_state) {
+  // On edit node form.
+  if (!empty($form['#node_edit_form'])
+    // The last update field exists.
+    && isset($form['field_last_update'])
+    // It's not a new node.
+    && $form['nid']['#value'] != NULL) {
+
+    $form['options']['workbench_moderation_state_new']['#weight'] = 2;
+    $form['options']['no_last_update'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('No automatic change of the last update date'),
+      '#description' => t('Unless checked, the last update will be set to @datenow', array(
+        '@datenow' => format_date(time(), 'custom', KNOW4POL_CORE_LASTUPDATE_DATE_FORMAT),
+      )),
+      '#default_value' => FALSE,
+      '#weight' => 1,
+    );
+
+    if (module_exists("workbench_moderation")) {
+      $form['options']['no_last_update']['#states'] = array(
+        'visible' => array(
+          'select[name="workbench_moderation_state_new"]' => array('value' => 'published'),
+        ),
+      );
+    }
+  }
+}
+
+/**
+ * Implements hook_node_presave().
+ */
+function know4pol_core_node_presave($node) {
+  // New node or does not list the field ?
+  if ($node->is_new || !isset($node->field_last_update)) {
+    return;
+  }
+  // If using workbench_moderation, only process if getting published.
+  if (module_exists("workbench_moderation") && $node->workbench_moderation_state_new != "published") {
+    return;
+  }
+  // Is the checkbox there and cheked ?
+  if (!isset($node->no_last_update) || $node->no_last_update) {
+    return;
+  }
+
+  // Update the date.
+  $node->field_last_update[LANGUAGE_NONE][0]['value'] = format_date(time(), 'custom', KNOW4POL_CORE_LASTUPDATE_DATE_FORMAT);
+  $node->field_last_update[LANGUAGE_NONE][0]['value2'] = $node->field_last_update[LANGUAGE_NONE][0]['value'];
+}
