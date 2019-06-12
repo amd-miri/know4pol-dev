@@ -5,6 +5,9 @@
  * Code for the know4pol-core feature.
  */
 
+module_load_include('inc', 'know4pol_core', 'includes/know4pol_core_views');
+module_load_include('inc', 'know4pol_core', 'includes/know4pol_core_settings');
+
 /**
  * Implements hook_field_default_field_instances_alter().
  */
@@ -12,45 +15,6 @@ function know4pol_core_field_default_field_instances_alter(&$fields) {
   // Event content type.
   if (!empty($fields['node-page-field_ne_body'])) {
     $fields['node-page-field_ne_body']['settings']['entity_translation_sync'] = FALSE;
-  }
-}
-
-/**
- * Implements hook_views_pre_build().
- */
-function know4pol_core_views_pre_build(&$view) {
-  // For all views, if they use the og_vocabulary.
-  if (isset($view->argument['og_vocabulary_target_id'])) {
-    $node = menu_get_item();
-    $view->args[] = $node['page_arguments'][0]->og_vocabulary[LANGUAGE_NONE][0]['target_id'];
-  }
-}
-
-/**
- * Implements hook_views_pre_render().
- */
-function know4pol_core_views_pre_render(&$view) {
-  // For the organisation_related_knowledge_services view,
-  // we would replace the description field by
-  // the organisation custom KS descripion field,if availaible.
-  if ($view->name == "organisation_related_knowledge_services") {
-    $node = menu_get_item();
-    if (isset($node['page_arguments'][0]->field_org_ks_specific_desc[LANGUAGE_NONE])) {
-      foreach ($node['page_arguments'][0]->field_org_ks_specific_desc[LANGUAGE_NONE] as $item) {
-        $node_field_collection = field_collection_item_load($item['value'], FALSE);
-        $ks_desc_nid = $node_field_collection->field_org_ks_desc_related_ks[LANGUAGE_NONE][0]['target_id'];
-        $ks_desc_new_description = $node_field_collection->field_org_ks_desc_specific_desc[LANGUAGE_NONE][0]['value'];
-        if (isset($view->result) && !empty($view->result) && !empty($ks_desc_new_description)) {
-          foreach ($view->result as $key => $value) {
-            if ($value->nid == $ks_desc_nid) {
-              $view->result[$key]->field_field_short_description[0]['rendered']['#markup'] =
-              $view->result[$key]->field_field_short_description[0]['raw']['value'] =
-              $view->result[$key]->field_field_short_description[0]['raw']['safe_value'] = $ks_desc_new_description;
-            }
-          }
-        }
-      }
-    }
   }
 }
 
@@ -126,6 +90,9 @@ function know4pol_core_og_permission() {
     /* Define a permission to view moderation history to allow users to see content they can moderate */
     'view moderation history' => array(
       'title' => t('View moderation history'),
+    ),
+    'administer ks settings' => array(
+      'title' => t('Administer KS settings'),
     ),
   );
 }
@@ -837,119 +804,82 @@ function know4pol_core_block_info() {
 }
 
 /**
+ * Implements hook_theme().
+ */
+function know4pol_core_theme($existing, $type, $theme, $path) {
+  $templates_path = sprintf('%s/templates', $path);
+  return array(
+    'latest_items' => array(
+      'variables' => array(
+        'items' => NULL,
+      ),
+      'template' => 'latest_items',
+      'path' => $templates_path,
+    ),
+    'ks_admin_menu' => array(
+      'variables' => array(
+        'items' => NULL,
+      ),
+      'template' => 'ks_admin_menu',
+      'path' => $templates_path,
+    ),
+  );
+}
+
+/**
  * Implements hook_block_view().
  */
 function know4pol_core_block_view($delta = '') {
   $block = array();
+  $items = array();
+
   switch ($delta) {
     case 'know4pol_ks_latest_content':
-      $block['content'] = '<ul class="ecl-listing ecl-listing--three-columns">';
-      $item = menu_get_item();
-      if (!empty($item['page_arguments'][0]->nid)) {
-        // Block 1 : latest news.
-        $view1 = views_get_view_result('ks_latest_content', 'latest_news', $item['page_arguments'][0]->nid);
-        if (count($view1)) {
-          $block_latest_news = views_embed_view('ks_latest_content', 'latest_news', $item['page_arguments'][0]->nid);
-          $block['content'] .= '<li class="ecl-list-item ecl-list-item--three-columns"><div class="ecl-list-item__body"><h3 class="ecl-list-item__title ecl-heading ecl-heading--h3">Latest News</h3>' . $block_latest_news . '</div></li>';
-        }
-        // Block 2 : next events.
-        $view2 = views_get_view_result('ks_latest_content', 'next_events', $item['page_arguments'][0]->nid);
-        if (count($view2)) {
-          $block_next_events = views_embed_view('ks_latest_content', 'next_events', $item['page_arguments'][0]->nid);
-          $block['content'] .= '<li class="ecl-list-item ecl-list-item--three-columns"><div class="ecl-list-item__body"><h3 class="ecl-list-item__title ecl-heading ecl-heading--h3">Next Events</h3>' . $block_next_events . '</div></li>';
-        }
-        // Block 3 : latest resources.
-        $view3 = views_get_view_result('ks_latest_content', 'latest_resources', $item['page_arguments'][0]->nid);
-        if (count($view3)) {
-          $block_latest_resources = views_embed_view('ks_latest_content', 'latest_resources', $item['page_arguments'][0]->nid);
-          $block['content'] .= '<li class="ecl-list-item ecl-list-item--three-columns"><div class="ecl-list-item__body"><h3 class="ecl-list-item__title ecl-heading ecl-heading--h3">Latest Resources</h3>' . $block_latest_resources . '</div></li>';
-        }
-        $block['content'] .= '</ul>';
+      // Are we viewing a node ?
+      $node = menu_get_object();
+      if (!$node->nid) {
+        // We could check this is a group too.
+        return;
       }
+      // Get those 3 diplays.
+      $displays = array(
+        'latest_news',
+        'next_events',
+        'latest_resources',
+      );
+
+      foreach ($displays as $d) {
+        $view = views_get_view('ks_latest_content');
+        if (!$view || !$view->access($d)) {
+          continue;
+        }
+
+        // Change settings for latest_resources.
+        if ($d == $displays[2]) {
+          $view->display[$d]->handler->options['filters']['type']['value'] =
+            _know4pol_core_get_last_ressources_types(_know4pol_core_get_setting($node->nid, 'types_hidden', array()));
+        }
+
+        // Execute the view, retrieve data.
+        $output = $view->preview($d, array($node->nid));
+
+        if (count($view->result)) {
+          $items[] = array(
+            'title' => $view->get_title(),
+            'content' => $output,
+          );
+        }
+      }
+
+      $block['content'] = theme('latest_items', array('items' => $items));
       break;
 
     case 'know4pol_ks_admin_menu':
-      $block['content'] = _know4pol_core_theme_ks_admin_menu(_know4pol_core_get_ks_admin_menu('menu-ks-admin-menu'));
+      $block['content'] = theme('ks_admin_menu', array('items' => menu_tree_page_data('menu-ks-admin-menu')));
       break;
   }
+
   return $block;
-}
-
-/**
- * Prepares menu array for theming.
- *
- * @param string $menu_name
- *   Machine name of KS admin menu.
- *
- * @return array
- *   Generated menu array.
- */
-function _know4pol_core_get_ks_admin_menu($menu_name) {
-  $loaded_menu = menu_tree_page_data($menu_name);
-  $output = array();
-  if (!empty($loaded_menu)) {
-    foreach ($loaded_menu as $loaded_menu_parent_item) {
-      $child_items = $loaded_menu_parent_item['below'];
-      if (!empty($child_items)) {
-        foreach ($child_items as $child_item) {
-          $attributes = array(
-            'attributes' =>
-              array(
-                'class' =>
-                  array(
-                    'ecl-link',
-                    'ecl-link--standalone',
-                    'ecl-link-block__link',
-                  ),
-              ),
-          );
-          $links[] = l($child_item['link']['link_title'], $child_item['link']['href'], $attributes);
-        }
-      }
-      else {
-        $links = '';
-      }
-      $output[$loaded_menu_parent_item['link']['link_title']]['title'] = $loaded_menu_parent_item['link']['link_title'];
-      $output[$loaded_menu_parent_item['link']['link_title']]['link'] = '<a class="ecl-button ecl-button--primary" href="' . url($loaded_menu_parent_item['link']['href']) . '">' . $loaded_menu_parent_item['link']['link_title'] . '</a>';
-      $output[$loaded_menu_parent_item['link']['link_title']]['links'] = $links;
-      unset($links);
-    }
-  }
-  return $output;
-}
-
-/**
- * Wraps links into set of buttons and dropdowns.
- *
- * @param array $menuarray
- *   Generated menu array.
- *
- * @return string
- *   Generated menu.
- */
-function _know4pol_core_theme_ks_admin_menu(array $menuarray) {
-  $output = "";
-  foreach ($menuarray as $parent) {
-    if ($parent['links']) {
-      $output .= '<div class="element">
-                  <div class="ecl-dropdown">
-                    <button class="ecl-button ecl-button--default ecl-expandable__button"
-                            aria-controls="' . $parent['title'] . '-button-dropdown" aria-expanded="false"
-                            id="' . $parent['title'] . '-expandable-button"
-                            type="button">' . $parent['title'] . '
-                    </button>
-                  <div class="ecl-link-block ecl-dropdown__body" id="' . $parent['title'] . '-button-dropdown" aria-labelledby="' . $parent['title'] . '-expandable-button" aria-hidden="true">
-                  <ul class="ecl-link-block__list">';
-      foreach ($parent['links'] as $link) {
-        $output .= '<li class="ecl-link-block__item">' . $link . '</li>';
-      }
-      $output .= '</ul></div></div></div>';
-    }
-    else {
-      $output .= '<p class="element">' . $parent['link'] . '</p>';
-    }
-  }
-  return $output;
 }
 
 /**
@@ -987,6 +917,25 @@ function know4pol_core_og_ui_get_group_admin($group_type, $gid) {
       'access arguments' => array('add user', 1, 2),
     );
   }
+  return $items;
+}
+
+/**
+ * Implements hook_menu().
+ */
+function know4pol_core_menu() {
+  $items = array();
+  $items['group/node/%/admin/settings'] = array(
+    'title' => 'KS Settings',
+    'description' => "Configure KS landing page settings",
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('know4pol_core_ks_settings_form', 2),
+    'access arguments' => array('administer ks settings', 'node', 2),
+    'access callback' => '_know4pol_core_get_og_access',
+    'type' => MENU_NORMAL_ITEM,
+    'file' => 'includes/know4pol_core_settings.inc',
+  );
+
   return $items;
 }
 
@@ -1421,35 +1370,6 @@ function know4pol_core_multisite_drupal_toolbox_filter_options_alter(&$filter_op
 }
 
 /**
- * Implements hook_views_api().
- */
-function know4pol_core_views_api() {
-  return array(
-    'api' => 3,
-  );
-}
-
-/**
- * Implements hook_views_data().
- */
-function know4pol_core_views_data() {
-  $data = array();
-
-  // Create a custom views filter.
-  $data['node']['pubsy_only'] = array(
-    'group' => t('Custom'),
-    'real field' => 'field_pub_dc_rel_ispartofseries',
-    'title' => t('Pubsy only'),
-    'help' => t('Show only the Pubsy publications.'),
-    'filter' => array(
-      'handler' => 'Know4polCoreHandlerFilterPubsyOnly',
-    ),
-  );
-
-  return $data;
-}
-
-/**
  * Implements hook_facet_items_alter().
  */
 function know4pol_core_facet_items_alter(&$build, &$settings) {
@@ -1512,6 +1432,7 @@ define('KNOW4POL_CORE_LASTUPDATE_DATE_FORMAT', 'Y-m-d H:i:s');
  * Implements hook_form_alter().
  */
 function know4pol_core_form_alter(&$form, $form_state) {
+
   // On edit node form.
   if (!empty($form['#node_edit_form'])
     // The last update field exists.
