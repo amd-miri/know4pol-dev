@@ -1440,8 +1440,19 @@ function know4pol_core_form_alter(&$form, $form_state) {
     // It's not a new node.
     && $form['nid']['#value'] != NULL) {
 
-    $form['options']['workbench_moderation_state_new']['#weight'] = 2;
-    $form['options']['no_last_update'] = array(
+    // Find publishing interface with access.
+    foreach (array('options', 'revision_information', NULL) as $itf) {
+      if ($itf && $form[$itf]['#access'] == TRUE) {
+        break;
+      }
+    }
+    // No valid interface found.
+    if ($itf == NULL) {
+      return;
+    }
+
+    $form[$itf]['workbench_moderation_state_new']['#weight'] = 2;
+    $form[$itf]['no_last_update'] = array(
       '#type' => 'checkbox',
       '#title' => t('No automatic change of the last update date'),
       '#description' => t('Unless checked, the last update will be set to @datenow', array(
@@ -1452,7 +1463,7 @@ function know4pol_core_form_alter(&$form, $form_state) {
     );
 
     if (module_exists("workbench_moderation")) {
-      $form['options']['no_last_update']['#states'] = array(
+      $form[$itf]['no_last_update']['#states'] = array(
         'visible' => array(
           'select[name="workbench_moderation_state_new"]' => array('value' => 'published'),
         ),
