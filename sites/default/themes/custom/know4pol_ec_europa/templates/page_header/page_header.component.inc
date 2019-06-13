@@ -88,7 +88,6 @@ function know4pol_ec_europa_preprocess_page_header(&$variables, $hook) {
       // Common for those types.
       case 'newsroom_item':
       case 'publication':
-      case 'organisation':
       case 'projects_activities':
         $variables['meta']['#timestamp'] = format_date($node->created, 'custom', 'Y-m-d\TH:i:sP');
         $variables['meta']['#date'] = format_date($node->created, 'meta');
@@ -124,6 +123,41 @@ function know4pol_ec_europa_preprocess_page_header(&$variables, $hook) {
           }
         }
         break;
+
+      case 'organisation':
+        if (module_exists('multisite_formatters')) {
+          // Get smarter trim results for better display.
+          $variables['introduction'] =
+            multisite_formatters_field_formatter_view(
+            "node",
+            $node->body[$node->language],
+            field_info_field('body'),
+            field_info_instance('node', 'body', 'organisation'),
+            $node->language,
+            $node->body[$node->language],
+            array(
+              'type' => 'smarter_trim',
+              'settings' => array(
+                'summary_handler' => 'trim',
+                'trim_type' => 'first_p',
+                'trim_suffix' => '&hellip;',
+                'filter_options' => array('strip_html' => 'strip_html'),
+                'filter_preserve_tags' => '',
+                'more_link' => FALSE,
+              ),
+              'module' => 'multisite_formatters',
+            )
+
+          );
+        }
+        else {
+          // Manual trim.
+          $intro = $node->body[$node->language][0];
+          // Use summary if present.
+          $variables['introduction'] = drupal_substr(trim(strip_tags(
+          (isset($intro['summary']) && drupal_strlen($intro['summary'])) ? $intro['summary'] : $intro['value']
+          )), 0, 150);
+        }
 
       case 'publication':
         if (isset($node->field_pub_type[LANGUAGE_NONE][0]['tid'])) {
