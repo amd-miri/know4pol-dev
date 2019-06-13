@@ -619,3 +619,38 @@ function know4pol_core_update_7031() {
     node_save($node);
   }
 }
+
+/**
+ * Create new setting menu for groups.
+ */
+function know4pol_core_update_7032() {
+  $link_path = 'menutoken/' . uniqid();
+  $item = array(
+    'link_path' => $link_path,
+    'link_title' => "Manage KS settings",
+    'weight' => 50,
+    'expanded' => 1,
+  // Manage KS settings.
+    'plid' => 3689,
+    'options' => array(
+      'menu_token_link_path' => 'group/node/[site:og-context--node:nid]/admin/settings',
+      'menu_token_data' => array(),
+      'menu_token_options' =>
+      array(
+        'clear' => 0,
+      ),
+      'attributes' =>
+      array(
+        'title' => '',
+      ),
+      'alter' => TRUE,
+      'menu_token_link_uuid' => $link_path,
+    ),
+    'menu_token_enabled' => 1,
+    'menu_token_type_node' => '_none',
+    'menu_token_type_user' => '_none',
+    'menu_token_clear' => 0,
+  );
+
+  menu_link_save($item);
+}
