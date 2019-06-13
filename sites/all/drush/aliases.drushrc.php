@@ -3,7 +3,7 @@
 $aliases = array (
   'default' => 
   array (
-    'uri' => 'default',
+    'uri' => 'http://web:8080',
     'root' => '/home/ec2-user/environment/know4pol-reference/build',
   ),
   'docker' => 

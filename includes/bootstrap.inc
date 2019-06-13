@@ -8,7 +8,7 @@
 /**
  * The current system version.
  */
-define('VERSION', '7.61');
+define('VERSION', '7.67');
 
 /**
  * Core API compatibility.
@@ -704,6 +704,19 @@ function drupal_environment_initialize() {
   // Set sane locale settings, to ensure consistent string, dates, times and
   // numbers handling.
   setlocale(LC_ALL, 'C');
+
+  // PHP's built-in phar:// stream wrapper is not sufficiently secure. Override
+  // it with a more secure one, which requires PHP 5.3.3. For lower versions,
+  // unregister the built-in one without replacing it. Sites needing phar
+  // support for lower PHP versions must implement hook_stream_wrappers() to
+  // register their desired implementation.
+  if (in_array('phar', stream_get_wrappers(), TRUE)) {
+    stream_wrapper_unregister('phar');
+    if (version_compare(PHP_VERSION, '5.3.3', '>=')) {
+      include_once DRUPAL_ROOT . '/includes/file.phar.inc';
+      file_register_phar_wrapper();
+    }
+  }
 }
 
 /**
@@ -2609,6 +2622,10 @@ function _drupal_exception_handler($exception) {
     _drupal_log_error(_drupal_decode_exception($exception), TRUE);
   }
   catch (Exception $exception2) {
+    // Add a 500 status code in case an exception was thrown before the 500
+    // status could be set (e.g. while loading a maintenance theme from cache).
+    drupal_add_http_header('Status', '500 Internal Server Error');
+
     // Another uncaught exception was thrown while handling the first one.
     // If we are displaying errors, then do so with no possibility of a further uncaught exception being thrown.
     if (error_displayable()) {

@@ -11,3 +11,9 @@ alternatives[xautoload][] = registry_autoload
 
 ; Configuration for registry_autoload if it's used.
 registry_autoload[] = PSR-4
+
+; Information added by Drupal.org packaging script on 2019-01-18
+version = "7.x-1.6"
+core = "7.x"
+project = "registryonsteroids"
+datestamp = "1547811484"

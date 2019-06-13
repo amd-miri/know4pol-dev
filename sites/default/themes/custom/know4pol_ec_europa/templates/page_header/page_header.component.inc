@@ -144,6 +144,7 @@ function know4pol_ec_europa_preprocess_page_header(&$variables, $hook) {
                 'filter_options' => array('strip_html' => 'strip_html'),
                 'filter_preserve_tags' => '',
                 'more_link' => FALSE,
+                'link_content' => FALSE,
               ),
               'module' => 'multisite_formatters',
             )

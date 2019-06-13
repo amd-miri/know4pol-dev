@@ -249,7 +249,7 @@ function og_vocab_element_after_build($form, &$form_state) {
       // Field has no reference, so we can hide it.
       continue;
     }
-    $form[$field_name][LANGUAGE_NONE]['#theme'] = '';
+    unset($form[$field_name][LANGUAGE_NONE]['#theme']);
     unset($form[$field_name][LANGUAGE_NONE]['add_more']);
     unset($form[$field_name][LANGUAGE_NONE][0]['_weight']);
 
