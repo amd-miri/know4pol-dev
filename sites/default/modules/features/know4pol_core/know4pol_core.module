@@ -180,12 +180,21 @@ function know4pol_core_tokens($type, $tokens, array $data = array(), array $opti
             $gids[] = $gid['target_id'];
           }
         }
+        // New content, try to find gid in query parameters.
         else {
-          $url_parameters = drupal_get_query_parameters();
-          // Are we in a "Add content" page ?
+          // For ajax calls and new content.
+          if (strpos(current_path(), '/ajax') !== FALSE) {
+            // We need to find this in refferer.
+            parse_str(parse_url($_SERVER['HTTP_REFERER'], PHP_URL_QUERY), $url_parameters);
+          }
+          else {
+            $url_parameters = drupal_get_query_parameters();
+          }
+
           if (isset($url_parameters['og_group_ref']) && !empty($url_parameters['og_group_ref'])) {
             $gids[] = $url_parameters['og_group_ref'];
           }
+
         }
 
         $replacements[$original] = implode('+', $gids);
