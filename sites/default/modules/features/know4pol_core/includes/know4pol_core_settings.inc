@@ -17,7 +17,6 @@ function know4pol_core_ks_settings_form($form, &$form_state, $nid) {
     '#collapsed' => FALSE,
   );
 
-  // _know4pol_core_get_last_ressources_types();
   $form['latest']['types_hidden'] = array(
     '#type' => 'select',
     '#title' => t('Hidden content types'),

@@ -94,6 +94,12 @@ function know4pol_core_og_permission() {
     'administer ks settings' => array(
       'title' => t('Administer KS settings'),
     ),
+    'assign and unassign ks content' => array(
+      'title' => t('Assign/Unassign KS content'),
+    ),
+    'suggest ks content' => array(
+      'title' => t('Suggest KS content'),
+    ),
   );
 }
 
@@ -1031,19 +1037,27 @@ function _know4pol_core_node_add_access() {
 function know4pol_core_action_info() {
   return array(
     '_know4pol_core_assign_ks_action' => array(
-      'type' => 'entity',
+      'type' => 'node',
       'label' => t('Assign content to the current KS'),
-      'behavior' => array('creates_property'),
+      'behavior' => array('changes_property'),
       'configurable' => FALSE,
       'vbo_configurable' => FALSE,
       'triggers' => array('any'),
     ),
     '_know4pol_core_unassign_ks_action' => array(
-      'type' => 'entity',
+      'type' => 'node',
       'label' => t('Remove content from the current KS'),
-      'behavior' => array('creates_property'),
+      'behavior' => array('changes_property'),
       'configurable' => FALSE,
       'vbo_configurable' => FALSE,
+      'triggers' => array('any'),
+    ),
+    '_know4pol_core_suggest_ks_action' => array(
+      'type' => 'node',
+      'label' => t('Suggest content to be part of the current KS'),
+      'behavior' => array('views_property'),
+      'configurable' => FALSE,
+      'vbo_configurable' => TRUE,
       'triggers' => array('any'),
     ),
   );
@@ -1052,16 +1066,72 @@ function know4pol_core_action_info() {
 /**
  * The action function for know4pol_ks_action_info.
  *
- * @param object $entity
- *   Entity to change og_group_ref field.
- * @param array $context
- *   Optional values coming from VBO form.
+ * @param object $settings
+ *   The action settings.
+ * @param array $form_state
+ *   The form states.
  */
-function _know4pol_core_assign_ks_action($entity, array $context) {
-  $target_group_id = $context['view_info']['arguments'][0];
-  $next = count($entity->og_group_ref[LANGUAGE_NONE]);
-  $entity->og_group_ref[LANGUAGE_NONE][$next]['target_id'] = $target_group_id;
-  node_save($entity);
+function _know4pol_core_suggest_ks_action_form($settings, array &$form_state) {
+  $nodes = node_load_multiple($form_state['selection']);
+  $nodes_nid = array();
+  $nodes_title = "<ul>";
+  foreach ($nodes as $node) {
+    $nodes_nid[] = $node->nid;
+    $nodes_title .= '<li>' . $node->title . '</li>';
+  }
+  $nodes_nid = implode('|', $nodes_nid);
+  $nodes_title .= "</ul>";
+  $form = array();
+  $form['question'] = array(
+    '#markup' => t("<p><strong>You're about to notify all the actual KS editors that the following selected content are a good candidate for the actual KS. Do you confirm?</strong></p>"),
+  );
+  $form['nodes_title'] = array(
+    '#markup' => $nodes_title,
+  );
+  $form['nodes_nid'] = array(
+    '#type' => 'hidden',
+    '#value' => $nodes_nid,
+  );
+  return $form;
+}
+
+/**
+ * The submit function for know4pol_ks_action_info.
+ *
+ * @param array $form
+ *   The form.
+ * @param array $form_state
+ *   The form states.
+ */
+function _know4pol_core_suggest_ks_action_submit(array $form, array $form_state) {
+  $path = explode('/', current_path());
+  $gid = $path['2'];
+  $ks_editors = _know4pol_core_get_og_group_members_mails($gid, array('editor member'));
+  $ks_editors = implode(';', $ks_editors);
+  drupal_mail('know4pol_core', 'suggest_ks_editors', $ks_editors, language_default(),
+               array(
+                 'nodes_title' => $form['nodes_title']["#markup"],
+                 'nodes_nid' => $form['nodes_nid']["#value"],
+                 'current_path' => current_path(),
+               ));
+}
+
+/**
+ * Implements hook_mail().
+ */
+function know4pol_core_mail($key, &$message, $params) {
+  global $user, $base_url;
+  $user_realname = format_username($user);
+  if ($key == 'suggest_ks_editors') {
+    $message['subject'] = t('Suggestion from your knowledge service on Knowledge4policy website');
+    $body = "Dear editors,\n\n"
+            . $user_realname . " suggets that you assign the following content to your knowledge service:\n\n"
+            . $params['nodes_title']
+            . "\nPlease go to this admin page in order to see and assign them to your knowledge service:\n"
+            . $base_url . "/" . $params['current_path'] . "?nid=" . $params['nodes_nid']
+            . "\nThis is an automatic email, please do not reply.\nThanks,\nKnowledge4policy team";
+    $message['body'][] = $body;
+  }
 }
 
 /**
@@ -1072,16 +1142,21 @@ function _know4pol_core_assign_ks_action($entity, array $context) {
  * @param array $context
  *   Optional values coming from VBO form.
  */
-function _know4pol_core_unassign_ks_action($entity, array $context) {
+function _know4pol_core_assign_ks_action(&$entity, array $context) {
+  $entity->og_group_ref[LANGUAGE_NONE][]['target_id'] = $context['view_info']['arguments'][0];
+}
+
+/**
+ * The action function for know4pol_ks_action_info.
+ *
+ * @param object $entity
+ *   Entity to change og_group_ref field.
+ * @param array $context
+ *   Optional values coming from VBO form.
+ */
+function _know4pol_core_unassign_ks_action(&$entity, array $context) {
   $target_group_id = $context['view_info']['arguments'][0];
-  $og_array = $entity->og_group_ref[LANGUAGE_NONE];
-  foreach ($og_array as $key => $value) {
-    if ($value['target_id'] == $target_group_id) {
-      unset($og_array[$key]);
-    }
-  }
-  $entity->og_group_ref[LANGUAGE_NONE] = array_values($og_array);
-  node_save($entity);
+  unset($entity->og_group_ref[LANGUAGE_NONE][$target_group_id]);
 }
 
 /**
