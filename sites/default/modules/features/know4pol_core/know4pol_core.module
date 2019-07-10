@@ -1188,27 +1188,6 @@ function know4pol_core_preprocess_html(&$variables) {
 }
 
 /**
- * Implements hook_views_query_alter().
- */
-function know4pol_core_views_query_alter(&$view, &$query) {
-  if ($view->name == 'organisation_related_knowledge_services') {
-    // Get the nid.
-    if ($node = menu_get_object()) {
-      $nid = $node->nid;
-    }
-    $dbquery = db_select('og_membership', 'om');
-    $dbquery->distinct();
-    $dbquery->fields('om', array('gid'));
-    $dbquery->condition('etid', $nid);
-    $result = $dbquery->execute()->fetchAll();
-    foreach ($result as $row) {
-      $tids[] = $row->gid;
-    }
-    $query->add_where(1, 'node.nid', $tids, 'IN');
-  }
-}
-
-/**
  * Implements hook_webform_select_options_info().
  */
 function know4pol_core_webform_select_options_info() {
@@ -1469,61 +1448,6 @@ function know4pol_core_multisite_drupal_toolbox_filter_options_alter(&$filter_op
   $filter_options['valid_elements']['iframe'] = array('*' => TRUE);
 }
 
-/**
- * Implements hook_facet_items_alter().
- */
-function know4pol_core_facet_items_alter(&$build, &$settings) {
-  if ($settings->facet == "dm_field_pub_dc_date_issued") {
-    // First make sure to have an empty array.
-    $all_years_array = array();
-    foreach ($build as $key => $item) {
-      // Then split the search values into two "year" part.
-      // Example : [2004-01-01T00:00:00Z TO 2005-01-01T00:00:00Z]
-      // For the first year filter, we need to get the first and second year.
-      if (empty($all_years_array)) {
-        preg_match('/\[(\d{4})/i', $key, $matches);
-        $all_years_array[] = $matches[1];
-      }
-      // Then we only get the second years.
-      if (!empty($all_years_array)) {
-        preg_match('/TO (\d{4})/i', $key, $matches);
-        $all_years_array[] = $matches[1];
-      }
-    }
-
-    // And we reconstruct the build variable.
-    foreach ($all_years_array as $year) {
-      $query = db_select('apachesolr_index_entities_node', 'a');
-      $query->fields('a');
-      $query->leftJoin('field_data_field_pub_dc_date_issued', 'f', 'a.entity_id = f.entity_id');
-      $query->condition('f.field_pub_dc_date_issued_value', $year . '-01-01 00:00:00', '=');
-      $results = $query->execute();
-      $publications_count = $results->rowCount();
-      $override_string = "[" . $year . "-01-01T00:00:00Z TO " . $year . "-12-31T00:00:00Z]";
-      $current_page_query = drupal_get_query_parameters();
-      $new_build[$override_string] = array(
-        '#markup' => $year,
-        '#path' => 'search/site/',
-        '#html' => FALSE,
-        '#indexed_value' => $override_string,
-        '#count' => $publications_count,
-        '#active' => 0,
-        '#item_parents' => array(),
-        '#item_children' => array(),
-        '#query' => $current_page_query,
-      );
-      $new_build[$override_string]['#query']['f'][] = 'dm_field_pub_dc_date_issued:' . $override_string;
-    }
-    // Set the filter element as active if it's the only one.
-    if (count($new_build) == 1) {
-      foreach ($new_build as $key => $value) {
-        $new_build[$key]['#active'] = 1;
-        $new_build[$key]['#query'] = array();
-      }
-    }
-    $build = $new_build;
-  }
-}
 
 // The default time that will be used, until Admin sets a different value.
 define('KNOW4POL_CORE_LASTUPDATE_DATE_FORMAT', 'Y-m-d H:i:s');

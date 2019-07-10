@@ -964,15 +964,20 @@ function know4pol_search_apachesolr_query_alter($query) {
  * Implements hook_apachesolr_index_document_build_node().
  */
 function know4pol_search_apachesolr_index_document_build_node(ApacheSolrDocument $document, $entity, $entity_type) {
-
   switch ($entity->type) {
     case 'newsroom_item':
       // Add signle field newsroom date in SolR index.
       $document->addField('ds_field_newsroom_item_date', apachesolr_date_iso($entity->field_newsroom_item_date[LANGUAGE_NONE][0]['value']));
       break;
 
-    default:
-      $document->addField('ds_field_last_update', apachesolr_date_iso(strtotime($entity->field_last_update[LANGUAGE_NONE][0]['value'])));
+    case 'publication':
+      // KNOW4POL-452, make sure it's never set at midnight.
+      $yeardate = strtotime($document->getField('dm_field_pub_dc_date_issued')['value'][0]);
+      // @see facetapi_isodate()
+      $document->setField('dm_field_pub_dc_date_issued', gmdate('Y-m-d\T01:00:00\Z', $yeardate));
       break;
   }
+
+  // All content types.
+  $document->addField('ds_field_last_update', apachesolr_date_iso(strtotime($entity->field_last_update[LANGUAGE_NONE][0]['value'])));
 }
