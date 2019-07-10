@@ -191,7 +191,7 @@ function know4pol_core_tokens($type, $tokens, array $data = array(), array $opti
           // For ajax calls and new content.
           if (strpos(current_path(), '/ajax') !== FALSE) {
             // We need to find this in refferer.
-            parse_str(parse_url($_SERVER['HTTP_REFERER'], PHP_URL_QUERY), $url_parameters);
+            parse_str(drupal_parse_url($_SERVER['HTTP_REFERER'], PHP_URL_QUERY), $url_parameters);
           }
           else {
             $url_parameters = drupal_get_query_parameters();
@@ -947,6 +947,13 @@ function know4pol_core_og_ui_get_group_admin($group_type, $gid) {
       'access callback' => 'og_ui_user_access_group',
       'access arguments' => array('add user', 1, 2),
     );
+    $items['know4pol_suggest_content'] = array(
+      'title' => t('Suggest content to KS'),
+      'description' => t('Suggest content to KS'),
+      'href' => 'admin/suggest-content',
+      'access callback' => 'og_ui_user_access_group',
+      'access arguments' => array('add user', 1, 2),
+    );
   }
   return $items;
 }
@@ -988,12 +995,17 @@ function know4pol_core_menu_alter(&$items) {
     2,
   );
   $items['group/node/%/admin/sharing-content']['access callback'] = '_know4pol_core_get_og_access';
-  $items['group/node/%/admin/sharing-content']['access arguments'] = array('view manage KS content section',
+  $items['group/node/%/admin/sharing-content']['access arguments'] = array('assign and unassign ks content',
     'node',
     2,
   );
   $items['group/node/%/admin/pubsy']['access callback'] = '_know4pol_core_get_og_access';
-  $items['group/node/%/admin/pubsy']['access arguments'] = array('view manage KS content section',
+  $items['group/node/%/admin/pubsy']['access arguments'] = array('assign and unassign ks content',
+    'node',
+    2,
+  );
+  $items['group/node/%/admin/suggest-content']['access callback'] = '_know4pol_core_get_og_access';
+  $items['group/node/%/admin/suggest-content']['access arguments'] = array('suggest ks content',
     'node',
     2,
   );
@@ -1039,7 +1051,7 @@ function know4pol_core_action_info() {
     '_know4pol_core_assign_ks_action' => array(
       'type' => 'node',
       'label' => t('Assign content to the current KS'),
-      'behavior' => array('changes_property'),
+      'behavior' => array('creates_property'),
       'configurable' => FALSE,
       'vbo_configurable' => FALSE,
       'triggers' => array('any'),
@@ -1047,7 +1059,7 @@ function know4pol_core_action_info() {
     '_know4pol_core_unassign_ks_action' => array(
       'type' => 'node',
       'label' => t('Remove content from the current KS'),
-      'behavior' => array('changes_property'),
+      'behavior' => array('creates_property'),
       'configurable' => FALSE,
       'vbo_configurable' => FALSE,
       'triggers' => array('any'),
@@ -1107,12 +1119,12 @@ function _know4pol_core_suggest_ks_action_submit(array $form, array $form_state)
   $path = explode('/', current_path());
   $gid = $path['2'];
   $ks_editors = _know4pol_core_get_og_group_members_mails($gid, array('editor member'));
-  $ks_editors = implode(';', $ks_editors);
+  $ks_editors = implode(',', $ks_editors);
   drupal_mail('know4pol_core', 'suggest_ks_editors', $ks_editors, language_default(),
                array(
                  'nodes_title' => $form['nodes_title']["#markup"],
                  'nodes_nid' => $form['nodes_nid']["#value"],
-                 'current_path' => current_path(),
+                 'current_path' => 'group/node/' . $gid . '/admin/sharing-content',
                ));
 }
 
@@ -1142,8 +1154,9 @@ function know4pol_core_mail($key, &$message, $params) {
  * @param array $context
  *   Optional values coming from VBO form.
  */
-function _know4pol_core_assign_ks_action(&$entity, array $context) {
+function _know4pol_core_assign_ks_action($entity, array $context) {
   $entity->og_group_ref[LANGUAGE_NONE][]['target_id'] = $context['view_info']['arguments'][0];
+  node_save($entity);
 }
 
 /**
@@ -1154,9 +1167,16 @@ function _know4pol_core_assign_ks_action(&$entity, array $context) {
  * @param array $context
  *   Optional values coming from VBO form.
  */
-function _know4pol_core_unassign_ks_action(&$entity, array $context) {
+function _know4pol_core_unassign_ks_action($entity, array $context) {
   $target_group_id = $context['view_info']['arguments'][0];
-  unset($entity->og_group_ref[LANGUAGE_NONE][$target_group_id]);
+  $og_array = $entity->og_group_ref[LANGUAGE_NONE];
+  foreach ($og_array as $key => $value) {
+    if ($value['target_id'] == $target_group_id) {
+      unset($og_array[$key]);
+    }
+  }
+  $entity->og_group_ref[LANGUAGE_NONE] = array_values($og_array);
+  node_save($entity);
 }
 
 /**
@@ -1447,7 +1467,6 @@ function know4pol_core_multisite_drupal_toolbox_filter_options_alter(&$filter_op
   // Enable the <iframe> tag, strongly not advised of course.
   $filter_options['valid_elements']['iframe'] = array('*' => TRUE);
 }
-
 
 // The default time that will be used, until Admin sets a different value.
 define('KNOW4POL_CORE_LASTUPDATE_DATE_FORMAT', 'Y-m-d H:i:s');

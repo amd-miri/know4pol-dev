@@ -52,23 +52,20 @@ function know4pol_core_views_pre_render(&$view) {
   // For the organisation_related_knowledge_services view,
   // we would replace the description field by
   // the organisation custom KS descripion field,if availaible.
-  // maybe move this to template with preprocess
+  // maybe move this to template with preprocess.
   if ($view->name == "organisation_related_knowledge_services") {
-    // When result
+    // When result.
     if (isset($view->result) && !empty($view->result)) {
-      
-    $node = menu_get_item()['page_arguments'][0];
-      
-    if (isset($node->field_org_ks_specific_desc[LANGUAGE_NONE])) {
-      // Go through all values
-      foreach ($node->field_org_ks_specific_desc[LANGUAGE_NONE] as $item) {
-        $node_field_collection = field_collection_item_load($item['value'], FALSE);
-        $ks_desc_nid = $node_field_collection->field_org_ks_desc_related_ks[LANGUAGE_NONE][0]['target_id'];
-        // Needded to render properly fields
-        $collection = $node_field_collection->view('full');
-        $ks_desc_new_description = render($collection['field_collection_item'][$item['value']]['field_org_ks_desc_specific_desc']);
-        
-        // Find the corresponding in the view to alter.
+      $node = menu_get_item()['page_arguments'][0];
+      if (isset($node->field_org_ks_specific_desc[LANGUAGE_NONE])) {
+        // Go through all values.
+        foreach ($node->field_org_ks_specific_desc[LANGUAGE_NONE] as $item) {
+          $node_field_collection = field_collection_item_load($item['value'], FALSE);
+          $ks_desc_nid = $node_field_collection->field_org_ks_desc_related_ks[LANGUAGE_NONE][0]['target_id'];
+          // Needded to render properly fields.
+          $collection = $node_field_collection->view('full');
+          $ks_desc_new_description = render($collection['field_collection_item'][$item['value']]['field_org_ks_desc_specific_desc']);
+          // Find the corresponding in the view to alter.
           foreach ($view->result as $key => $value) {
             if ($value->nid == $ks_desc_nid) {
               $view->result[$key]->field_field_short_description[0]['rendered']['#markup'] =
