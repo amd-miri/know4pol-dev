@@ -93,13 +93,13 @@
       <span class="below-image-text">
       <?php if(!empty($content['file']['#item']['field_caption']['en'][0]['value'])): ?>
         <span class="caption"><?php print $content['file']['#item']['field_caption']['en'][0]['value']; ?></span>
-      <?php endif;?>
+      <?php endif; ?>
 
       <?php if(!empty($content['file']['#item']['field_newsroom_copyrights']['en'][0]['value'])): ?>
         <br /><span class="copyright">&copy;<?php print $content['file']['#item']['field_newsroom_copyrights']['en'][0]['value'] ?></span>
-      <?php endif;?>
+      <?php endif; ?>
       </span>
-    <?php endif;?>
+    <?php endif; ?>
 
   </div>
 

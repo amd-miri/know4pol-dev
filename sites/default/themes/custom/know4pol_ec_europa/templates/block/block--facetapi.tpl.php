@@ -50,9 +50,9 @@
   <?php print render($title_prefix); ?>
   <?php if (!empty($title)): ?>
     <label class="ecl-form-label" for="<?php
-      if (isset($variables['elements']['bundle']['facets']['#id'])) {
+      if (isset($variables['elements']['bundle']['facets']['#id'])):
         print $variables['elements']['bundle']['facets']['#id'];
-      }
+      endif;
       ?>">
       <?php print render($title); ?>
     </label>

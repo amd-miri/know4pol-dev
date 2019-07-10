@@ -17,9 +17,9 @@
           <div class="ecl-file__info">
             <span class="ecl-file__language"><?php print filter_xss($variables['elements']['language']['#markup']); ?></span>
             <?php
-              if($variables['elements']['#node']->file_link['info']) {
+              if($variables['elements']['#node']->file_link['info']):
                 print $variables['elements']['#node']->file_link['info'];
-              }
+              endif;
             ?>
           </div>
         </div>

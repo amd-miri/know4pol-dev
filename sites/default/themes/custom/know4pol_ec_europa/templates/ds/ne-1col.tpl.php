@@ -11,7 +11,7 @@
   <?php print render($title_suffix['contextual_links']); ?>
 <?php endif; ?>
 
-<?php if (empty($hidelink) && !empty($node_url)) : ?>
+<?php if (empty($hidelink) && !empty($node_url)): ?>
   <a href="<?php print $node_url; ?>" class="listing__item-link" title="<?php print $title; ?>"><span class="ecl-u-sr-only"><?php print $title; ?></span></a>
 <?php endif; ?>
 

@@ -87,7 +87,7 @@
       </div>
     <?php endif; ?>
     
-  <?php else : ?>
+  <?php else: ?>
     <h2 class="ecl-heading ecl-heading--h2 ecl-u-d-none ecl-u-d-lg-block" <?php print $atomium['attributes']['title']; ?>>
       <?php print render($title); ?>
     </h2>

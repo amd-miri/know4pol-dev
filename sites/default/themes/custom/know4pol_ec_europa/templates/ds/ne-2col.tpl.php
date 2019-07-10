@@ -7,7 +7,7 @@
 
 // Add sidebar classes so that we can apply the correct width in css.
 // Second block is needed to activate display suite support on forms.
-?>
+ ?>
 <<?php print $layout_wrapper . $layout_attributes; ?> class="<?php print $classes; ?>">
 
 <?php if (isset($title_suffix['contextual_links'])): ?>
