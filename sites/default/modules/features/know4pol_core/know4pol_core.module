@@ -191,7 +191,7 @@ function know4pol_core_tokens($type, $tokens, array $data = array(), array $opti
           // For ajax calls and new content.
           if (strpos(current_path(), '/ajax') !== FALSE) {
             // We need to find this in refferer.
-            parse_str(parse_url($_SERVER['HTTP_REFERER'], PHP_URL_QUERY), $url_parameters);
+            parse_str(drupal_parse_url($_SERVER['HTTP_REFERER'], PHP_URL_QUERY), $url_parameters);
           }
           else {
             $url_parameters = drupal_get_query_parameters();
