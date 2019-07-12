@@ -49,11 +49,11 @@
   <div<?php print $atomium['attributes']['content']; ?>>
   <?php print render($title_prefix); ?>
   <?php if (!empty($title)): ?>
-    <label class="ecl-form-label" for="<?php
-      if (isset($variables['elements']['bundle']['facets']['#id'])):
-        print $variables['elements']['bundle']['facets']['#id'];
-      endif;
-      ?>">
+    <label class="ecl-form-label" for="
+      <?php if (isset($variables['elements']['bundle']['facets']['#id'])): ?>
+        <?php print $variables['elements']['bundle']['facets']['#id']; ?>
+      <?php endif; ?>
+      ">
       <?php print render($title); ?>
     </label>
   <?php endif; ?>

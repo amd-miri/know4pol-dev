@@ -6,12 +6,12 @@
  *
  * @TODO update once new grid style is defined.
  */
-
-  // Add sidebar classes so that we can apply the correct width in css.
-  if (($left && !$right) || ($right && !$left)):
-    $classes .= ' group-one-column';
-  endif;
 ?>
+  // Add sidebar classes so that we can apply the correct width in css.
+<?php if (($left && !$right) || ($right && !$left)): ?>
+  <?php $classes .= ' group-one-column'; ?>
+<?php endif; ?>
+
 <<?php print $layout_wrapper; print $layout_attributes; ?> class="ds-2col-stacked-fluid <?php print $classes; ?> clearfix">
 
   <?php if (isset($title_suffix['contextual_links'])): ?>

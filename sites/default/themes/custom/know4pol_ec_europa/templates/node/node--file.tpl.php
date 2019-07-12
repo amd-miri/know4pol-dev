@@ -16,11 +16,9 @@
           <div class="ecl-file__title"><?php print check_plain($variables['elements']['#node']->title); ?></div>
           <div class="ecl-file__info">
             <span class="ecl-file__language"><?php print filter_xss($variables['elements']['language']['#markup']); ?></span>
-            <?php
-              if($variables['elements']['#node']->file_link['info']):
-                print $variables['elements']['#node']->file_link['info'];
-              endif;
-            ?>
+            <?php if($variables['elements']['#node']->file_link['info']): ?>
+              <?php print $variables['elements']['#node']->file_link['info']; ?>
+            <?php endif; ?>
           </div>
         </div>
       </div>
