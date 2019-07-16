@@ -533,7 +533,12 @@ function _konw4pol_core_taxonomy_feeds_set_target(FeedsSource $source, $entity, 
   // The customisation of the callback is only for the field "og_group_ref".
   $existing_field_tags = $entity_unchanged->field_tags;
   if (!empty($existing_field_tags) && $target == 'field_tags') {
-    $entity->field_tags = drupal_array_merge_deep($existing_field_tags, $field);
+    $entity->field_tags = $existing_field_tags;
+    foreach ($field[LANGUAGE_NONE] as $value) {
+      if (!in_array($value, $entity->field_tags[LANGUAGE_NONE])) {
+        array_push($entity->field_tags[LANGUAGE_NONE], $value);
+      }
+    }
   }
   else {
     $entity->$target = $field;
