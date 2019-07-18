@@ -654,3 +654,40 @@ function know4pol_core_update_7032() {
 
   menu_link_save($item);
 }
+
+/**
+ * KNOW4POL-469 - Remove duplicates from field_data_field_tags.
+ */
+function know4pol_core_update_7033() {
+  // Get the list of tags which exist more than once.
+  $query = db_select('field_data_field_tags', 'ft')
+    ->fields('ft', array(
+      'entity_type',
+      'entity_id',
+      'revision_id',
+      'deleted',
+      'language',
+      'field_tags_tid',
+    ));
+  $query->addExpression('max(delta)', 'delta_keep');
+  $query->groupBy('entity_type')
+    ->groupBy('entity_id')
+    ->groupBy('revision_id')
+    ->groupBy('deleted')
+    ->groupBy('language')
+    ->groupBy('field_tags_tid')
+    ->having('COUNT(*) > 1');
+
+  // Delete other instances with delta lower.
+  foreach ($query->execute()->fetchAll() as $entry) {
+    db_delete('field_data_field_tags')
+      ->condition('entity_type', $entry->entity_type)
+      ->condition('entity_id', $entry->entity_id)
+      ->condition('revision_id', $entry->revision_id)
+      ->condition('deleted', $entry->deleted)
+      ->condition('language', $entry->language)
+      ->condition('field_tags_tid', $entry->field_tags_tid)
+      ->condition('delta', $entry->delta_keep, '<')
+      ->execute();
+  }
+}
