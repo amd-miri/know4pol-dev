@@ -687,7 +687,6 @@ function know4pol_core_update_7033() {
       ->condition('deleted', $entry->deleted)
       ->condition('language', $entry->language)
       ->condition('field_tags_tid', $entry->field_tags_tid)
-      ->condition('field_tags_tid', $entry->field_tags_tid)
       ->condition('delta', $entry->delta_keep, '<')
       ->execute();
   }
