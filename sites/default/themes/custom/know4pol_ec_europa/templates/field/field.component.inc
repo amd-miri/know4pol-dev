@@ -68,6 +68,10 @@ function know4pol_ec_europa_preprocess_field(array &$variables, $hook) {
       _know4pol_ec_europa_preprocess_field__field_vis_data_url__visualisation($variables);
       break;
 
+    case 'field_vis_qlik_elements':
+      _know4pol_ec_europa_preprocess_field__field_vis_qlik_elements__visualisation($variables);
+      break;
+
     case 'title':
       // Check if nid of menu_item is not identical of the redered
       // title to determine embedding and avoid double H1 in embed nodes.
@@ -139,5 +143,51 @@ function _know4pol_ec_europa_preprocess_field__field_vis_data_url__visualisation
       // No preprocess yet.
       // Image could copy first image into previsualisation if empty.
       break;
+  }
+}
+
+/**
+ * Preprocess field data visualisation urls.
+ *
+ * @param array $variables
+ *   Variables from the original hook.
+ */
+function _know4pol_ec_europa_preprocess_field__field_vis_qlik_elements__visualisation(array &$variables) {
+  // Build data paramters if relevant type.
+  if ($variables['element']['#object']->field_vis_type[LANGUAGE_NONE][0]['value'] == "Qlik") {
+
+    drupal_add_css('//qap-datam.jrc.ec.europa.eu/qap/content/Default/qlik-styles.css', 'external');
+    drupal_add_js('//qap-datam.jrc.ec.europa.eu/qap/resources/assets/external/requirejs/require.js', 'external');
+
+    $variables['atomium']['attributes']['wrapper']->append('class', 'qlik-wrapper');
+
+    // Get the layout from the text field ready for rendering.
+    $variables['html_layout'] = field_view_value(
+        'node',
+        $variables['element']['#object'],
+        'field_vis_qlik_page_layout',
+        $variables['element']['#object']->field_vis_qlik_page_layout[LANGUAGE_NONE][0]
+      );
+
+    // Prepare values of the field collection in this field.
+    foreach ($variables['items'] as &$item) {
+      $fcid = array_keys($item['entity']['field_collection_item'])[0];
+      $fcit = &$item['entity']['field_collection_item'][$fcid];
+
+      $item['html_id'] = $fcit['field_vis_qlik_html_id']['#items'][0]['value'];
+      $item['id'] = $fcit['field_vis_qlik_id']['#items'][0]['value'];
+
+      if (isset($fcit['field_vis_qlik_options']['#items'][0]['value'])) {
+        switch ($fcit['field_vis_qlik_options']['#items'][0]['value']) {
+          case "no_interaction":
+            $item['option'] = '{noInteraction: true}';
+            break;
+
+          case "no_selection":
+            $item['option'] = '{noSelections: true}';
+            break;
+        }
+      }
+    }
   }
 }
