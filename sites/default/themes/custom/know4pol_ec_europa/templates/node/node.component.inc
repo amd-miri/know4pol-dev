@@ -82,3 +82,60 @@ function _know4pol_ec_europa_preprocess_node__external_page(array &$variables) {
     $variables['field_frame_width'] = [['value' => '100%']];
   }
 }
+
+/**
+ * Preprocess fields field_file.
+ *
+ * Analyse legacy link content
+ * and possible more info to display into the ECL block.
+ *
+ * @param array $field_is_legacy_link
+ *   The field field_is_legacy_link of the content.
+ * @param array $field_legacy_link
+ *   The field field_legacy_link of the content.
+ * @param array $field_file_file
+ *   The field field_file_file of the content.
+ *
+ * @return array
+ *   Parameters of the file (link and infos).
+ */
+function _know4pol_ec_europa_preprocess_node_file__field_file(array $field_is_legacy_link, array $field_legacy_link, array $field_file_file) {
+  // Build link for ECL download.
+  // If file is external.
+  if (count($field_is_legacy_link) && $field_is_legacy_link[LANGUAGE_NONE][0]['value']) {
+    $link = $field_legacy_link[LANGUAGE_NONE][0]['url'];
+  }
+  // If internal and we have a file.
+  elseif (count($field_file_file)) {
+    $file = $field_file_file[LANGUAGE_NONE][0];
+    $link = file_create_url($file['uri']);
+    $size = _know4pol_ec_europa_file_size_human($file['filesize']);
+  }
+  $info = array();
+  if (isset($size)) {
+    $info[] = $size;
+  }
+  // Check if type can be guessed from file extension.
+  if (preg_match('/.*\.([\w]{2,4})(\?.*?)?$/i', $link, $matches)) {
+    // Check type and map to restrict and avoid errors.
+    if ($type = [
+      'doc' => "DOC",
+      'docx' => "DOC",
+      'pdf' => "PDF",
+      'zip' => "ZIP",
+      'xls' => "XLS",
+      'xslx' => "XLS",
+      'ppt' => "Powerpoint",
+      'pptx' => "Powerpoint",
+      'txt' => "Text",
+    ][drupal_strtolower($matches[1])]) {
+      // Could be improved with mimetype mapping a taxonomy.
+      $info[] = $type;
+    }
+  }
+
+  $info = implode(' - ', $info);
+  $info = (drupal_strlen($info)) ? '(' . $info . ')' : NULL;
+
+  return array('link' => $link, 'info' => $info);
+}
