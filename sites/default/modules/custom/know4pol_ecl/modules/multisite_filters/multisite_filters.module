@@ -114,7 +114,7 @@ function multisite_filters_filter_process($text, $filter, $format, $langcode, $c
           $add_class[] = 'ecl-link--external';
         }
 
-        $class->value = join(' ', array_merge(split(' ', $class->value), $add_class));
+        $class->value = implode(' ', array_merge(explode(' ', $class->value), $add_class));
       }
       // Output altered HTML as replacement.
       $text = $dom->saveHTML();

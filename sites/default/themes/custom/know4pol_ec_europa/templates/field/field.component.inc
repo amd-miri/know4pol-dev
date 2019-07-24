@@ -162,12 +162,12 @@ function _know4pol_ec_europa_preprocess_field__field_vis_qlik_elements__visualis
     $variables['atomium']['attributes']['wrapper']->append('class', 'qlik-wrapper');
 
     // Get the layout from the text field ready for rendering.
-    $variables['html_layout'] = field_view_value(
+    $variables['html_layout'] = render(field_view_value(
         'node',
         $variables['element']['#object'],
         'field_vis_qlik_page_layout',
         $variables['element']['#object']->field_vis_qlik_page_layout[LANGUAGE_NONE][0]
-      );
+      ));
 
     // Prepare values of the field collection in this field.
     foreach ($variables['items'] as &$item) {
