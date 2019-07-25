@@ -231,7 +231,7 @@ li.statistics_counter,
 }
 
 .media-element-container .file-image .below-image-text {
-  display: table-caption;
+  display: block;
   width: 100%;
 }
 

@@ -158,6 +158,7 @@ function _know4pol_ec_europa_preprocess_field__field_vis_qlik_elements__visualis
 
     drupal_add_css('//qap-datam.jrc.ec.europa.eu/qap/content/Default/qlik-styles.css', 'external');
     drupal_add_js('//qap-datam.jrc.ec.europa.eu/qap/resources/assets/external/requirejs/require.js', 'external');
+    drupal_add_js(drupal_get_path('theme', 'know4pol_ec_europa') . '/assets/scripts/qap-k4p-config.js', array('type' => 'file', 'scope' => 'footer'));
 
     $variables['atomium']['attributes']['wrapper']->append('class', 'qlik-wrapper');
 
@@ -169,25 +170,32 @@ function _know4pol_ec_europa_preprocess_field__field_vis_qlik_elements__visualis
         $variables['element']['#object']->field_vis_qlik_page_layout[LANGUAGE_NONE][0]
       ));
 
+    $js_items = array();
     // Prepare values of the field collection in this field.
-    foreach ($variables['items'] as &$item) {
+    foreach ($variables['items'] as $item) {
       $fcid = array_keys($item['entity']['field_collection_item'])[0];
-      $fcit = &$item['entity']['field_collection_item'][$fcid];
-
-      $item['html_id'] = $fcit['field_vis_qlik_html_id']['#items'][0]['value'];
-      $item['id'] = $fcit['field_vis_qlik_id']['#items'][0]['value'];
+      $fcit = $item['entity']['field_collection_item'][$fcid];
+      $js_item = array(
+        'html_id' => $fcit['field_vis_qlik_html_id']['#items'][0]['value'],
+        'id' => $fcit['field_vis_qlik_id']['#items'][0]['value'],
+      );
 
       if (isset($fcit['field_vis_qlik_options']['#items'][0]['value'])) {
         switch ($fcit['field_vis_qlik_options']['#items'][0]['value']) {
           case "no_interaction":
-            $item['option'] = '{noInteraction: true}';
+            $js_item['option'] = '{noInteraction: true}';
             break;
 
           case "no_selection":
-            $item['option'] = '{noSelections: true}';
+            $js_item['option'] = '{noSelections: true}';
             break;
         }
       }
+
+      $js_items[] = $js_item;
     }
+
+    drupal_add_js(array('know4pol' => array('items' => $js_items)), array('type' => 'setting'));
+    drupal_add_js(array('know4pol' => array('qapid' => $variables['element']['#object']->field_vis_qlik_app_id[LANGUAGE_NONE][0]['value'])), array('type' => 'setting'));
   }
 }
