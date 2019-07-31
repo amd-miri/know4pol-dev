@@ -96,7 +96,7 @@ function multisite_filters_filter_process($text, $filter, $format, $langcode, $c
     case 'multisite_filter_ecl':
       // Use DomDocument to manipulate HTML.
       $dom = new DomDocument();
-      $dom->loadHtml('<?xml version="1.0" encoding="UTF-8"?>' . "\n" . $text);
+      $dom->loadHtml($text);
 
       // Get all links.
       foreach ($dom->getElementsByTagName('a') as $node) {
