@@ -96,7 +96,7 @@ function multisite_filters_filter_process($text, $filter, $format, $langcode, $c
     case 'multisite_filter_ecl':
       // Use DomDocument to manipulate HTML.
       $dom = new DomDocument();
-      $dom->loadHtml($text);
+      $dom->loadHtml('<?xml version="1.0" encoding="UTF-8"?>' . "\n" . $text);
 
       // Get all links.
       foreach ($dom->getElementsByTagName('a') as $node) {
@@ -114,7 +114,7 @@ function multisite_filters_filter_process($text, $filter, $format, $langcode, $c
           $add_class[] = 'ecl-link--external';
         }
 
-        $class->value = join(' ', array_merge(split(' ', $class->value), $add_class));
+        $class->value = implode(' ', array_merge(explode(' ', $class->value), $add_class));
       }
       // Output altered HTML as replacement.
       $text = $dom->saveHTML();
