@@ -1,0 +1,240 @@
+<?php
+/**
+ * @file
+ * Module file for apachesolr_realtime
+ */
+
+/**
+ * Implements hook_entity_insert().
+ */
+function apachesolr_realtime_entity_insert($entity, $type) {
+  if ($type == 'node') {
+    apachesolr_realtime_index_now($entity, $type);
+  }
+}
+
+/**
+ * Implements hook_entity_update().
+ */
+function apachesolr_realtime_entity_update($entity, $type) {
+  if ($type == 'node' && $entity->status == TRUE) {
+    // Clear the static loading cache.
+    entity_get_controller('node')->resetCache(array($entity->nid));
+
+    apachesolr_realtime_index_now($entity, $type);
+  }
+  else if ($type == 'node' && $entity->status == FALSE) {
+    // Remove the unpublished node from the index.
+    apachesolr_realtime_entity_delete($entity, $type);
+  }
+}
+
+/**
+ * Implements hook_entity_delete().
+ */
+function apachesolr_realtime_entity_delete($entity, $type) {
+
+  // Obtain the Solr environments.
+  $env_ids = _apachesolr_realtime_get_env_ids($type);
+
+  // Extract entity id for Solr.
+  $ids = entity_extract_ids($type, $entity);
+  $id = $ids[0];
+
+  foreach ($env_ids as $env_id) {
+    // Delete the entity from the Solr index.
+    apachesolr_remove_entity($env_id, $type, $id);
+
+    // Commit the changes immediately.
+    apachesolr_realtime_commit($env_id);
+  }
+}
+
+/**
+ * Prepare entity as document for adding to Solr index.
+ *
+ * @param object $entity
+ *   Entity and its fields.
+ *
+ * @param string $type
+ *   The type of entity.
+ */
+function apachesolr_realtime_index_now($entity, $type) {
+  // If the entity-type/bundle isn't indexable, abort.
+  if (!apachesolr_entity_should_index($entity, $type)) {
+    return;
+  }
+  // If the specific entity isn't indexable (for example it's unpublished), delete
+  // from the index, and abort.
+  elseif (!_apachesolr_realtime__entity_should_index($entity, $type)) {
+    apachesolr_entity_delete($entity, $type);
+    return;
+  }
+
+  // Entity should be indexed, so send it to solr.
+  list($id, , $bundle) = entity_extract_ids($type, $entity);
+
+  // Create entity Object and assign type and id.
+  $item = new stdClass();
+  $item->entity_type = $type;
+  $item->entity_id = $id;
+
+  // Prepare entity as document and send to solr.
+  // Obtain the Solr environments.
+  $env_ids = _apachesolr_realtime_get_env_ids($entity->type);
+
+  foreach ($env_ids as $env_id) {
+    $doc = apachesolr_index_entity_to_documents($item, $env_id);
+    $indexed = @apachesolr_index_send_to_solr($env_id, $doc);
+
+    // Only continue if document was successfully indexed
+    if ($indexed) {
+      // Commit the changes immediately.
+      apachesolr_realtime_commit($env_id);
+
+      // Find the last-changed timestamp, which indicates when documents of this
+      // entity type were most recently pushed to Solr. Then, if we find it,
+      // decrement it by one, and set this node's Solr index last-changed timestamp
+      // to that value. This ensures that, if Solr tries to find nodes to index,
+      // this node is not part of that list, since it was just sent to Solr in this
+      // function.
+      $last_index_position = apachesolr_get_last_index_position($env_id, $type);
+      $last_changed = $last_index_position['last_changed'];
+      $last_indexed = !empty($last_changed) ? $last_changed - 1 : $last_changed;
+
+      // Update the record's timestamp instead of deleting the record because we
+      // want this node's row to remain in indexer table.
+      db_merge(apachesolr_get_indexer_table($type))
+        ->key(array(
+          'entity_type' => $type,
+          'entity_id' => $id,
+        ))
+        ->fields(array(
+          'bundle' => $bundle,
+          'status' => 1,
+          'changed' => $last_indexed,
+        ))
+        ->execute();
+    }
+  }
+}
+
+/**
+ * Check whether a single entity is indexable (based on its published status).
+ *
+ * @param object $entity
+ *   Entity and its fields.
+ *
+ * @param string $type
+ *   The type of entity.
+ *
+ * @return boolean
+ *   TRUE if the entity can be indexed by Solr.
+ */
+function _apachesolr_realtime__entity_should_index($entity, $type) {
+  // Include the index file for the status callback
+  module_load_include('inc', 'apachesolr', 'apachesolr.index');
+
+  $info = entity_get_info($type);
+  list($id, $vid, $bundle) = entity_extract_ids($type, $entity);
+
+  // Check status callback before sending to the index
+  $status_callbacks = apachesolr_entity_get_callback($type, 'status callback', $bundle);
+
+  $status = TRUE;
+  if (is_array($status_callbacks)) {
+    foreach ($status_callbacks as $status_callback) {
+      if (is_callable($status_callback)) {
+        // By placing $status in front we prevent calling any other callback
+        // after one status callback returned false.
+        // The entity being saved is passed to the status callback in
+        // addition to $id in case the callback needs to examine properties
+        // such as the current node revision which cannot be determined by
+        // loading a fresh copy of the entity.
+        $status = $status && $status_callback($id, $type, $entity);
+      }
+    }
+  }
+  return $status;
+}
+
+/**
+ * Commit Solr index making the document available.
+ */
+function apachesolr_realtime_commit($env_id) {
+  $server = apachesolr_environment_load($env_id);
+  $solr_version = apachesolr_realtime_solrversion();
+  $url = $server['url'] . "/update";
+  // If Solr 4 perform softCommit.
+  if ($solr_version == '4') {
+    $url .= '?commit=true&softCommit=true';
+  }
+  else {
+    $url .= '?commit=true';
+  }
+
+  $result = drupal_http_request($url);
+
+  if ($result->code != 200 || !empty($result->error)) {
+    $commit_time = date('r');
+    watchdog('Apachesolr Realtime', 'Commit at %commit_time failed. Solr will commit at the next interval.', array(
+      '%commit_time' => $commit_time,
+    ), WATCHDOG_WARNING);
+    drupal_set_message(t('Commit at @commit_time failed. Solr will commit at the next interval.', array(
+      '@commit_time' => $commit_time,
+    )), 'warning');
+  }
+}
+
+/**
+ * Detects Solr Version.
+ *
+ * @return
+ *  returns solr versions of 4,3,1, Not recognized! or Not accessible!
+ */
+function apachesolr_realtime_solrversion() {
+  $env_id = apachesolr_default_environment();
+  $solr = apachesolr_get_solr($env_id);
+
+  try {
+    // Get Solr version.
+    $systeminfo = $solr->getSolrVersion();
+    if (preg_match("/^(4.\\d)/", $systeminfo)) {
+      $solr_version = '4';
+    }
+    elseif (preg_match("/^(3.\\d)/", $systeminfo)) {
+      $solr_version = '3';
+    }
+    elseif (preg_match("/^(1.\\d)/", $systeminfo)) {
+      $solr_version = '1';
+    }
+    else {
+      $solr_version = "Solr version not recognized!";
+    }
+    return $solr_version;
+  }
+  catch (Exception $e) {
+    return "Solr Server not accessible!";
+  }
+}
+
+/**
+ * Helper function to fetch the solr environment id(s) of an entity type.
+ */
+function _apachesolr_realtime_get_env_ids($entity_type) {
+  $env_ids = array();
+
+  $environments = apachesolr_load_all_environments();
+  foreach ($environments as $environment) {
+    if (!empty($environment['index_bundles']['node']) && in_array($entity_type, $environment['index_bundles']['node'])) {
+      $env_ids[] = $environment['env_id'];
+    }
+  }
+
+  // If empty at least set the default env for indexing.
+  if (empty($env_ids)) {
+    $env_ids[] = apachesolr_default_environment();
+  }
+
+  return $env_ids;
+}

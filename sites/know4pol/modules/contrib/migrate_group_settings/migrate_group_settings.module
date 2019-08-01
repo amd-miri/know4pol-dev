@@ -1,0 +1,25 @@
+<?php	
+
+/**
+ * @file
+ * Main file.
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function migrate_group_settings_menu() {
+  $items = array();
+
+  $items['admin/config/content/migrate_group_settings'] = array(
+    'title' => 'Migrate group settings',
+    'description' => 'Change database settings',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('migrate_group_settings_admin_settings'),
+    'access arguments' => array('administer site configuration'),
+    'type' => MENU_NORMAL_ITEM,
+    'file' => 'migrate_group_settings.admin.inc',
+  );
+
+  return $items;
+}

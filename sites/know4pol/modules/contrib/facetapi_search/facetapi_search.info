@@ -1,0 +1,11 @@
+name = Facet API Search
+description = Allows users to search for facets within the Facet API block.
+dependencies[] = facetapi
+package = Search Toolkit
+core = 7.x
+; Information added by Drupal.org packaging script on 2016-09-12
+version = "7.x-1.1"
+core = "7.x"
+project = "facetapi_search"
+datestamp = "1473671344"
+

@@ -1,0 +1,8 @@
+<?php
+
+/**
+ * @file
+ * registryonsteroids_alter_contrib.module
+ */
+
+require_once __DIR__ . '/views/views.inc';

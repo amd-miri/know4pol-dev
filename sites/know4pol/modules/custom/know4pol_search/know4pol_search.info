@@ -1,0 +1,11 @@
+name = Know4pol Search
+description = Know4pol Search custom block
+core = 7.x
+package = Know4pol
+php = 5.2.4
+dependencies[] = context
+files[] = plugins/facetapi/Know4polSearchFacetapiWidgetOGVocab.inc
+files[] = plugins/facetapi/Know4polSearchFacetapiExcludeOGVocab.inc
+stylesheets[all][] = css/know4pol_search.css
+scripts[] = js/know4pol_search.js
+multisite_version = 2.4

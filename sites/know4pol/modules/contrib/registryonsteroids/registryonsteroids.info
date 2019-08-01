@@ -1,0 +1,19 @@
+name = Registry on steroids
+description = Registry on steroids discovers and adds additional theme preprocess/process functions for theme hook variants.
+core = 7.x
+configure = admin/config/development/registryonsteroids
+php = 5.6
+
+dependencies[] = xautoload
+
+; If the contrib module "alternatives" is available, the user is able to choose between xautoload or registry_autoload.
+alternatives[xautoload][] = registry_autoload
+
+; Configuration for registry_autoload if it's used.
+registry_autoload[] = PSR-4
+
+; Information added by Drupal.org packaging script on 2019-01-18
+version = "7.x-1.6"
+core = "7.x"
+project = "registryonsteroids"
+datestamp = "1547811484"

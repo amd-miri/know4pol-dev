@@ -1,0 +1,71 @@
+#block-know4pol-search-know4pol-main-search {
+  margin: 2em 0 1em 0;
+}
+
+#block-know4pol-search-know4pol-search {
+  margin: 2em 0;
+}
+
+#topic_button {
+  margin-right: 1em;
+}
+
+#know4pol-search-form {
+  display: block !important;
+  background-color: #ebebeb;
+  padding: 15px;
+}
+
+#know4pol-search-form .ecl-u-mt-m,
+#know4pol-search-form .ecl-u-mv-m {
+  margin: 0 !important;
+}
+
+#know4pol-search-form #know4pol-form-label {
+  float: left;
+  width: 90%;
+}
+
+#know4pol-search-form .ecl-button {
+  line-height: inherit !important;
+  width: 10%;
+  padding: .89rem;
+}
+
+#know4pol-search-form .ecl-radio__label::before {
+  margin-left: 10px;
+  margin-right: 3px;
+}
+
+#know4pol-search-form #edit-type,
+#know4pol-search-form #edit-solr-search-page {
+  clear: both;
+  margin-top: 20px;
+}
+
+.browse-by-block {
+  margin: 1rem 0;
+  color: white;
+}
+
+.browse-by-block h3 {
+  margin-bottom: 0.8rem;
+}
+
+.browse-by-block .dropdown-list {
+  background-color: #004494;
+  display: none;
+  margin: 0;
+}
+
+.browse-by-block .dropdown-list a {
+  color: white;
+}
+
+.browse-by-block .dropdown-list p {
+  color: white;
+}
+
+.browse-by-block .dropdown-list a:hover {
+  text-decoration: underline;
+}

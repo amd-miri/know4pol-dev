@@ -1,0 +1,489 @@
+/* Related KS topic view */
+.view-related-ks-topic-content .views-row {
+  margin-top: 1.66rem;
+}
+.view-related-ks-topic-content .views-row:last-child hr {
+  display: none;
+}
+.view-related-ks-topic-content #topic-more-resources-button {
+  margin: 1.66rem 0;
+}
+
+/* BKC Glossary view */
+.view-bkc-glossary span.views-summary-unformatted a {
+  display: block;
+  float: left;
+  width: 70px;
+  margin-left: 5px;
+  margin-top: 5px;
+  text-align: center;
+  font-size: 2em;
+  font-weight: 600;
+  color: white;
+  text-decoration: none !important;
+  padding: 10px;
+  background-color: #004494;
+  border-radius: 10px;
+}
+
+.view-bkc-glossary span.views-summary-unformatted a:hover {
+  color: white;
+  text-decoration: underline !important;
+  opacity: 0.8;
+}
+
+/* KS latest content view */
+#block-know4pol-core-know4pol-ks-latest-content {
+  margin: 2em 0 1em 0;
+}
+
+#block-know4pol-core-know4pol-ks-latest-content .view-ks-latest-content {
+  padding: 0 1rem 0 0;
+}
+
+#block-know4pol-core-know4pol-ks-latest-content .views-row {
+  padding-bottom: 15px;
+}
+
+.ecl-tabs__tabpanel {
+  margin-top: 20px;
+}
+
+ul.ecl-listing--three-columns li {
+  flex-grow: 0 !important;
+}
+
+.ecl-list li.view-mode-apachesolr_page:last-child hr {
+  display: none;
+}
+
+.region-sidebar-first .block-facetapi {
+  margin-top: 1.66rem;
+}
+
+.region-sidebar-first .block-facetapi ul.facetapi-facetapi-checkbox-links {
+  margin-top: 1rem;
+  list-style-type: none;
+}
+
+.region-sidebar-first .block-facetapi ul.facetapi-know4pol-core-ogvocab-list li.ecl-form-label {
+  margin-top: 1rem;
+}
+
+.region-sidebar-first .ecl-form .form-item-facets.ecl-u-mt-m {
+  margin-top: 1rem;
+}
+
+ul li.leaf {
+  list-style-type: none;
+  list-style-image: none;
+}
+
+.ecl-breadcrumbs li a.active {
+  color: inherit;
+}
+
+.ecl-date-block {
+  float: left;
+  margin-right: 1rem;
+  margin-bottom: 1.6rem;
+}
+
+.view-mode-apachesolr_page .ecl-u-mt-m {
+  clear: both;
+}
+
+/* Missing from the ECL css in theme ec_europa */
+.field {
+  margin-bottom: 10px;
+}
+
+.ecl-footer__list {
+  margin: 0;
+  max-width: none;
+  font-size: .9rem;
+}
+
+#block-bean-share-buttons {
+  clear: both;
+  margin-top: 10px;
+}
+
+.region-utility {
+  display: flex;
+}
+
+.region-utility p {
+  margin: 0 0 0 10px;
+}
+
+li.statistics_counter,
+.webform-back-survey {
+  display: none;
+}
+
+#facetapi-facet-apachesolrsolr-block-sm-og-vocabulary a.facetapi-checkbox {
+  text-transform: lowercase;
+}
+
+.ecl-editor .ecl-button--default:active,
+.ecl-editor .ecl-button--default:focus,
+.ecl-editor .ecl-button--default:hover,
+.ecl-editor .ecl-button--primary {
+  color: #fff !important;
+}
+
+.ecl-editor .ecl-button--primary:active,
+.ecl-editor .ecl-button--primary:focus,
+.ecl-editor .ecl-button--primary:hover {
+  color: #004494 !important;
+}
+
+.group-footer .ecl-table {
+  margin-top: 20px;
+}
+
+.group-footer .ecl-table th {
+  font-size: 1.3em;
+}
+
+.ds-2col-stacked-fluid.node .group-footer .field-label-inline {
+  -webkit-box-align: center;
+  align-items: center;
+  display: -webkit-box;
+  display: table-cell !important;
+  margin: .4rem 0;
+}
+
+.ds-2col-stacked-fluid.node .group-footer .ecl-field__label {
+  font-size: .78rem;
+  margin-right: .89rem;
+  text-transform: uppercase;
+  font-weight: normal;
+  width: unset;
+}
+
+.ds-2col-stacked-fluid.node .group-footer .ecl-field__body {
+  font-size: .78rem;
+}
+
+.ds-2col-stacked-fluid.node .group-footer .field-label-inline.field-name-og-vocabulary {
+  margin-top: .5rem;
+}
+
+.ds-2col-stacked-fluid.node .group-footer .field-label-inline.field-name-og-vocabulary .ecl-field__body {
+  margin-left: 2rem;
+  margin-top: .5rem;
+}
+
+.ds-2col-stacked-fluid.node .group-footer .field-label-inline.field-name-og-vocabulary .item-list li {
+  margin: .5rem 0;
+  margin-top: .5rem;
+}
+
+.ds-2col-stacked-fluid.node .group-footer .field-label-inline.field-name-og-vocabulary .item-list ul {
+  margin: 0;
+  list-style-type: none;
+}
+
+/* Images */
+.media-element-container .file-image {
+  display: table;
+  max-width: 100%;
+}
+
+.media-element-container .file-image span {
+  width: inherit;
+  max-width: 100%;
+}
+
+.media-element-container .file-image,
+.node-topic .field-type-image,
+.node-publication .field-type-image {
+  line-height: 1em;
+  font-size: .8em;
+  color: #555;
+  border: 1px solid #ddd;
+  padding: 5px;
+  background-color: #fff;
+  box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.25);
+  position: relative;
+}
+
+.node-topic .field-type-image,
+.node-publication .field-type-image {
+  max-width: 150px;
+}
+
+@media (min-width: 480px) {
+  .node-topic .field-type-image,
+  .node-publication .field-type-image {
+    float: right;
+    margin-left: 1rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .node-topic .field-type-image,
+  .node-publication .field-type-image {
+    max-width: 250px;
+  }
+}
+
+.media-element-container .file-image .below-image-text {
+  display: block;
+  width: 100%;
+}
+
+/* ECL Fixes, waiting to be adresed by theme team. */
+.ecl-button--call {
+  color: #000 !important;
+}
+
+.ecl-tag {
+  display: block;
+}
+
+.ecl-tag__item {
+  white-space: nowrap;
+  display: inline-block;
+  margin-bottom: .3rem;
+  margin-right: .35rem;
+  margin-left: .35rem;
+}
+
+.know4pol-main-resource-meta-link {
+  font-weight: bold;
+}
+
+div.file__container img {
+  width: 100%;
+}
+
+.field-name-field-vis-image img {
+  width: 100%;
+}
+
+.field-type-link-field {
+  margin-bottom: 1rem !important;
+}
+
+.media {
+  height: auto !important;
+}
+
+.ecl-footer a,
+.ecl-footer a:hover {
+  text-decoration: underline;
+}
+
+.ecl-footer__social-links li:last-child {
+  display: inline-block;
+  margin-left: .89rem;
+}
+
+#block-menu-menu-footer-middle .block__content li {
+  display: inline-block;
+  margin-right: .89rem;
+  font-size: .9rem;
+}
+
+#block-menu-menu-footer-right .block__content li {
+  font-size: .9rem;
+}
+
+/* Some CSS for the KS footer menus */
+section[id*='block-menu-menu-footer-middle-'] .block__title {
+  margin: 0;
+  display: inline-block;
+  font-weight: 700;
+  font-size: .9rem;
+}
+
+section[id*='block-menu-menu-footer-middle-'] .block__content,
+section[id*='block-menu-menu-footer-middle-'] .block__content ul {
+  display: inline-block;
+}
+
+section[id*='block-menu-menu-footer-middle-'] .block__content li {
+  display: inline-block;
+  margin-right: .89rem;
+  font-size: .9rem;
+}
+
+section[id*='block-menu-menu-footer-middle-'] .block__content li a {
+  color: #012b58;
+}
+
+section[id*='block-menu-menu-footer-middle-'] .block__content li a::after {
+  position: relative !important;
+}
+
+/* ECL v0 Component inpage-nav issue on some version of browsers */
+.ecl-navigation-inpage.js-is-sticky {
+  max-width: 256px;
+}
+@media(min-width:768px) {
+  .ecl-navigation-inpage.js-is-sticky {
+    max-width: 145px;
+  }
+}
+@media(min-width:992px) {
+  .ecl-navigation-inpage.js-is-sticky {
+    max-width: 210px;
+  }
+}
+@media(min-width:1200px) {
+  .ecl-navigation-inpage.js-is-sticky {
+    max-width: 256px;
+  }
+}
+
+/* Navigation pages */
+.node-navigation-page .ecl-listing {
+  margin: -1rem;
+  margin-bottom: 0;
+  padding: 0;
+  width: 100%;
+}
+
+.node-navigation-page .ecl-listing--highlights {
+  margin-top: 1rem;
+  margin-bottom: 0;
+}
+
+@media (max-width: 992px) {
+  .node-navigation-page .ecl-listing--highlights {
+    margin: 0;
+  }
+}
+
+.node-navigation-page .ecl-listing a:hover {
+  text-decoration: underline;
+}
+.node-navigation-page .ecl-listing a,
+.node-navigation-page .ecl-listing .field-type-text-with-summary a:hover,
+.node-navigation-page .ecl-listing h2 a:hover {
+  text-decoration: none;
+}
+
+.node-navigation-page .ecl-listing .field-type-text-with-summary a {
+  color: #404040;
+  line-height: 1.667rem;
+}
+
+.node-navigation-page .ecl-listing .field-name-field-child-pages .ecl-field__body div {
+  margin: .5rem 0;
+}
+
+.node-navigation-page .ecl-listing h2 {
+  font-size: 1.2rem;
+  margin: 1rem 0;
+}
+
+.node-navigation-page .ecl-list-item .list-content {
+  display: block;
+  padding: 0;
+  border-top: 3px solid #ffd617;
+  margin: 1rem;
+}
+
+.node-navigation-page .ecl-list-item .list-content:hover {
+  border-top-color: #004494;;
+}
+
+.node-navigation-page .ecl-list-item .ecl-row {
+  display: block;
+  flex-wrap: unset;
+}
+
+.node-navigation-page .ecl-list-item .list-content:focus {
+  outline: 3px solid #ffd617;
+  outline-offset: 2px;
+  text-decoration: underline;
+}
+
+hr.listing__separator {
+  margin: .5em 0 1em;
+  border: 0;
+  border-top: 1px solid gray;
+}
+
+.node-navigation-page .ecl-list-item .field {
+  margin-bottom: 0;
+}
+
+/* ECL file */
+.content .ecl-file {
+  margin: 1rem 0;
+}
+
+/* Fix the facet button margins */
+.ecl-tag--facet-close .ecl-tag__label {
+  margin-right: 0;
+}
+
+.ecl-tag--facet-close .ecl-button--facet-close {
+  margin-right: 1.35rem;
+}
+
+/* ECL Link */
+.ecl-link {
+  word-wrap: break-word;
+}
+
+/* My workbench */
+div.admin.my-workbench .left {
+  display: none;
+}
+
+div.admin.my-workbench .right {
+  width: 100% !important;
+}
+
+
+/* DS custom layout (css file not taken) */
+.ds-2col-stacked-fluid.group-one-column.apachesolr > .group-right {
+  width: auto;
+}
+@media (min-width: 480px) {
+  .ds-2col-stacked-fluid.group-one-column.apachesolr > .group-right img {
+    width: 65%;
+  }
+}
+@media (min-width: 768px) {
+  .ds-2col-stacked-fluid.group-one-column.apachesolr > .group-right img {
+    width: auto;
+  }
+}
+@media (min-width: 992px) {
+  .ds-2col-stacked-fluid.group-one-column.apachesolr > .group-right {
+    width: auto;
+    float: right;
+    margin-right: -240px;
+}
+  .ds-2col-stacked-fluid.group-one-column.apachesolr > .group-right img {
+    width: 65%;
+  }
+}
+@media (min-width: 1200px) {
+  .ds-2col-stacked-fluid.group-one-column.apachesolr > .group-right img {
+    width: 100%;
+  }
+}
+
+/* KNOW4POL-402 KNOW4POL-414 - Highcharts issue with caption on ECL v0 */
+.highcharts-title[aria-hidden=true],
+.highcharts-label [aria-hidden=true] {
+  display: unset;
+}
+
+/* KNOW4POL-397 */
+.page-header--image {
+  background: #004494 url(data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP//yH5BAEAAAAALAAAAAABAAEAAAIBRAA7) 50%/cover no-repeat;
+}
+
+/* KNOW4POL-400 */
+.node-visualisation .field-name-field-vis-caption {
+  font-weight: bold;
+}

@@ -1,6 +1,7 @@
 <?php
+
 /**
-*Load local development override configuration, if available.
+ * Load local development override configuration, if available.
  *
  * Use a custom settings file to override variables on secondary (staging,
  * development, etc) installations of this site. Typically used to disable
@@ -676,20 +677,6 @@ $conf['404_fast_html'] = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML+RDFa 1.0//EN"
 # $conf['allow_css_double_underscores'] = TRUE;
 
 /**
- * The default list of directories that will be ignored by Drupal's file API.
- *
- * By default ignore node_modules and bower_components folders to avoid issues
- * with common frontend tools and recursive scanning of directories looking for
- * extensions.
- *
- * @see file_scan_directory()
- */
-$conf['file_scan_ignore_directories'] = array(
-  'node_modules',
-  'bower_components',
-);
-
-/**
  * Override session cookie lifetime defined above.
  * Set value to zero for session cookies to be deleted when browser is closed.
  */
@@ -718,13 +705,14 @@ $local_settings = dirname(__FILE__) . '/settings.local.php';
 if (file_exists($local_settings)) {
   include $local_settings;
 }
+$conf['error_level'] = 2;
+$conf['views_ui_show_sql_query'] = 1;
+$conf['views_ui_show_performance_statistics'] = 1;
+$conf['views_show_additional_queries'] = 1;
+$conf['stage_file_proxy_origin'] = 'https://localhost/know4pol';
+$conf['stage_file_proxy_origin_dir'] = 'sites/know4pol/files';
+$conf['stage_file_proxy_hotlink'] = 1;
 $conf['file_public_path'] = 'sites/default/files';
 $conf['file_private_path'] = 'sites/default/files/private_files';
 $conf['file_temporary_path'] = 'sites/default/tmp';
-$conf['stage_file_proxy_origin'] = 'https://webgate.ec.europa.eu/multisite/know4pol';
-$conf['stage_file_proxy_origin_dir'] = 'sites/know4pol/files';
-$conf['stage_file_proxy_hotlink'] = 1;
-$conf['multisite_toolbox_cs_whitelist'] = array('*.europa.eu');
-define('FPFIS_ECAS_URL', 'ecas.ec.europa.eu');
-define('FPFIS_ECAS_PORT', 443);
-define('FPFIS_ECAS_URI', '/cas');
+$base_url = 'https://localhost/know4pol';

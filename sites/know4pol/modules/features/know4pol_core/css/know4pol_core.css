@@ -1,0 +1,21 @@
+.region-utility {
+  background-color: #ffd617;
+  display: flex;
+  padding: 10px;
+}
+
+.region-utility p {
+  margin: 0 0 0 10px;
+}
+
+.region-utility div.element {
+  margin: 0 0 0 10px;
+}
+
+.wtShareList {
+  padding: 0 !important;
+}
+
+#block-know4pol-core-know4pol-ks-admin-menu .block__content .element {
+  float: left;
+}

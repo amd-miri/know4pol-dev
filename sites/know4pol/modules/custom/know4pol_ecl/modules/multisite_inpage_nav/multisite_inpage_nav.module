@@ -1,0 +1,127 @@
+<?php
+
+/**
+ * @file
+ * Nexteuropa inline page navigation.
+ */
+
+// Constant defining the header format used.
+define('MULTISITE_INPAGE_NAV_DEPTH', 'h2');
+
+// Load the helpers.
+module_load_include('inc', 'multisite_inpage_nav', 'multisite_inpage_nav.helpers');
+
+/**
+ * Implements hook_theme().
+ */
+function multisite_inpage_nav_theme() {
+  return [
+    'inpage_nav_block' => [
+      'template' => 'inpage_nav_block',
+      'path' => drupal_get_path('module', 'multisite_inpage_nav') . '/templates',
+      'variables' => [
+        'title' => '',
+        'links' => '',
+      ],
+    ],
+  ];
+}
+
+/**
+ * Implements hook_ds_fields_info().
+ */
+function multisite_inpage_nav_ds_fields_info($entity_type) {
+  $fields = [];
+
+  $fields[$entity_type]['in_page_navigation'] = [
+    'title' => t('Inpage navigation'),
+    'field_type' => DS_FIELD_TYPE_FUNCTION,
+    'function' => '_multisite_inpage_nav_render_tmp',
+  ];
+
+  return $fields;
+}
+
+/**
+ * Helper function that acts as a placeholder for the inpage nav.
+ *
+ * @param array $field
+ *   All information on the field and its parent entity.
+ *
+ * @return string
+ *   Space, to have it render.
+ */
+function _multisite_inpage_nav_render_tmp(array $field) {
+  return ' ';
+}
+
+/**
+ * Implements hook_entity_view_alter().
+ *
+ * When we request the inpage navigation, we add a pre render function.
+ */
+function multisite_inpage_nav_entity_view_alter(&$build, $type) {
+  if (isset($build['in_page_navigation'])) {
+    $build['#pre_render'][] = '_multisite_inpage_nav_build_inpage_nav';
+  }
+}
+
+/**
+ * Implements hook_ds_layout_info_alter().
+ */
+function multisite_inpage_nav_ds_layout_info_alter(&$layouts) {
+  // Remove all layouts not created by this module.
+  $path = drupal_get_path('module', 'multisite_inpage_nav');
+
+  $layouts['ne_bootstrap_3_9_stacked'] = [
+    'label' => t('NE Bootstrap: 3-9 stacked'),
+    'path' => $path . '/ds/ne_bootstrap_3_9_stacked',
+    'regions' => [
+      'header' => t('Header'),
+      'left' => t('Left'),
+      'central' => t('Middle'),
+      'footer_top' => t('Footer top'),
+      'footer' => t('Footer Middle'),
+      'footer_bottom' => t('Footer bottom'),
+    ],
+    'form' => TRUE,
+    'image' => TRUE,
+    'is_nexteuropa' => TRUE,
+  ];
+
+  return $layouts;
+}
+
+/**
+ * Implements hook_wysiwyg_plugin().
+ */
+function multisite_inpage_nav_wysiwyg_plugin($editor, $version) {
+  $plugins = array();
+  switch ($editor) {
+    case 'ckeditor':
+      if ($version > 4) {
+        $plugins['dt_headings'] = array(
+          'path' => drupal_get_path('module', 'multisite_inpage_nav') . '/plugins/dt_headings',
+          'filename' => 'plugin.js',
+          'load' => TRUE,
+          'buttons' => array(
+            'dt_headings' => t('Headings, detailed'),
+          ),
+        );
+      }
+      break;
+  }
+  return $plugins;
+}
+
+/**
+ * Implements hook_wysiwyg_editor_settings_alter().
+ */
+function multisite_inpage_nav_wysiwyg_editor_settings_alter(&$settings, $context) {
+  if ($context['profile']->editor == 'ckeditor') {
+    // Add button to toolbar.
+    if (!empty($settings['toolbar'])) {
+      $settings['toolbar'][0][] = 'dt_headings';
+    }
+  }
+}

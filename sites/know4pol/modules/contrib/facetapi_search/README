@@ -1,0 +1,19 @@
+
+-- SUMMARY --
+This module allows users to search for facets showing a textfield
+at the very top of your Facets blocks.
+
+-- REQUIREMENTS --
+Facet API
+
+-- HOW TO USE IT --
+* Enable Facet API Search module
+* From you facet block, click on "Configure facet display" contextual menu link
+* Flag the "Enable contextual facets search." checkbox
+* Enjoy it!
+
+-- CONTACT --
+
+Current maintainers:
+
+* bmeme.com - http://www.bmeme.com

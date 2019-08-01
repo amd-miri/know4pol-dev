@@ -1,0 +1,173 @@
+<?php
+
+/**
+ * @file
+ * Code for the know4pol-ecl feature.
+ */
+
+/**
+ * Implements hook_wysiwyg_plugin().
+ */
+function know4pol_ecl_wysiwyg_plugin($editor, $version) {
+  $plugins = array();
+  switch ($editor) {
+    case 'ckeditor':
+      if ($version > 4) {
+        $plugins['eclbutton'] = array(
+          'path' => drupal_get_path('module', 'know4pol_ecl') . '/plugins/eclbutton',
+          'filename' => 'plugin.js',
+          'load' => TRUE,
+          'buttons' => array(
+            'eclbutton' => t('ECL Button'),
+          ),
+        );
+        $plugins['eclexpandable'] = array(
+          'desc' => 'Expandable - ' . t('Inserts ECL template markup'),
+          'internal' => FALSE,
+          'path' => drupal_get_path('module', 'know4pol_ecl') . '/plugins/eclexpandable',
+          'filename' => 'plugin.js',
+          'load' => TRUE,
+          'buttons' => array(
+            'eclexpandable' => t('ECL expandable'),
+          ),
+        );
+      }
+      break;
+  }
+  return $plugins;
+}
+
+/**
+ * Implements hook_wysiwyg_editor_settings_alter().
+ */
+function know4pol_ecl_wysiwyg_editor_settings_alter(&$settings, $context) {
+  global $base_url;
+
+  // Only ckeditor configuration;.
+  if ($context['profile']->editor != 'ckeditor') {
+    return;
+  }
+
+  // Apply source formating when viewing html source.
+  $settings['apply_source_formatting'] = 1;
+  $settings['cleanup_on_startup'] = TRUE;
+
+  // Available default values: "p;h2;h3;h4;h5;h6".
+  $settings['format_tags'] = "Paragraph;h2;h3;h4;h5;h6";
+
+  // Change the default format p.
+  $settings['format_Paragraph']['name'] = 'Paragraph';
+  $settings['format_Paragraph']['element'] = 'p';
+
+  // Settings ckeditor to use theme css.
+  $settings['contentsCss'] = [
+    '0' => $base_url . '/' . drupal_get_path('theme', 'ec_europa') . '/assets/styles/wysiwyg/editor.css',
+    '1' => $base_url . '/' . drupal_get_path('theme', 'ec_europa') . '/assets/styles/europa.css',
+    '2' => $base_url . '/' . drupal_get_path('theme', 'know4pol_ec_europa') . '/assets/styles/know4pol_ec_europa.css',
+    '3' => $base_url . '/' . drupal_get_path('module', 'know4pol_core') . '/css/know4pol_core.css',
+  ];
+
+  $settings['bodyClass'] = 'padding-wysiwyg-body';
+
+  // Make sure the toolbar is there.
+  if (!empty($settings['toolbar'])) {
+    $settings['toolbar'] = _know4pol_ecl_get_wysiwyg_toolbar($context['profile']->format);
+  }
+}
+
+/**
+ * Return ckeditor toolbars settings.
+ *
+ * @param string $format
+ *   The format setting string.
+ *
+ * @return array
+ *   An array of toolbars.
+ *
+ * @see hook_wysiwyg_editor_settings_alter()
+ */
+function _know4pol_ecl_get_wysiwyg_toolbar($format) {
+  $toolbar = [];
+
+  // These are our desired groupings.
+  switch ($format) {
+    case 'basic_html':
+      $toolbar[] = ['Bold', 'Italic', 'Underline', 'SpecialChar'];
+      $toolbar[] = ['Link', 'Unlink'];
+      $toolbar[] = ['BulletedList', 'NumberedList'];
+      $toolbar[] = ['PasteFromWord', 'PasteText', 'RemoveFormat'];
+      break;
+
+    case 'filtered_html':
+      $toolbar[] = ['Format'];
+      $toolbar[] = [
+        'Bold',
+        'Italic',
+        'Underline',
+        'Subscript',
+        'Superscript',
+        'SpecialChar',
+      ];
+      $toolbar[] = ['Link', 'NextEuropaToken', 'Unlink', 'Anchor'];
+      $toolbar[] = ['BulletedList', 'NumberedList', 'Outdent', 'Indent'];
+      $toolbar[] = ['PasteFromWord', 'PasteText', 'RemoveFormat'];
+      break;
+
+    case 'full_html':
+      $toolbar[] = ['Format'];
+      $toolbar[] = [
+        'Bold',
+        'Italic',
+        'Underline',
+        'Subscript',
+        'Superscript',
+        'SpecialChar',
+        'HorizontalRule',
+      ];
+      $toolbar[] = ['Link', 'NextEuropaToken', 'Unlink', 'Anchor'];
+      $toolbar[] = ['BulletedList', 'NumberedList', 'Outdent', 'Indent'];
+      $toolbar[] = ['PasteFromWord', 'PasteText', 'RemoveFormat'];
+      $toolbar[] = [
+        'Table',
+        'Blockquote',
+        'media',
+        'Iframe',
+        'eclexpandable',
+        'eclbutton',
+      ];
+      break;
+  }
+
+  // Common for all formats;.
+  $toolbar[] = ['Undo', 'Maximize'];
+  $toolbar[] = [
+    'lite_AcceptAll',
+    'lite_RejectAll',
+    'lite_AcceptOne',
+    'lite_RejectOne',
+    'lite_ToggleShow',
+    'lite_ToggleTracking',
+  ];
+
+  if ($format != 'basic_html') {
+    $toolbar[] = ['ShowBlocks', 'Source'];
+  }
+
+  return $toolbar;
+}
+
+/**
+ * Implements hook_quicktabs_renderers().
+ */
+function know4pol_ecl_quicktabs_renderers() {
+  $info = array();
+  $path = drupal_get_path('module', 'know4pol_ecl') . '/plugins/quicktabs/';
+  $info['ecl_tabs'] = array(
+    'path' => $path,
+    'handler' => array(
+      'file' => 'Know4polEclTabs.inc',
+      'class' => 'Know4polEclTabs',
+    ),
+  );
+  return $info;
+}
