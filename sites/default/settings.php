@@ -1,7 +1,6 @@
 <?php
-
 /**
- * Load local development override configuration, if available.
+*Load local development override configuration, if available.
  *
  * Use a custom settings file to override variables on secondary (staging,
  * development, etc) installations of this site. Typically used to disable
@@ -615,12 +614,12 @@ $conf['404_fast_html'] = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML+RDFa 1.0//EN"
  * proxy_exceptions variable is an array of host names to be accessed directly,
  * not via proxy.
  */
-# $conf['proxy_server'] = '';
-# $conf['proxy_port'] = 8080;
-# $conf['proxy_username'] = '';
-# $conf['proxy_password'] = '';
-# $conf['proxy_user_agent'] = '';
-# $conf['proxy_exceptions'] = array('127.0.0.1', 'localhost');
+ $conf['proxy_server'] = 'ps-bxl-usr.cec.eu.int';
+ $conf['proxy_port'] = 8012;
+ $conf['proxy_username'] = 'miriahm';
+ $conf['proxy_password'] = 'Maman$4747';
+ $conf['proxy_user_agent'] = '';
+ $conf['proxy_exceptions'] = array('127.0.0.1', 'localhost');
 
 /**
  * Authorized file system operations:
@@ -675,6 +674,20 @@ $conf['404_fast_html'] = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML+RDFa 1.0//EN"
  * @see drupal_clean_css_identifier()
  */
 # $conf['allow_css_double_underscores'] = TRUE;
+
+/**
+ * The default list of directories that will be ignored by Drupal's file API.
+ *
+ * By default ignore node_modules and bower_components folders to avoid issues
+ * with common frontend tools and recursive scanning of directories looking for
+ * extensions.
+ *
+ * @see file_scan_directory()
+ */
+$conf['file_scan_ignore_directories'] = array(
+  'node_modules',
+  'bower_components',
+);
 
 /**
  * Override session cookie lifetime defined above.

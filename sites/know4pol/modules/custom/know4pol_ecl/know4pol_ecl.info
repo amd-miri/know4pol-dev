@@ -1,7 +1,0 @@
-name = know4pol-ecl
-description = ECL wiggets and components for Knowledge4policy site.
-core = 7.x
-package = JRC
-php = 5.2.4
-multisite_version = 2.4
-files[] = plugins/quicktabs/Know4polEclTabs.inc
