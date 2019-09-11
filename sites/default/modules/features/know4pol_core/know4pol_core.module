@@ -186,6 +186,10 @@ function know4pol_core_tokens($type, $tokens, array $data = array(), array $opti
             $gids[] = $gid['target_id'];
           }
         }
+        // Maybe specified in static variable for specific case.
+        elseif (!empty($static_gids = drupal_static('know4pol_core_og_group_ref'))) {
+          $gids = $static_gids;
+        }
         // New content, try to find gid in query parameters.
         else {
           // For ajax calls and new content.
@@ -202,7 +206,6 @@ function know4pol_core_tokens($type, $tokens, array $data = array(), array $opti
           }
 
         }
-
         $replacements[$original] = implode('+', $gids);
         break;
       }
@@ -762,6 +765,12 @@ function _know4pol_core_post_process_callback(FeedsSource $source, $entity, $tar
   }
   else {
     $entity->{$target} = $field;
+  }
+  // KNOW4POL-490. Store this for the request so token can read from it.
+  if ($target == 'og_group_ref') {
+    $gids = &drupal_static('know4pol_core_og_group_ref');
+    $gids = $entity->{$target};
+    $gids = array_column($gids[LANGUAGE_NONE], 'target_id');
   }
 }
 
