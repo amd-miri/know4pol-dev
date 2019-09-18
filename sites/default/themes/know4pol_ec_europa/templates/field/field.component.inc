@@ -183,11 +183,11 @@ function _know4pol_ec_europa_preprocess_field__field_vis_qlik_elements__visualis
       if (isset($fcit['field_vis_qlik_options']['#items'][0]['value'])) {
         switch ($fcit['field_vis_qlik_options']['#items'][0]['value']) {
           case "no_interaction":
-            $js_item['option'] = '{noInteraction: true}';
+            $js_item['option'] = (object) ['noInteraction' => TRUE];
             break;
 
           case "no_selection":
-            $js_item['option'] = '{noSelections: true}';
+            $js_item['option'] = (object) ['noSelections' => TRUE];
             break;
         }
       }
