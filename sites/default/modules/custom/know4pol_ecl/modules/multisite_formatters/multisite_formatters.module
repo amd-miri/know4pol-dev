@@ -782,10 +782,10 @@ function _multisite_formatters_trim_html_text($html, $max_len, $type, $suffix) {
     }
   }
 
-  $result = drupal_substr($html, 0, $current_pos + $offset_tags);
+  $result = trim(drupal_substr($html, 0, $current_pos + $offset_tags));
 
   // Append suffix if cropped.
-  if ($last_word < count($text[0])) {
+  if ($last_word < count($text[0]) - 1) {
     $result .= filter_xss($suffix);
   }
   // Loop trough until opened tags are closed.
