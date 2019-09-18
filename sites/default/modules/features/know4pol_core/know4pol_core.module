@@ -1174,6 +1174,13 @@ function know4pol_core_mail($key, &$message, $params) {
  */
 function _know4pol_core_assign_ks_action($entity, array $context) {
   $entity->og_group_ref[LANGUAGE_NONE][]['target_id'] = $context['view_info']['arguments'][0];
+  // Only for Pubsy publications,
+  // Publish the node.
+  if ($entity->status == 0 &&
+      $entity->type == 'publication' &&
+      !empty($entity->field_pub_dc_rel_ispartofseries[LANGUAGE_NONE][0]['value'])) {
+    $entity->status = 1;
+  }
   node_save($entity);
 }
 
@@ -1194,6 +1201,14 @@ function _know4pol_core_unassign_ks_action($entity, array $context) {
     }
   }
   $entity->og_group_ref[LANGUAGE_NONE] = array_values($og_array);
+  // Only for Pubsy publications,
+  // Unpublish the node if no other KS attached.
+  if ($entity->status == 1 &&
+      $entity->type == 'publication' &&
+      !empty($entity->field_pub_dc_rel_ispartofseries[LANGUAGE_NONE][0]['value']) &&
+      empty($entity->og_group_ref[LANGUAGE_NONE][0]['target_id'])) {
+    $entity->status = 0;
+  }
   node_save($entity);
 }
 
