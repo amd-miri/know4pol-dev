@@ -26,4 +26,7 @@ function know4pol_ec_europa_preprocess_page(&$variables, $hook) {
     $variables['page']['content']['system_main']['search_results']['search_results']['#prefix'] = '<ul class="ecl-list ecl-list--unstyled ecl-u-mv-m">';
     $variables['page']['content']['system_main']['search_results']['search_results']['#suffix'] = '</ul>';
   }
+
+  // KNOW4POL-502: usage of CCK mandatody on all ec.europa pages.
+  drupal_add_js('https://ec.europa.eu/wel/cookie-consent/consent.js', 'external');
 }
