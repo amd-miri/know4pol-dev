@@ -15,26 +15,6 @@ function know4pol_core_views_api() {
 }
 
 /**
- * Implements hook_views_data().
- */
-function know4pol_core_views_data() {
-  $data = array();
-
-  // Create a custom views filter.
-  $data['node']['pubsy_only'] = array(
-    'group' => t('Custom'),
-    'real field' => 'field_pub_dc_rel_ispartofseries',
-    'title' => t('Pubsy only'),
-    'help' => t('Show only the Pubsy publications.'),
-    'filter' => array(
-      'handler' => 'Know4polCoreHandlerFilterPubsyOnly',
-    ),
-  );
-
-  return $data;
-}
-
-/**
  * Implements hook_views_pre_build().
  */
 function know4pol_core_views_pre_build(&$view) {

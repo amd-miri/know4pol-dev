@@ -6,5 +6,4 @@ php = 5.2.4
 features[features_api][] = api:2
 features_exclude[dependencies][ctools] = ctools
 stylesheets[all][] = css/know4pol_core.css
-files[] = includes/know4pol_core_handler_filter_pubsy_only.inc
 multisite_version = 2.4

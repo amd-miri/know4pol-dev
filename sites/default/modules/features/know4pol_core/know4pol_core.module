@@ -287,39 +287,6 @@ function know4pol_core_form_node_form_alter(&$form, &$form_state, $form_id) {
         $form['field_banner_image']['#disabled'] = TRUE;
       }
     }
-
-    // KNOW4POL-504 - Group topics by KS for field-ks-related-topics.
-    if (isset($form['field_ks_related_topics'])) {
-      $options = array();
-      // Go through all current options;.
-      foreach ($form['field_ks_related_topics'][LANGUAGE_NONE]['#options'] as $k => $v) {
-        if ($k == '_none') {
-          // None value, copy for later and skip.
-          $none = $v;
-          continue;
-        }
-        // Get topic and KS name from option name.
-        if (preg_match('/^(.*) \- (.*)$/i', $v, $match)) {
-          $ks = $match[2];
-          if (!isset($options[$ks])) {
-            $options[$ks] = array();
-          }
-          $options[$ks][$k] = $match[1];
-        }
-      }
-      if (count($options) < 2) {
-        $options = array_pop($options);
-      }
-
-      // Set back _none option.
-      if (isset($none)) {
-        $options['_none'] = $none;
-      }
-
-      // Update values.
-      $form['field_ks_related_topics'][LANGUAGE_NONE]['#options'] = $options;
-    }
-
   }
 
   $form['actions']['unpublish'] = array(
@@ -1601,4 +1568,37 @@ function know4pol_core_node_presave($node) {
   // Update the date.
   $node->field_last_update[LANGUAGE_NONE][0]['value'] = format_date(time(), 'custom', KNOW4POL_CORE_LASTUPDATE_DATE_FORMAT);
   $node->field_last_update[LANGUAGE_NONE][0]['value2'] = $node->field_last_update[LANGUAGE_NONE][0]['value'];
+}
+
+/**
+ * Sets properly the workbench_moderation_node_history records.
+ *
+ * @param object $node
+ *   The node object that was updated/saved via Pubsy Feeds.
+ */
+function know4pol_core_node_save($node) {
+  if ($node->type == "publication" &&
+      isset($node->field_pub_dc_rel_ispartofseries[LANGUAGE_NONE][0]["value"]) &&
+      !empty($node->field_pub_dc_rel_ispartofseries[LANGUAGE_NONE][0]["value"]) &&
+      $node->uid == 0) {
+    db_update('node')
+      ->fields(array('status' => 0))
+      ->condition('status', 1)
+      ->condition('nid', $node->nid)
+      ->execute();
+  }
+}
+
+/**
+ * Implements hook_node_update().
+ */
+function know4pol_core_node_update($node) {
+  know4pol_core_node_save($node);
+}
+
+/**
+ * Implements hook_node_insert().
+ */
+function know4pol_core_node_insert($node) {
+  know4pol_core_node_save($node);
 }
