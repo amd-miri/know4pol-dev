@@ -287,6 +287,39 @@ function know4pol_core_form_node_form_alter(&$form, &$form_state, $form_id) {
         $form['field_banner_image']['#disabled'] = TRUE;
       }
     }
+
+    // KNOW4POL-504 - Group topics by KS for field-ks-related-topics.
+    if (isset($form['field_ks_related_topics'])) {
+      $options = array();
+      // Go through all current options;.
+      foreach ($form['field_ks_related_topics'][LANGUAGE_NONE]['#options'] as $k => $v) {
+        if ($k == '_none') {
+          // None value, copy for later and skip.
+          $none = $v;
+          continue;
+        }
+        // Get topic and KS name from option name.
+        if (preg_match('/^(.*) \- (.*)$/i', $v, $match)) {
+          $ks = $match[2];
+          if (!isset($options[$ks])) {
+            $options[$ks] = array();
+          }
+          $options[$ks][$k] = $match[1];
+        }
+      }
+      if (count($options) < 2) {
+        $options = array_pop($options);
+      }
+
+      // Set back _none option.
+      if (isset($none)) {
+        $options['_none'] = $none;
+      }
+
+      // Update values.
+      $form['field_ks_related_topics'][LANGUAGE_NONE]['#options'] = $options;
+    }
+
   }
 
   $form['actions']['unpublish'] = array(
