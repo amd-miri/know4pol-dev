@@ -132,3 +132,17 @@ function know4pol_ec_europa_url_outbound_alter(&$path, &$options, $original_path
     unset($options['query']['destination']);
   }
 }
+
+/**
+ * Returns TRUE if a path is external to Drupal and 'ec.europa.eu' domain.
+ *
+ * @param string $path
+ *   The internal path or external URL being linked to, such as "node/34" or
+ *   "http://example.com/foo".
+ *
+ * @return bool
+ *   Boolean TRUE or FALSE, where TRUE indicates an external path.
+ */
+function _know4pol_ec_europa_url_is_external($path) {
+  return url_is_external($path) && !preg_match('/(\w+\.)*europa.eu$/', drupal_parse_url($path, PHP_URL_HOST)) && FALSE === stripos(drupal_parse_url($path, PHP_URL_HOST), $_SERVER['HTTP_HOST']);
+}

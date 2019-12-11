@@ -96,7 +96,7 @@ function multisite_filters_filter_process($text, $filter, $format, $langcode, $c
     case 'multisite_filter_ecl':
       // Use DomDocument to manipulate HTML.
       $dom = new DomDocument();
-      $dom->loadHtml('<?xml version="1.0" encoding="UTF-8"?>' . "\n" . $text);
+      $dom->loadHtml('<?xml version="1.0" encoding="UTF-8"?>' . "\n" . $text, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD | LIBXML_NOXMLDECL);
 
       // Get all links.
       foreach ($dom->getElementsByTagName('a') as $node) {
@@ -110,14 +110,14 @@ function multisite_filters_filter_process($text, $filter, $format, $langcode, $c
           $node->appendChild($class);
         }
         // Uses ec_europa theme function.
-        if (_ec_europa_url_is_external($link)) {
+        if (_know4pol_ec_europa_url_is_external($link)) {
           $add_class[] = 'ecl-link--external';
         }
 
         $class->value = implode(' ', array_merge(explode(' ', $class->value), $add_class));
       }
-      // Output altered HTML as replacement.
-      $text = $dom->saveHTML();
+      // Output replacement, removes XML/declaration markup if present.
+      $text = preg_replace('/<([\?\!]).*?\1?>/', '', $dom->saveHTML());
       break;
 
   }
