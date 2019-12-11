@@ -309,7 +309,7 @@ function know4pol_search_form_submit(&$form, &$form_state) {
   $search_url .= '/' . $keywords;
 
   // Build search url and redirect.
-  $form_state['redirect'] = $base_url . $search_url . '?' . drupal_http_build_query($query);
+  $form_state['redirect'] = $base_url . '/' . $search_url . '?' . drupal_http_build_query($query);
 }
 
 /**
