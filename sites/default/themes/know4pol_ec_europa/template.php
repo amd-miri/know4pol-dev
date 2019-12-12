@@ -144,5 +144,11 @@ function know4pol_ec_europa_url_outbound_alter(&$path, &$options, $original_path
  *   Boolean TRUE or FALSE, where TRUE indicates an external path.
  */
 function _know4pol_ec_europa_url_is_external($path) {
-  return url_is_external($path) && !preg_match('/(\w+\.)*europa.eu$/', drupal_parse_url($path, PHP_URL_HOST)) && FALSE === stripos(drupal_parse_url($path, PHP_URL_HOST), $_SERVER['HTTP_HOST']);
+  // Durpal knows this is internal ?
+  if (!url_is_external($path)) {
+    return FALSE;
+  }
+  // The host is this site or in europa.eu?
+  $regex_internal = '/^(https?:\/{2})?((\w+\.)*europa.eu|' . str_replace('.', '\.', $_SERVER['HTTP_HOST']) . ')([\/\s:]|$).*?$/';
+  return !preg_match($regex_internal, $path);
 }
