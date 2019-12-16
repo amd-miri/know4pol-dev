@@ -285,53 +285,41 @@ function know4pol_search_form($form, $form_state) {
  */
 function know4pol_search_form_submit(&$form, &$form_state) {
   global $base_url;
-  $keyword = preg_replace('/[^A-Za-z0-9 \-\']/', '', $form_state['values']['keyword']);
-  $knowledge_centre_nid = $form_state['values']['knowledge_centre_nid'];
-  $content_type = $form_state['values']['type'];
-  $is_content_type_selected = FALSE;
-  if ($content_type != 'all') {
-    $is_content_type_selected = TRUE;
+  $query = array();
+  $i = 0;
+
+  // KS selected ?
+  if ($knowledge_centre_nid = $form_state['values']['knowledge_centre_nid']) {
+    $query['f[' . ++$i . ']'] = 'sm_og_group_ref:node:' . $knowledge_centre_nid;
   }
-  // Check if a Newsroom item is chosen.
-  $newsroom_items_names = array();
-  $newsroom_items_vocabulary = taxonomy_vocabulary_machine_name_load('newsroom_item_type');
-  $newsroom_items = taxonomy_get_tree($newsroom_items_vocabulary->vid);
-  foreach ($newsroom_items as $value) {
-    $newsroom_items_names += array(drupal_strtolower($value->name) => $value->name);
-  }
-  $is_newsroom_item_selected = FALSE;
-  // If it's a Newsroom item.
-  if (array_key_exists($content_type, $newsroom_items_names)) {
-    $is_newsroom_item_selected = TRUE;
-  }
-  // Building search url, containing list of numbered solr search parameters.
-  if ($is_newsroom_item_selected) {
-    if (drupal_substr($content_type, -1) == 's') {
-      $output = $base_url . '/' . $content_type . '/' . $keyword;
-    }
-    else {
-      $output = $base_url . '/' . $content_type . 's/' . $keyword;
-    }
+
+  // Get specific SolR page or default page.
+  $solr_pages = array_change_key_case(array_flip(_know4pol_search_get_solr_search_pages()));
+  $search_for = $form_state['values']['type'];
+  if (array_key_exists($search_for, $solr_pages)) {
+    $search_url = $solr_pages[$search_for];
   }
   else {
-    $output = $base_url . '/search/site/' . $keyword;
+    $search_url = $solr_pages['all'];
+    $query['f[' . ++$i . ']'] = 'bundle:' . $search_for;
   }
-  $i = 0;
-  if (($is_content_type_selected && !$is_newsroom_item_selected) || $knowledge_centre_nid) {
-    $output .= '?';
-  }
-  if ($knowledge_centre_nid) {
-    $output .= 'f[' . $i . ']=sm_og_group_ref:node:' . $knowledge_centre_nid;
-    $i++;
-  }
-  if ($is_content_type_selected && $knowledge_centre_nid) {
-    $output .= '&';
-  }
-  if ($is_content_type_selected && !$is_newsroom_item_selected) {
-    $output .= 'f[' . $i . ']=bundle:' . $content_type;
-    $i++;
-  }
-  $form_state['redirect'] = $output;
+
+  // Clean non word characters.
+  $keywords = _know4pol_search_clean_keywords($form_state['values']['keyword']);
+  $search_url .= '/' . $keywords;
+
+  // Build search url and redirect.
+  $form_state['redirect'] = $base_url . '/' . $search_url . '?' . drupal_http_build_query($query);
+}
+
+/**
+ * Clean non word characters for keywords.
+ *
+ * @return string
+ *   The cleaned text.
+ */
+function _know4pol_search_clean_keywords($input) {
+  return preg_replace('/[^\w\s\-\']/', '', $input);
 }
 
 /**
@@ -413,7 +401,7 @@ function know4pol_mainsearch_form($form, $form_state) {
  */
 function know4pol_mainsearch_form_submit(&$form, &$form_state) {
   global $base_url;
-  $keyword = preg_replace('/[^A-Za-z0-9\- \']/', '', $form_state['values']['keyword']);
+  $keyword = _know4pol_search_clean_keywords($form_state['values']['keyword']);
   $solr_search_page = $form_state['values']['solr_search_page'];
   // Building search url, containing list of numbered solr search parameters.
   $output = $base_url . '/' . $solr_search_page . '/' . $keyword;
