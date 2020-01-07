@@ -277,9 +277,6 @@ function know4pol_core_form_node_form_alter(&$form, &$form_state, $form_id) {
           $form['field_pub_dc_language']['#disabled'] = TRUE;
           $form['field_pub_dc_type']['#disabled'] = TRUE;
         }
-
-        krumo($form);
-
         break;
     }
 
