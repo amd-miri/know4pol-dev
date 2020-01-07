@@ -246,7 +246,7 @@ function know4pol_core_form_node_form_alter(&$form, &$form_state, $form_id) {
     switch ($form['#node']->type) {
       case  'publication':
         // Disable all fields if it's coming from Pubsy.
-        if ($form['#node']->uid == '-1') {
+        if ($form['#node']->uid == '1') {
           $form['title']['#disabled'] = TRUE;
           $form['field_pub_image']['#disabled'] = TRUE;
           $form['body']['#disabled'] = TRUE;
@@ -890,7 +890,6 @@ function know4pol_core_block_info() {
     'info' => t('Know4pol KS admin block'),
     'cache' => DRUPAL_NO_CACHE,
   );
-
   return $blocks;
 }
 
