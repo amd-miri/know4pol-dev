@@ -69,8 +69,6 @@ function _know4pol_core_get_last_ressources_types(array $remove = array(), $mach
       $result[$ct] = $machine ? $ct : $node_types[$ct]->name;
     }
   }
-  krumo($view->display['latest_resources']->display_options['filters']['type']['value']);
-  krumo($result);
 
   return $result;
 }
