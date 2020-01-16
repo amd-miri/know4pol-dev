@@ -12,6 +12,24 @@ define('MULTISITE_INPAGE_NAV_DEPTH', 'h2');
 module_load_include('inc', 'multisite_inpage_nav', 'multisite_inpage_nav.helpers');
 
 /**
+ * Implements hook_menu().
+ */
+function multisite_inpage_nav_menu() {
+  $items = array();
+  $items['admin/config/inpage_nav'] = array(
+    'title' => 'In-page nav',
+    'description' => "Configure settings",
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('multisite_inpage_nav_admin'),
+    'access arguments' => array('administer site configuration'),
+    'type' => MENU_NORMAL_ITEM,
+    'file' => 'multisite_inpage_nav.admin.inc',
+  );
+
+  return $items;
+}
+
+/**
  * Implements hook_theme().
  */
 function multisite_inpage_nav_theme() {
@@ -22,6 +40,14 @@ function multisite_inpage_nav_theme() {
       'variables' => [
         'title' => '',
         'links' => '',
+      ],
+    ],
+    'inpage_nav_layout' => [
+      'template' => 'inpage_nav_layout',
+      'path' => drupal_get_path('module', 'multisite_inpage_nav') . '/templates',
+      'variables' => [
+        'left' => '',
+        'central' => '',
       ],
     ],
   ];
@@ -123,5 +149,39 @@ function multisite_inpage_nav_wysiwyg_editor_settings_alter(&$settings, $context
     if (!empty($settings['toolbar'])) {
       $settings['toolbar'][0][] = 'dt_headings';
     }
+  }
+}
+
+/**
+ * Implements template_preprocess_page().
+ */
+function multisite_inpage_nav_preprocess_page(&$variables, $hook) {
+
+  $post_render_active = FALSE;
+  // Make sure we're viewing a node.
+  if (isset($variables['node'])) {
+    // Listed in content types.
+    if (in_array($variables['node']->type, variable_get('multisite_inpage_nav_content_types'))) {
+      $post_render_active = TRUE;
+    }
+    else {
+      // Listed in view_modes, found only ref content of region.
+      $view_mode = $variables['page']['content']['system_main']['nodes'][$variables['node']->nid]['#view_mode'];
+      $modes = variable_get('multisite_inpage_nav_viewmode');
+      if (count($modes) && in_array($view_mode, $modes)) {
+        $post_render_active = TRUE;
+      }
+    }
+  }
+  // If not already triggered, check in paths;.
+  if (!$post_render_active) {
+    $paths = preg_split('/\R/', variable_get('multisite_inpage_nav_path'));
+    if (count($paths) && in_array(menu_get_item()['href'], $paths)) {
+      $post_render_active = TRUE;
+    }
+  }
+
+  if ($post_render_active) {
+    $variables['page']['content']['#post_render'][] = '_multisite_inpage_nav_post_process_page';
   }
 }

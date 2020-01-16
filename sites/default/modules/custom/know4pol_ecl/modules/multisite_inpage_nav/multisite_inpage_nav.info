@@ -1,5 +1,5 @@
 name = Multisite ECL component In-Page navigation
-description = Provides in-page (or anchor) links to all H2 headings on page via DS field.
+description = Provides in-page (or anchor) links to all H2 headings on page via DS field or markup
 core = 7.x
 dependencies[] = know4pol_ecl
 dependencies[] = ds
