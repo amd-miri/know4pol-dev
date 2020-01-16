@@ -353,16 +353,38 @@ function _multisite_inpage_nav_get_anchors_from_markup($markup) {
   // Looking for:
   // H2 elements that have an id attribute or
   // DIV elements with id attributes thats first child is an H2.
-  $pattern = "/<" . MULTISITE_INPAGE_NAV_DEPTH . ".*?id=\"(.[^\"]*)\".*?>(.[^\<]*)<\/" . MULTISITE_INPAGE_NAV_DEPTH . ">|<div.[^<]?id=\"(.[^\"]*)\".*?><" . MULTISITE_INPAGE_NAV_DEPTH . ">(.*?)<\/" . MULTISITE_INPAGE_NAV_DEPTH . ">/i";
+  $pattern = "/<" . MULTISITE_INPAGE_NAV_DEPTH . "(.*?id=\"(.[^\"]*)\".*?)>(.[^\<]*)<\/" . MULTISITE_INPAGE_NAV_DEPTH . ">|<div.[^<]?id=\"(.[^\"]*)\".*?><" . MULTISITE_INPAGE_NAV_DEPTH . ">(.*?)<\/" . MULTISITE_INPAGE_NAV_DEPTH . ">/i";
+  $sub_pattern = '/anchor="([^"]+)"/i';
 
   preg_match_all($pattern, $markup, $matches);
 
   foreach ($matches[1] as $i => $id) {
     $inpage_nav_list[] = [
-      'id' => $matches[1][$i] . $matches[3][$i],
-      'label' => strip_tags($matches[2][$i] . $matches[4][$i]),
+      'id' => $matches[2][$i] . $matches[4][$i],
+      'label' => preg_match($sub_pattern, $matches[1][$i], $anchor) ? $anchor[1] : strip_tags($matches[3][$i] . $matches[5][$i]),
     ];
   }
 
   return $inpage_nav_list;
+}
+
+/**
+ * Render function for inpage navigation post process.
+ *
+ * @param string $markup
+ *   The output rendered as HTML.
+ *
+ * @return string
+ *   The altered makrup with the navigation added
+ */
+function _multisite_inpage_nav_post_process_page($markup) {
+  if ($anchors = _multisite_inpage_nav_get_anchors_from_markup($markup)) {
+    return theme('inpage_nav_layout', [
+      'left' => _multisite_inpage_nav_render($anchors),
+      'central' => $markup,
+    ]);
+  }
+  else {
+    return $markup;
+  }
 }
