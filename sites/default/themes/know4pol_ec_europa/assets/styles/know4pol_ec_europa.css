@@ -178,7 +178,6 @@ li.statistics_counter,
 
 .ds-2col-stacked-fluid.node .group-footer .field-label-inline.field-name-og-vocabulary .item-list li {
   margin: .5rem 0;
-  margin-top: .5rem;
 }
 
 .ds-2col-stacked-fluid.node .group-footer .field-label-inline.field-name-og-vocabulary .item-list ul {
@@ -486,4 +485,35 @@ div.admin.my-workbench .right {
 /* KNOW4POL-400 */
 .node-visualisation .field-name-field-vis-caption {
   font-weight: bold;
+}
+
+/* Policy layer */
+.node-type-topic div.view-mode-featured section.ecl-col-md-12 .ecl-editor.first.last p,
+.node-type-topic div.view-mode-featured section.ecl-col-md-12 .ecl-editor.first.last ul {
+  max-width: unset;
+}
+
+@media (min-width: 992px) {
+  .node-type-topic .field-name-field-summary {
+    clear: left;
+  }
+}
+
+@media (min-width: 992px) {
+  .node-type-topic .field-name-field-av-image {
+    float: left;
+    margin-right: 2rem;
+    width: 400px;
+  }
+}
+
+.node-type-topic  h2#links {
+  margin-bottom: 0;
+  clear: both;
+}
+
+.view hr {
+  margin-top: unset;
+  border: 0;
+  border-top: 1px solid gray;
 }

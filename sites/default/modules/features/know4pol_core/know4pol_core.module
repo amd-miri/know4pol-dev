@@ -246,7 +246,7 @@ function know4pol_core_form_node_form_alter(&$form, &$form_state, $form_id) {
     switch ($form['#node']->type) {
       case  'publication':
         // Disable all fields if it's coming from Pubsy.
-        if ($form['#node']->uid == '-1') {
+        if ($form['#node']->uid == '1') {
           $form['title']['#disabled'] = TRUE;
           $form['field_pub_image']['#disabled'] = TRUE;
           $form['body']['#disabled'] = TRUE;
@@ -1643,4 +1643,18 @@ function know4pol_core_node_update($node) {
  */
 function know4pol_core_node_insert($node) {
   know4pol_core_node_save($node);
+}
+
+/**
+ * Implements hook_entity_view_mode_alter().
+ */
+function know4pol_core_entity_view_mode_alter(&$view_mode, $context) {
+  // For preparing until full release.
+  if (user_access('administer content')) {
+    if ($view_mode == 'full' && $context['entity']->type == 'topic') {
+      if ($context['entity']->field_featured[LANGUAGE_NONE][0]['value']) {
+        $view_mode = 'featured';
+      }
+    }
+  }
 }
