@@ -1643,3 +1643,17 @@ function know4pol_core_node_update($node) {
 function know4pol_core_node_insert($node) {
   know4pol_core_node_save($node);
 }
+
+/**
+ * Implements hook_entity_view_mode_alter().
+ */
+function know4pol_core_entity_view_mode_alter(&$view_mode, $context) {
+  // For preparing until full release.
+  if (user_access('administer content')) {
+    if ($view_mode == 'full' && $context['entity']->type == 'topic') {
+      if ($context['entity']->field_featured[LANGUAGE_NONE][0]['value']) {
+        $view_mode = 'featured';
+      }
+    }
+  }
+}
