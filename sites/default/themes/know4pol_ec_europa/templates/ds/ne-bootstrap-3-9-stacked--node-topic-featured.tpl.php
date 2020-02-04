@@ -29,16 +29,17 @@
   </div>
   <<?php print $footer_wrapper ?> class="group-footer<?php print $footer_classes; ?>">
     <?php if ($footer_top): ?>
-      <h3>Get this resource</h3>
+      <h3><?php print t('Get this resource'); ?></h3>
       <?php print $footer_top; ?>
     <?php endif; ?>
     <?php if ($footer): ?>
-      <h2 id="latest" class="ecl-heading ecl-heading--h2" anchor="News, Events, Resources">Latest on <?php print $title; ?> from the KnowledgeBase</h2>
-
+      <h2 id="latest" class="ecl-heading ecl-heading--h2" anchor="<?php print t('News, Events, Resources'); ?>">
+        <?php print t('Latest on @topic from the KnowledgeBase', array('@topic' => $title)); ?>
+      </h2>
       <?php print $footer; ?>
     <?php endif; ?>
     <?php if ($footer_bottom): ?>
-    <h2 id="links" class="ecl-heading ecl-heading--h2">Related links</h2>
+    <h2 id="links" class="ecl-heading ecl-heading--h2"><?php print t('Related links'); ?></h2>
 
     <table class="ecl-table ecl-table--responsive">
       <tbody>
