@@ -73,8 +73,8 @@
   hide($content['links']);
   ?>
 
-  <?php foreach($content as $k => $v): ?>
-    <?php if($k == 'file'): ?>
+  <?php foreach($content as $key => $value): ?>
+    <?php if($key == 'file'): ?>
       <?php
         // Alt and title tags missing, file_preprocess does not exist.
         if(isset($content['file']['#item']['field_file_image_alt_text']['en'][0]['safe_value'])):
@@ -83,11 +83,11 @@
         if(isset($content['file']['#item']['field_file_image_title_text']['en'][0]['safe_value'])):
           $content['file']['#item']['title'] = $content['file']['#item']['field_file_image_title_text']['en'][0]['safe_value'];
         endif ?>
-      <?php print l(render($content[$k]),
+      <?php print l(render($content[$key]),
         $referencing_entity->field_audiovisual[LANGUAGE_NONE][0]['url'],
         array('html' => TRUE)); ?>
     <?php else: ?>
-      <?php print render($content[$k]); ?>
+      <?php print render($content[$key]); ?>
     <?php endif; ?>
   <?php endforeach; ?>
 
