@@ -2,16 +2,16 @@
 
 /**
  * @file
- * Installation file for Brexit module.
+ * Installation file for bulk_schedule module.
  */
 
 /**
  * Implements hook_schema().
  */
-function brexit_schema() {
+function bulk_schedule_schema() {
   return array(
-    'brexit' => array(
-      'description' => 'The main table to hold the brexit data.',
+    'bulk_schedule' => array(
+      'description' => 'The main table to hold the scheduled data.',
       'fields' => array(
         'nid' => array(
           'description' => 'The foreign key to node.nid',
@@ -34,7 +34,7 @@ function brexit_schema() {
 /**
  * Implements hook_uninstall().
  */
-function brexit_uninstall() {
-  variable_del('brexit_active');
-  variable_del('brexit_publication_datetime');
+function bulk_schedule_uninstall() {
+  variable_del('bulk_schedule_active');
+  variable_del('bulk_schedule_publication_datetime');
 }

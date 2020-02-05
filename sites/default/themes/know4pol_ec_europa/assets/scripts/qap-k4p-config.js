@@ -4,7 +4,7 @@
  */
 
 var config = {
-  host: 'qap-datam.jrc.ec.europa.eu',
+  host: 'qlik-sense.jrc.ec.europa.eu',
   prefix: '/qap/',
   port: 443,
   isSecure: true

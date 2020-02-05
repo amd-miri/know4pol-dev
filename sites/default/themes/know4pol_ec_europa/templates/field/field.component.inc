@@ -61,7 +61,7 @@ function know4pol_ec_europa_preprocess_field(array &$variables, $hook) {
   // Custom hook for specific fields.
   switch ($el['#field_name']) {
     case 'ks_name_topic_specific_taxonomies':
-      $variables['label'] = t('Knowledge service | Topics | Specific keywords');
+      $variables['label'] = t('Knowledge service | Metadata');
       break;
 
     case 'field_vis_data_url':
@@ -156,8 +156,8 @@ function _know4pol_ec_europa_preprocess_field__field_vis_qlik_elements__visualis
   // Build data paramters if relevant type.
   if ($variables['element']['#object']->field_vis_type[LANGUAGE_NONE][0]['value'] == "Qlik") {
 
-    drupal_add_css('//qap-datam.jrc.ec.europa.eu/qap/content/Default/qlik-styles.css', 'external');
-    drupal_add_js('//qap-datam.jrc.ec.europa.eu/qap/resources/assets/external/requirejs/require.js', 'external');
+    drupal_add_css('//qlik-sense.jrc.ec.europa.eu/qap/content/Default/qlik-styles.css', 'external');
+    drupal_add_js('//qlik-sense.jrc.ec.europa.eu/qap/resources/assets/external/requirejs/require.js', 'external');
     drupal_add_js(drupal_get_path('theme', 'know4pol_ec_europa') . '/assets/scripts/qap-k4p-config.js', array('type' => 'file', 'scope' => 'footer'));
 
     $variables['atomium']['attributes']['wrapper']->append('class', 'qlik-wrapper');

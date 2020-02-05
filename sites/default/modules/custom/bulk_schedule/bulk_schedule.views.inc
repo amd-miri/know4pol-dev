@@ -2,15 +2,15 @@
 
 /**
  * @file
- * Views integration file for Brexit module.
+ * Views integration file for bulk_schedule module.
  */
 
 /**
  * Implements hook_views_data().
  */
-function brexit_views_data() {
-  $tables['brexit']['table']['group'] = t('Brexit');
-  $tables['brexit']['table']['join'] = array(
+function bulk_schedule_views_data() {
+  $tables['bulk_schedule']['table']['group'] = t('Bulk Schedule');
+  $tables['bulk_schedule']['table']['join'] = array(
     'node' => array(
       'left_field' => 'nid',
       'field' => 'nid',
@@ -18,16 +18,16 @@ function brexit_views_data() {
   );
 
   // Tread as boolean field.
-  $tables['brexit']['vid'] = array(
+  $tables['bulk_schedule']['vid'] = array(
     'title' => t('Boolean field'),
-    'help' => t('Brexit revision indicator.'),
+    'help' => t('Bulk scheduled indicator.'),
     'field' => array(
       'handler' => 'views_handler_field_boolean',
       'click sortable' => FALSE,
     ),
     'filter' => array(
       'handler' => 'views_handler_filter_boolean_operator',
-      'label' => t('Has revision for Brexit'),
+      'label' => t('Has revision for bulk scheduling'),
       'type' => 'yes-no',
       // Cheating a bit with the filter, <> 0 will achieve this.
       'use equal' => FALSE,
