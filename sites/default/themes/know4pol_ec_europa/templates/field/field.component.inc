@@ -61,7 +61,7 @@ function know4pol_ec_europa_preprocess_field(array &$variables, $hook) {
   // Custom hook for specific fields.
   switch ($el['#field_name']) {
     case 'ks_name_topic_specific_taxonomies':
-      $variables['label'] = t('Knowledge service | Topics | Specific Keywords');
+      $variables['label'] = t('Knowledge service | Topics | Specific keywords');
       break;
 
     case 'field_vis_data_url':
