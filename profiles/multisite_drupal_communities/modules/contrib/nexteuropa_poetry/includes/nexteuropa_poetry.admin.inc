@@ -29,7 +29,7 @@ function nexteuropa_poetry_client_settings_form() {
   );
   $form['service']['nexteuropa_poetry_service_password'] = array(
     '#title' => t('Password'),
-    '#type' => 'textfield',
+    '#type' => 'password',
     '#required' => TRUE,
     '#default_value' => variable_get('nexteuropa_poetry_service_password', ''),
     '#description' => t('The Poetry client password, as provided by the Poetry remote service.'),
@@ -55,7 +55,7 @@ function nexteuropa_poetry_client_settings_form() {
   );
   $form['notification']['nexteuropa_poetry_notification_password'] = array(
     '#title' => t('Password'),
-    '#type' => 'textfield',
+    '#type' => 'password',
     '#required' => TRUE,
     '#default_value' => variable_get('nexteuropa_poetry_notification_password', ''),
     '#description' => t('Drupal notification callback password, Poetry remote service will use it to authenticate against it.'),
