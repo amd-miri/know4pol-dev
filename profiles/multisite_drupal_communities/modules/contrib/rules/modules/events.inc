@@ -56,6 +56,10 @@ function rules_entity_view($entity, $type, $view_mode, $langcode) {
  */
 function rules_entity_presave($entity, $type) {
   switch ($type) {
+    case 'file':
+      rules_invoke_event('file_presave--' . $entity->type, $entity);
+      rules_invoke_event('file_presave', $entity);
+      break;
     case 'comment':
       rules_invoke_event('comment_presave--' . $entity->node_type, $entity);
       rules_invoke_event('comment_presave', $entity);
@@ -80,6 +84,10 @@ function rules_entity_presave($entity, $type) {
  */
 function rules_entity_update($entity, $type) {
   switch ($type) {
+    case 'file':
+      rules_invoke_event('file_update--' . $entity->type, $entity);
+      rules_invoke_event('file_update', $entity);
+      break;
     case 'comment':
       rules_invoke_event('comment_update--' . $entity->node_type, $entity);
       rules_invoke_event('comment_update', $entity);
@@ -104,6 +112,10 @@ function rules_entity_update($entity, $type) {
  */
 function rules_entity_insert($entity, $type) {
   switch ($type) {
+    case 'file':
+      rules_invoke_event('file_insert--' . $entity->type, $entity);
+      rules_invoke_event('file_insert', $entity);
+      break;
     case 'comment':
       rules_invoke_event('comment_insert--' . $entity->node_type, $entity);
       rules_invoke_event('comment_insert', $entity);

@@ -11,7 +11,7 @@ $ composer install
 ```
 
 This will download all development dependencies and build a Drupal 7 target site under `./build` and run
-`./vendor/bin/run drupal:component-scaffold` to setup proper symlink and produce necessary scaffolding files.
+`./vendor/bin/run drupal:site-setup` to setup proper symlink and produce necessary scaffolding files.
 
 After that:
 
@@ -27,6 +27,9 @@ $ ./vendor/bin/run
 ## Configuration
 
 After installing the module a new administration page will be available in `admin/config/regional/poetry-client`.
+
+For the `Remote service` (Poetry) Username and Password, and the `Notification handler` (Callback) Username and Password, 
+use the same credentials as for the [DGT Connector](https://github.com/ec-europa/platform-dev/tree/release-2.5/profiles/common/modules/features/nexteuropa_dgt_connector#user-content-general-settings-see-dgt-reference-explanation)
 
 Set the following value for `Service WSDL` according to your environment:
 

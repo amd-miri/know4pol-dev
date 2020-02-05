@@ -11,3 +11,22 @@ drupal:
   post_install:
     - "./vendor/bin/drush --root=$(pwd)/build en -y composer_autoloader nexteuropa_poetry nexteuropa_poetry_test"
     - "./vendor/bin/drush --root=$(pwd)/build dis -y overlay update"
+  drush:
+    options:
+      ignored-directories: "${drupal.root}"
+      uri: "${drupal.base_url}"
+  settings:
+    conf:
+      file_scan_ignore_directories:
+        - "vendor"
+        - "${drupal.root}"
+
+commands:
+  drupal:site-setup:
+    - { task: "chmod", file: "${drupal.root}/sites", permissions: 0774, recursive: true }
+    - { task: "symlink", from: "../../../../..", to: "${drupal.root}/sites/all/modules/custom/nexteuropa_poetry" }
+    - { task: "run", command: "drupal:drush-setup" }
+    - { task: "run", command: "drupal:settings-setup" }
+    - { task: "run", command: "setup:behat" }
+  setup:behat:
+    - { task: "process", source: "behat.yml.dist", destination: "behat.yml" }
