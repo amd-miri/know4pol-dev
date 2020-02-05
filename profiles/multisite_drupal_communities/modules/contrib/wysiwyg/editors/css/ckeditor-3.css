@@ -1,0 +1,8 @@
+
+/**
+ * CKEditor 3.x
+ */
+
+.form-item textarea.error + .cke {
+  border: 2px solid red;
+}

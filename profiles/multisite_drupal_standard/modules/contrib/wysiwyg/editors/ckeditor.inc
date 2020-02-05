@@ -51,6 +51,7 @@ function wysiwyg_ckeditor_editor() {
     'versions' => array(
       '3.0.0.3665' => array(
         'js files' => array('ckeditor-3.0.js'),
+        'css files' => array('ckeditor-3.css'),
       ),
     ),
   );

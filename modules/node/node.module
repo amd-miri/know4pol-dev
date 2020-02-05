@@ -2601,9 +2601,12 @@ function node_feed($nids = FALSE, $channel = array()) {
     $account = user_load($node->uid);
     $node->rss_elements = array(
       array('key' => 'pubDate', 'value' => gmdate('r', $node->created)),
-      array('key' => 'dc:creator', 'value' => format_username($account)),
       array('key' => 'guid', 'value' => $node->nid . ' at ' . $base_url, 'attributes' => array('isPermaLink' => 'false'))
     );
+
+    if (variable_get('node_submitted_' . $node->type, TRUE)) {
+      $node->rss_elements[] = array('key' => 'dc:creator', 'value' => $node->name);
+    }
 
     // The node gets built and modules add to or modify $node->rss_elements
     // and $node->rss_namespaces.
@@ -2659,7 +2662,7 @@ function node_feed($nids = FALSE, $channel = array()) {
  *   An array in the format expected by drupal_render().
  */
 function node_view_multiple($nodes, $view_mode = 'teaser', $weight = 0, $langcode = NULL) {
-  $build = array();
+  $build = array('nodes' => array());
   $entities_by_view_mode = entity_view_mode_prepare('node', $nodes, $view_mode, $langcode);
   foreach ($entities_by_view_mode as $entity_view_mode => $entities) {
     field_attach_prepare_view('node', $entities, $entity_view_mode, $langcode);

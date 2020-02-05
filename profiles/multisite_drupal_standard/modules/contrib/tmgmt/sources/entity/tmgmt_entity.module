@@ -243,9 +243,9 @@ function tmgmt_entity_get_translatable_entities($entity_type, $property_conditio
 }
 
 /**
- * Implements hook_tmgmt_source_suggestions()
+ * Implements hook_tmgmt_source_suggestions().
  */
-function tmgmt_entity_tmgmt_source_suggestions(array $items, TMGMTJob $job) {
+function tmgmt_entity_tmgmt_source_suggestions(array $items, $job) {
   $suggestions = array();
   // Get all translatable entity types.
   $entity_types = array_filter(variable_get('entity_translation_entity_types', array()));
@@ -257,8 +257,7 @@ function tmgmt_entity_tmgmt_source_suggestions(array $items, TMGMTJob $job) {
       $entity = entity_load_single($item->item_type, $item->item_id);
       list(, , $bundle) = entity_extract_ids($item->item_type, $entity);
       $field_instances = field_info_instances($item->item_type, $bundle);
-
-
+      
       // Loop over all fields, check if they are NOT translatable. Only if a
       // field is not translatable we may suggest a referenced entity. If so,
       // check for a supported field type (image and file currently here).
@@ -329,4 +328,43 @@ function tmgmt_entity_tmgmt_source_suggestions(array $items, TMGMTJob $job) {
     }
   }
   return $suggestions;
+}
+
+/**
+ * Manage empty entity fields which are excluded from translation.
+ *
+ * If a field has been emptied, the translation process needs to update that
+ * field with an empty value when saving the translation.
+ *
+ * @param object $entity
+ *   The entity.
+ * @param array $data_to_translate
+ *   A structured data array.
+ * @param object $job
+ *   The related TMGMT job.
+ *
+ * @return object|null
+ *   The entity wrapped data or NULL if no empty field is found returned.
+ */
+function tmgmt_entity_update_empty_fields($entity, array $data_to_translate, TMGMTJob $job) {
+  // Filter the fields that are translated, and loop to the rest.
+  if (!isset($entity->entity_type)) {
+    return NULL;
+  };
+  $info = field_info_instances($entity->entity_type, $entity->type);
+  $fields = array_diff_key($info, $data_to_translate);
+  $entity_wrapper = entity_metadata_wrapper($entity->entity_type, $entity->nid);
+
+  $has_empty_field = FALSE;
+  foreach ($fields as $field_name => $data) {
+    if (is_array($entity->$field_name) && array_key_exists($job->target_language, $entity->$field_name) &&
+      (!array_key_exists($job->source_language, $entity->$field_name) || empty($entity->$field_name[$job->source_language]))
+    ) {
+      $entity_wrapper->language($job->target_language);
+      $entity_wrapper->{$field_name}->set(NULL);
+      $has_empty_field = TRUE;
+    }
+  }
+
+  return $has_empty_field ? $entity_wrapper->value() : NULL;
 }

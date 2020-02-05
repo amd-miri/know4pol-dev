@@ -1,0 +1,40 @@
+<?php
+
+/**
+ * @file
+ * Installation file for bulk_schedule module.
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function bulk_schedule_schema() {
+  return array(
+    'bulk_schedule' => array(
+      'description' => 'The main table to hold the scheduled data.',
+      'fields' => array(
+        'nid' => array(
+          'description' => 'The foreign key to node.nid',
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+        ),
+        'vid' => array(
+          'description' => 'The foreign key to node.vid',
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+        ),
+      ),
+      'primary key' => array('nid'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function bulk_schedule_uninstall() {
+  variable_del('bulk_schedule_active');
+  variable_del('bulk_schedule_publication_datetime');
+}

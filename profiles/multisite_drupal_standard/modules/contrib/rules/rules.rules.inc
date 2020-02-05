@@ -29,7 +29,7 @@ function rules_core_modules() {
 
   if (!isset($modules)) {
     $modules = array('data', 'entity', 'node', 'system', 'user', 'rules_core');
-    foreach (array('comment', 'taxonomy', 'php', 'path') as $module) {
+    foreach (array('comment', 'taxonomy', 'php', 'path', 'file') as $module) {
       if (module_exists($module)) {
         $modules[] = $module;
       }

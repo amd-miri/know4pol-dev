@@ -728,3 +728,18 @@ function know4pol_core_update_7034() {
       ->execute();
   }
 }
+
+/**
+ * KNOW4POL-593 - Uninstall brexit module, keep feature.
+ */
+function know4pol_core_update_7035() {
+  module_disable([
+    'brexit',
+  ], FALSE);
+  drupal_uninstall_modules([
+    'brexit',
+  ], FALSE);
+  module_enable(array(
+    'bulk_schedule',
+  ), TRUE);
+}

@@ -5,6 +5,7 @@ that make use of the European Commission DGT connector services
 ## Table of Contents
 - [Installation](#installation)
   - [Webmaster / Site builder](#webmaster--site-builder)
+    - [Site requirements](#site-requirements)
     - [Requesting access](#requesting-access-to-the-dgt-connector)
     - [Configuration of the feature](#activation-of-the-feature)
   - [Server configuration](#server-configuration-devops)
@@ -30,6 +31,12 @@ that make use of the European Commission DGT connector services
 
 # Installation
 ## Webmaster / Site builder
+### Site requirements
+To be able to make use of the DGT connector services, the desired target 
+languages need to be enabled on the site. Content types that will be translated 
+in this way must use multilingual support with **field translation** and need 
+to have **moderation** of revisions enabled.
+
 ### Requesting access to the DGT-Connector
 Before you can start using the DGT-Connector on Playground or Production,
 a representative of your DG at the 
@@ -111,6 +118,9 @@ which points here:
 > admin/config/regional/tmgmt_translator/manage/poetry
 
 and edits 'DGT Connector'.
+
+Only UUID 1 can delete the translator, should you need to perform this
+operation on playground or production, please send a request to CEM.
 
 ### TRANSLATOR SETTINGS
 - *Auto accept finished translations*: Check this if the site owner wants to
@@ -228,6 +238,9 @@ date from the calendar that will pop up. This is an indicative date for DGT.
 [Go to top](#table-of-contents)
 
 # Interesting information regarding the DGT connector
+## TMGMT DGT CONNECTOR module
+The readme file of [NextEuropa DGT Connector](https://github.com/ec-europa/platform-dev/tree/release-2.5/profiles/common/modules/features/nexteuropa_dgt_connector/tmgmt_dgt_connector/README.md)
+ module provides useful information on scope and usage of the functionalities.
 ## DGT Web app: Checking the translation was received
 Once a translation has been requested to DGT, the status is updated on the
 Drupal site. In addition it is also possible for EC staff to view translation
@@ -257,8 +270,7 @@ Translations sent and received from the webservices are saved into the watchdog.
 
 :warning: We gradually move the _dblog_ to
 [kibana](https://webgate.ec.europa.eu/fpfis/logging/) and if dblog is disabled
-from your instance, request access to Kibana by creating a request in
-[Jira's MULTISITE project](https://webgate.ec.europa.eu/CITnet/jira/secure/RapidBoard.jspa).
+from your instance, please contact CEM.
 
 [Go to top](#table-of-contents)
 
