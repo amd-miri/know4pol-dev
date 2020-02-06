@@ -39,6 +39,7 @@ function know4pol_ec_europa_preprocess_block__block__5__content(&$variables, $ho
 
   // Get all active facets.
   $facets_used = $adapter->getAllActiveItems();
+  $facets_enabled = facetapi_get_enabled_facets($searcher);
   $facets = array();
 
   // Build collection.
@@ -47,7 +48,7 @@ function know4pol_ec_europa_preprocess_block__block__5__content(&$variables, $ho
     if (!isset($facets[$fname])) {
       $index = array('values' => array());
       // Get facet name.
-      $index['facet'] = facetapi_facet_load($fname, $searcher);
+      $index['facet'] = $facets_enabled[$fname];
       $facets[$fname] = $index;
     }
     $facets[$fname]['values'][] = array(

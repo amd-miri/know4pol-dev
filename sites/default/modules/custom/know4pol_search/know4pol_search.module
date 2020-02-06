@@ -739,9 +739,14 @@ function know4pol_search_facet_items_alter(&$build, &$settings) {
   switch ($settings->facet) {
     case "bundle":
       if (isset($build['newsroom_item'])) {
-        $build = _know4pol_search_split_newsroom_item($build);
+        $build = _know4pol_search_splice_facet($build, 'im_field_newsroom_item_type', TRUE);
         // Remove original filter anyway.
         unset($build['newsroom_item']);
+      }
+      if (isset($build['topic'])) {
+        $build = _know4pol_search_splice_facet($build, 'bm_field_type');
+        // Remove original filter.
+        unset($build['topic']);
       }
       break;
 
@@ -753,22 +758,24 @@ function know4pol_search_facet_items_alter(&$build, &$settings) {
 }
 
 /**
- * Split newsroom item in subtypes(News and Events).
+ * Splice facet items with another facet acting as subtypes.
  *
  * @param array $build
  *   The build array of the facet.
+ * @param string $facet_name
+ *   The facet machine name to get elements from.
+ * @param bool $remove_self
+ *   Whether to remove the param from the query, default no.
  *
  * @return array
  *   The new list of items.
  */
-function _know4pol_search_split_newsroom_item(array $build) {
-  $nr_facet_name = 'im_field_newsroom_item_type';
+function _know4pol_search_splice_facet(array $build, $facet_name, $remove_self = FALSE) {
   $solr_pages = apachesolr_search_load_all_search_pages();
 
-  // Split newsroom item in subtypes by getting the term facet.
   if ($adapter = _know4pol_ec_europa_get_solr_instance()) {
     $searcher = $adapter->getSearcher();
-    $nr_type = $adapter->getFacet(facetapi_facet_load($nr_facet_name, $searcher));
+    $nr_type = $adapter->getFacet(facetapi_facet_load($facet_name, $searcher));
     foreach ($nr_type->getBuild() as $key => $item) {
       // Get url for dedicated solR search page.
       foreach ($solr_pages as $solr_page) {
@@ -777,18 +784,29 @@ function _know4pol_search_split_newsroom_item(array $build) {
           break;
         }
       }
-      // Remove self since target page is already filtered.
+      // Remove self ? Useful if target page and already filtered.
       // Loop could be avoided if sure that self is always last.
-      foreach ($item['#query']['f'] as $index => $value) {
-        if ($value == $nr_facet_name . ':' . $item['#indexed_value']) {
-          unset($item['#query']['f'][$index]);
-          break;
+      if ($remove_self) {
+        foreach ($item['#query']['f'] as $index => $value) {
+          if ($value == $facet_name . ':' . $item['#indexed_value']) {
+            unset($item['#query']['f'][$index]);
+            break;
+          }
         }
       }
       $build[$key] = $item;
     }
   }
   return $build;
+}
+
+/**
+ * Implements know4pol_search_facetapi_enabled_facets_alter().
+ */
+function know4pol_search_facetapi_enabled_facets_alter(array &$enabled_facets, $searcher, $realm_name) {
+  if ($searcher == 'apachesolr@solr' && isset($enabled_facets['bm_field_type']) && isset($enabled_facets['bundle'])) {
+    $enabled_facets['bm_field_type']['label'] = $enabled_facets['bundle']['label'];
+  }
 }
 
 /**

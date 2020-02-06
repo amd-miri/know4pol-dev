@@ -20,7 +20,7 @@ function know4pol_core_ks_settings_form($form, &$form_state, $nid) {
   $form['latest']['types_hidden'] = array(
     '#type' => 'select',
     '#title' => t('Hidden content types'),
-    '#options' => _know4pol_core_get_last_ressources_types(),
+    '#options' => _know4pol_core_get_last_ressources_types([], FALSE),
     '#description' => t('What content types are <u>not</u> allowed to appear in the latest ressource block'),
     '#multiple' => TRUE,
     '#default_value' => _know4pol_core_get_setting($nid, 'types_hidden', NULL),
@@ -48,11 +48,13 @@ function know4pol_core_ks_settings_form_submit($form, &$form_state) {
  *
  * @param array $remove
  *   An array of machine name content types to remove from the list.
+ * @param bool $machine
+ *   Whether return machine (true) or human name, default true.
  *
  * @return array
  *   List of content types machine names.
  */
-function _know4pol_core_get_last_ressources_types(array $remove = array()) {
+function _know4pol_core_get_last_ressources_types(array $remove = array(), $machine = TRUE) {
   // Open view for accepted types;.
   $view = views_get_view('ks_latest_content');
   if (!$view || !$view->access('latest_resources')) {
@@ -60,11 +62,11 @@ function _know4pol_core_get_last_ressources_types(array $remove = array()) {
   }
 
   $result = array();
-  $node_types = node_type_get_types();
+  $node_types = $machine ? NULL : node_type_get_types();
 
   foreach ($view->display['latest_resources']->display_options['filters']['type']['value'] as $ct) {
     if (!array_key_exists($ct, $remove)) {
-      $result[$ct] = $node_types[$ct]->name;
+      $result[$ct] = $machine ? $ct : $node_types[$ct]->name;
     }
   }
 
