@@ -890,6 +890,7 @@ function know4pol_core_block_info() {
     'info' => t('Know4pol KS admin block'),
     'cache' => DRUPAL_NO_CACHE,
   );
+
   return $blocks;
 }
 
@@ -1180,11 +1181,11 @@ function _know4pol_core_suggest_ks_action_submit(array $form, array $form_state)
   $ks_editors = _know4pol_core_get_og_group_members_mails($gid, array('editor member'));
   $ks_editors = implode(',', $ks_editors);
   drupal_mail('know4pol_core', 'suggest_ks_editors', $ks_editors, language_default(),
-               array(
-                 'nodes_title' => $form['nodes_title']["#markup"],
-                 'nodes_nid' => $form['nodes_nid']["#value"],
-                 'current_path' => 'group/node/' . $gid . '/admin/sharing-content',
-               ));
+    array(
+      'nodes_title' => $form['nodes_title']["#markup"],
+      'nodes_nid' => $form['nodes_nid']["#value"],
+      'current_path' => 'group/node/' . $gid . '/admin/sharing-content',
+    ));
 }
 
 /**
@@ -1196,11 +1197,11 @@ function know4pol_core_mail($key, &$message, $params) {
   if ($key == 'suggest_ks_editors') {
     $message['subject'] = t('Suggestion from your knowledge service on Knowledge4policy website');
     $body = "Dear editors,\n\n"
-            . $user_realname . " suggets that you assign the following content to your knowledge service:\n\n"
-            . $params['nodes_title']
-            . "\nPlease go to this admin page in order to see and assign them to your knowledge service:\n"
-            . $base_url . "/" . $params['current_path'] . "?nid=" . $params['nodes_nid']
-            . "\nThis is an automatic email, please do not reply.\nThanks,\nKnowledge4policy team";
+      . $user_realname . " suggets that you assign the following content to your knowledge service:\n\n"
+      . $params['nodes_title']
+      . "\nPlease go to this admin page in order to see and assign them to your knowledge service:\n"
+      . $base_url . "/" . $params['current_path'] . "?nid=" . $params['nodes_nid']
+      . "\nThis is an automatic email, please do not reply.\nThanks,\nKnowledge4policy team";
     $message['body'][] = $body;
   }
 }
@@ -1218,8 +1219,8 @@ function _know4pol_core_assign_ks_action($entity, array $context) {
   // Only for Pubsy publications,
   // Publish the node.
   if ($entity->status == 0 &&
-      $entity->type == 'publication' &&
-      !empty($entity->field_pub_dc_rel_ispartofseries[LANGUAGE_NONE][0]['value'])) {
+    $entity->type == 'publication' &&
+    !empty($entity->field_pub_dc_rel_ispartofseries[LANGUAGE_NONE][0]['value'])) {
     $entity->status = 1;
   }
   node_save($entity);
@@ -1245,9 +1246,9 @@ function _know4pol_core_unassign_ks_action($entity, array $context) {
   // Only for Pubsy publications,
   // Unpublish the node if no other KS attached.
   if ($entity->status == 1 &&
-      $entity->type == 'publication' &&
-      !empty($entity->field_pub_dc_rel_ispartofseries[LANGUAGE_NONE][0]['value']) &&
-      empty($entity->og_group_ref[LANGUAGE_NONE][0]['target_id'])) {
+    $entity->type == 'publication' &&
+    !empty($entity->field_pub_dc_rel_ispartofseries[LANGUAGE_NONE][0]['value']) &&
+    empty($entity->og_group_ref[LANGUAGE_NONE][0]['target_id'])) {
     $entity->status = 0;
   }
   node_save($entity);
@@ -1319,11 +1320,10 @@ function know4pol_core_ds_fields_info($entity_type) {
   $fields = array();
 
   $fields['node']['ks_name_topic_specific_taxonomies'] = array(
-    'title' => t('Knowledge service | Topics | Specific keywords'),
+    'title' => t('Knowledge service | Metadata'),
     'field_type' => DS_FIELD_TYPE_FUNCTION,
     'function' => '_know4pol_core_render_ks_name_topic_specific_taxonomies',
   );
-
   return $fields;
 }
 
@@ -1434,10 +1434,10 @@ function _know4pol_core_create_keyword_content_link(array $ks_keyword, array $kn
   $ks_keyword_content_title = $ks_keyword_term->name;
   $ks_keyword_content_path = $base_url . '/search/site';
   return l($ks_keyword_content_title, $ks_keyword_content_path,
-                                array(
-                                  'attributes' => array('class' => array('ecl-tag__item')),
-                                  'query' => array('f[0]' => 'sm_og_vocabulary:taxonomy_term:' . $ks_keyword_term->tid, 'f[1]' => 'sm_og_group_ref:node:' . $knowledge_service['target_id']),
-                                ));
+    array(
+      'attributes' => array('class' => array('ecl-tag__item')),
+      'query' => array('f[0]' => 'sm_og_vocabulary:taxonomy_term:' . $ks_keyword_term->tid, 'f[1]' => 'sm_og_group_ref:node:' . $knowledge_service['target_id']),
+    ));
 }
 
 /**
@@ -1619,9 +1619,9 @@ function know4pol_core_node_presave($node) {
  */
 function know4pol_core_node_save($node) {
   if ($node->type == "publication" &&
-      isset($node->field_pub_dc_rel_ispartofseries[LANGUAGE_NONE][0]["value"]) &&
-      !empty($node->field_pub_dc_rel_ispartofseries[LANGUAGE_NONE][0]["value"]) &&
-      $node->uid == 0) {
+    isset($node->field_pub_dc_rel_ispartofseries[LANGUAGE_NONE][0]["value"]) &&
+    !empty($node->field_pub_dc_rel_ispartofseries[LANGUAGE_NONE][0]["value"]) &&
+    $node->uid == 0) {
     db_update('node')
       ->fields(array('status' => 0))
       ->condition('status', 1)
@@ -1650,7 +1650,11 @@ function know4pol_core_node_insert($node) {
 function know4pol_core_entity_view_mode_alter(&$view_mode, $context) {
   // For preparing until full release.
   if (user_access('administer content')) {
+    if ($context['entity']->type == 'topic') {
+      watchdog('know4pol_core', 'Topic page view: View mode is @viewmode', ['@viewmode' => $view_mode], WATCHDOG_DEBUG);
+    }
     if ($view_mode == 'full' && $context['entity']->type == 'topic') {
+      watchdog('know4pol_core', 'Structure of field_featured @fieldstructure', array('@fieldstructure' => print_r($context['entity']->field_featured, TRUE)), WATCHDOG_DEBUG);
       if ($context['entity']->field_featured[LANGUAGE_NONE][0]['value']) {
         $view_mode = 'featured';
       }

@@ -170,6 +170,12 @@ function know4pol_ec_europa_preprocess_page_header(&$variables, $hook) {
         if (!empty($node->field_pub_dc_date_accessioned[LANGUAGE_NONE][0]['value'])) {
           $variables['meta']['#date'] = format_date(strtotime($node->field_pub_dc_date_accessioned[LANGUAGE_NONE][0]['value']), 'meta');
         }
+        break;
+
+      case 'topic':
+        if (isset($node->field_type[LANGUAGE_NONE][0]['value'])) {
+          $variables['meta']['#type'] = check_plain(field_info_field('field_type')['settings']['allowed_values'][$node->field_type[LANGUAGE_NONE][0]['value']]);
+        }
     }
   }
   elseif (drupal_is_front_page()) {
