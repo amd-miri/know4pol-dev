@@ -223,17 +223,17 @@ function _bulk_schedule_publish() {
 
   foreach ($nids as $nid) {
     // Load specific revision (issue with published node always recreated).
-    $n = node_load($nid, $vids[$nid]);
+    $node_revision = node_load($nid, $vids[$nid]);
 
-    watchdog('bulk_schedule', 'Publishing node @type: %title.', array('@type' => $n->type, '%title' => $n->title), WATCHDOG_NOTICE, l(t('view'), 'node/' . $n->nid, array('alias' => TRUE)));
+    watchdog('bulk_schedule', 'Publishing node @type: %title.', array('@type' => $node_revision->type, '%title' => $node_revision->title), WATCHDOG_NOTICE, l(t('view'), 'node/' . $node_revision->nid, array('alias' => TRUE)));
 
-    $n->workbench_moderation_state_new = workbench_moderation_state_published();
-    $n->revision = FALSE;
+    $node_revision->workbench_moderation_state_new = workbench_moderation_state_published();
+    $node_revision->revision = FALSE;
     // Unset bulk_schedule value, bulk_schedule_node_update() will remove it.
-    $n->bulk_schedule = 0;
-    $n->changed = time();
-    $n->log = 'bulk schedule automatic publishing';
-    node_save($n);
+    $node_revision->bulk_schedule = 0;
+    $node_revision->changed = time();
+    $node_revision->log = 'bulk schedule automatic publishing';
+    node_save($node_revision);
 
     $result = TRUE;
   }

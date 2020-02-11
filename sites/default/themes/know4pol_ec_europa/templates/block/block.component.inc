@@ -61,7 +61,6 @@ function know4pol_ec_europa_preprocess_block__block__5__content(&$variables, $ho
   if (count($facets)) {
     $variables['solr']['facets'] = $facets;
   }
-
   // Remove unnecessary ".ecl-editor" class.
   $variables['atomium']['attributes']['content']['class'] = array();
 }

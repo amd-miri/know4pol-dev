@@ -1649,12 +1649,8 @@ function know4pol_core_node_insert($node) {
  */
 function know4pol_core_entity_view_mode_alter(&$view_mode, $context) {
   // For preparing until full release.
-  if (user_access('administer content')) {
-    if ($context['entity']->type == 'topic') {
-      watchdog('know4pol_core', 'Topic page view: View mode is @viewmode', ['@viewmode' => $view_mode], WATCHDOG_DEBUG);
-    }
+  if (user_access('administer nodes')) {
     if ($view_mode == 'full' && $context['entity']->type == 'topic') {
-      watchdog('know4pol_core', 'Structure of field_featured @fieldstructure', array('@fieldstructure' => print_r($context['entity']->field_featured, TRUE)), WATCHDOG_DEBUG);
       if ($context['entity']->field_featured[LANGUAGE_NONE][0]['value']) {
         $view_mode = 'featured';
       }
