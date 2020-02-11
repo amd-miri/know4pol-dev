@@ -10,7 +10,7 @@
  */
 function know4pol_ec_europa_preprocess_expandable(array &$variables, $hook) {
   // Extend ec_europa missing features of Expandable.
-  if ($variables['opened']) {
+  if (isset($variables['opened']) && $variables['opened']) {
     // Already opened ?
     if ($variables['button']) {
       $variables['title']['#attributes']['aria-expanded'] = 'true';
@@ -21,7 +21,7 @@ function know4pol_ec_europa_preprocess_expandable(array &$variables, $hook) {
     $variables['atomium']['attributes']['content']['aria-hidden'] = 'false';
   }
 
-  if ($variables['title_close'] && drupal_strlen($variables['title_close']) && $variables['button']) {
+  if (isset($variables['title_close']) && $variables['title_close'] && drupal_strlen($variables['title_close']) && $variables['button']) {
     // Different title for expanded state. (not working in this version of NE)
     $variables['title']['#attributes']['data-label-expanded'] = $variables['title_close'];
     $variables['title']['#attributes']['data-label-collapsed'] = $variables['title']['#value'];
