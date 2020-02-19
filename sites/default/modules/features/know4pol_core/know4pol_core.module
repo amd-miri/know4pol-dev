@@ -1650,8 +1650,9 @@ function know4pol_core_node_insert($node) {
 function know4pol_core_entity_view_mode_alter(&$view_mode, $context) {
   // For preparing until full release.
   if (user_access('administer nodes')) {
-    if ($view_mode == 'full' && $context['entity']->type == 'topic') {
-      if ($context['entity']->field_featured[LANGUAGE_NONE][0]['value']) {
+    if ($view_mode == 'full' && isset($context['entity']->type)) {
+      if ($context['entity']->type == 'topic' && $context['entity']->field_featured[LANGUAGE_NONE][0]['value'] ||
+         $context['entity']->type == 'knowledge_centre') {
         $view_mode = 'featured';
       }
     }

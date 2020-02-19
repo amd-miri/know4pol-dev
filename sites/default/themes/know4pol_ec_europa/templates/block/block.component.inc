@@ -13,6 +13,27 @@ function know4pol_ec_europa_preprocess_block(&$variables, $hook) {
   if ($variables['elements']['#block']->bid == 'multisite_og_button-og-contextual-links') {
     $variables['content'] = preg_replace("/class\=\"ecl\-link\"/", "class=\"ecl-link ecl-link--standalone ecl-link-block__link\"", $variables['content']);
   }
+
+  // Block specific.
+  switch ($variables['block']->delta) {
+    case 'ks_browse_by-browse_by_country':
+      $variables['block']->inpage_anchor = t('Browse by country');
+      $variables['block']->html_id = 'country';
+      $variables['title']['#markup'] = t('Browse @ksname by country', array('@ksname' => menu_get_item()['page_arguments'][0]->title));
+      break;
+
+    case 'ks_browse_by-browse_by_topic':
+      $variables['block']->inpage_anchor = t('Browse by topic');
+      $variables['block']->html_id = 'topic';
+      $variables['title']['#markup'] = t('Browse @ksname by topic', array('@ksname' => menu_get_item()['page_arguments'][0]->title));
+      break;
+
+    case 'ks_browse_by-browse_by_tool':
+      $variables['block']->inpage_anchor = t('Browse tools');
+      $variables['block']->html_id = 'tools';
+      $variables['title']['#markup'] = t('Browse @ksname tools', array('@ksname' => menu_get_item()['page_arguments'][0]->title));
+      break;
+  }
 }
 
 /**

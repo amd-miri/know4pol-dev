@@ -16,7 +16,8 @@
 <?php endif; ?>
 <?php print $list_type_prefix; ?>
 <?php foreach ($rows as $id => $row): ?>
-  <li class="<?php print $classes_array[$id]; ?>"><?php print $row; ?></li>
+  <li class="<?php print $classes_array[$id]; ?><?php if($view->result[$id]->field_data_field_featured_field_featured_value): ?> featured<?php
+ endif; ?>"><?php print $row; ?></li>
 <?php endforeach; ?>
 <?php print $list_type_suffix; ?>
 <?php print $wrapper_suffix; ?>

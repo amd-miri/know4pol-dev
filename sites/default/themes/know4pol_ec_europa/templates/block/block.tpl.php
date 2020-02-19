@@ -47,7 +47,14 @@
 <section<?php print $atomium['attributes']['wrapper']; ?>>
   <?php print render($title_prefix); ?>
   <?php if (!empty($title['#markup'])): ?>
-    <h3<?php print $atomium['attributes']['title']; ?>><?php print render($title); ?></h3>
+    <?php if (isset($elements['#block']->html_id)): ?>
+      <h2 class="ecl-heading ecl-heading--h2" id="<?php print $elements['#block']->html_id; ?>"<?php if(isset($elements['#block']->inpage_anchor)): ?> anchor="<?php print $elements['#block']->inpage_anchor; ?>"<?php
+     endif; ?>><?php print render($title); ?></h2>
+    <?php else: ?>
+      <h3<?php print $atomium['attributes']['title']; ?>>
+        <?php print render($title); ?>
+      </h3>
+    <?php endif; ?>
   <?php endif; ?>
   <?php print render($title_suffix); ?>
 
