@@ -29,6 +29,18 @@ function know4pol_ec_europa_preprocess_node(&$variables, $hook) {
         }
       }
       break;
+
+    case 'knowledge_centre':
+      // Those fields should be present together or removed.
+      if (!isset($variables['content']['field_av_image']) || !isset($variables['content']['field_av_summary'])) {
+        unset($variables['content']['field_av_image']);
+        unset($variables['content']['field_av_summary']);
+      }
+      if (!isset($variables['content']['body']) || !isset($variables['content']['field_briefing_file'])) {
+        unset($variables['content']['body']);
+        unset($variables['content']['field_briefing_file']);
+      }
+      break;
   }
 }
 

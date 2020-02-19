@@ -58,6 +58,44 @@ function know4pol_ec_europa_preprocess_field(array &$variables, $hook) {
     }
   }
 
+  // Specific for policy layer landing pages.
+  if ($el['#view_mode'] == 'featured' && $el['#bundle'] == 'topic') {
+    switch ($el['#field_name']) {
+      case 'field_av_image':
+        $variables['theme_hook_suggestions'][] = 'field__title_h2_pagenav';
+        $variables['label'] = t('Brief me');
+        $variables['html_id'] = 'brief';
+        break;
+    }
+  }
+  if ($el['#view_mode'] == 'featured' && $el['#bundle'] == 'knowledge_centre') {
+    switch ($el['#field_name']) {
+      case 'body':
+        $variables['theme_hook_suggestions'][] = 'field__title_h2_pagenav';
+        $variables['label'] = t('Brief me');
+        $variables['html_id'] = 'brief';
+        break;
+
+      case 'field_av_image':
+        $variables['theme_hook_suggestions'][] = 'field__title_h2_pagenav';
+        $variables['label'] = t('What we do');
+        $variables['html_id'] = 'what';
+        break;
+
+      case 'field_av_summary':
+        $ks_path = $variables['element']['#object']->path['alias'];
+        $aboutpage = $ks_path . '/about';
+        // Add the KS "About" link to content.
+        if (drupal_lookup_path('source', $aboutpage) != FALSE) {
+          $variables['items'][0]['#markup'] .= '<p>' . l(t('About this Knowledge Centre'), $aboutpage) . '</p>';
+        }
+
+    }
+  }
+  if ($el['#field_name'] == 'field_av_image') {
+    $variables['atomium']['attributes']['wrapper']->remove('class', 'field-type-image');
+  }
+
   // Custom hook for specific fields.
   switch ($el['#field_name']) {
     case 'ks_name_topic_specific_taxonomies':
@@ -92,6 +130,7 @@ function know4pol_ec_europa_preprocess_field(array &$variables, $hook) {
           }
         }
       }
+      break;
   }
 }
 

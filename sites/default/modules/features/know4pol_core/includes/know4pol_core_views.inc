@@ -23,6 +23,15 @@ function know4pol_core_views_pre_build(&$view) {
     $node = menu_get_item();
     $view->args[] = $node['page_arguments'][0]->og_vocabulary[LANGUAGE_NONE][0]['target_id'];
   }
+
+  // Limit view items according to node settings.
+  if ($view->name == 'kc_homepage' && $view->current_display == 'ks_highlights') {
+    // Get node and check settings if present.
+    $node = menu_get_object();
+    if (isset($node->field_ks_number_of_highlights[LANGUAGE_NONE][0]['value'])) {
+      $view->items_per_page = (int) $node->field_ks_number_of_highlights[LANGUAGE_NONE][0]['value'];
+    }
+  }
 }
 
 /**
