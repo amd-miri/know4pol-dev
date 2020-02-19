@@ -103,6 +103,19 @@ function know4pol_ec_europa_preprocess_page_header(&$variables, $hook) {
         // No meta for those content types.
         unset($variables['meta']);
         break;
+
+      case 'organisation':
+        $variables['introduction'] = _know4pol_ec_europa_smart_trim($node);
+
+      case 'topic':
+        if (isset($node->field_type[LANGUAGE_NONE][0]['value'])) {
+          $variables['meta']['#type'] = check_plain(field_info_field('field_type')['settings']['allowed_values'][$node->field_type[LANGUAGE_NONE][0]['value']]);
+        }
+        $intro = $node->body[$node->language][0];
+        if (isset($intro['summary'])) {
+          $variables['introduction'] = check_plain(drupal_substr(trim(strip_tags($intro['summary'])), 0, 150));
+        }
+        break;
     }
     // Specific for those types.
     switch ($node->type) {
@@ -124,42 +137,6 @@ function know4pol_ec_europa_preprocess_page_header(&$variables, $hook) {
         }
         break;
 
-      case 'organisation':
-        if (module_exists('multisite_formatters')) {
-          // Get smarter trim results for better display.
-          $variables['introduction'] =
-            multisite_formatters_field_formatter_view(
-            "node",
-            $node->body[$node->language],
-            field_info_field('body'),
-            field_info_instance('node', 'body', 'organisation'),
-            $node->language,
-            $node->body[$node->language],
-            array(
-              'type' => 'smarter_trim',
-              'settings' => array(
-                'summary_handler' => 'trim',
-                'trim_type' => 'first_p',
-                'trim_suffix' => '&hellip;',
-                'filter_options' => array('strip_html' => 'strip_html'),
-                'filter_preserve_tags' => '',
-                'more_link' => FALSE,
-                'link_content' => FALSE,
-              ),
-              'module' => 'multisite_formatters',
-            )
-
-          );
-        }
-        else {
-          // Manual trim.
-          $intro = $node->body[$node->language][0];
-          // Use summary if present.
-          $variables['introduction'] = drupal_substr(trim(strip_tags(
-          (isset($intro['summary']) && drupal_strlen($intro['summary'])) ? $intro['summary'] : $intro['value']
-          )), 0, 150);
-        }
-
       case 'publication':
         if (isset($node->field_pub_type[LANGUAGE_NONE][0]['tid'])) {
           $variables['meta']['#type'] = taxonomy_term_load($node->field_pub_type[LANGUAGE_NONE][0]['tid'])->name;
@@ -171,11 +148,6 @@ function know4pol_ec_europa_preprocess_page_header(&$variables, $hook) {
           $variables['meta']['#date'] = format_date(strtotime($node->field_pub_dc_date_accessioned[LANGUAGE_NONE][0]['value']), 'meta');
         }
         break;
-
-      case 'topic':
-        if (isset($node->field_type[LANGUAGE_NONE][0]['value'])) {
-          $variables['meta']['#type'] = check_plain(field_info_field('field_type')['settings']['allowed_values'][$node->field_type[LANGUAGE_NONE][0]['value']]);
-        }
     }
   }
   elseif (drupal_is_front_page()) {
@@ -226,4 +198,48 @@ function _know4pol_ec_europa_format_dates_start_end(array $date) {
     return format_date($date['value'], 'custom', 'd F') . ' &ndash; ' . format_date($date['value2'], 'meta');
   }
   return format_date($date['value'], 'meta') . ' &ndash; ' . format_date($date['value2'], 'meta');
+}
+
+/**
+ * Trim text, uses smarter trim formatter if available.
+ *
+ * @param object $node
+ *   The date field to format.
+ *
+ * @return string
+ *   The trimmed text.
+ */
+function _know4pol_ec_europa_smart_trim($node) {
+  if (module_exists('multisite_formatters')) {
+    // Get smarter trim results for better display.
+    return multisite_formatters_field_formatter_view(
+        "node",
+        $node->body[$node->language],
+        field_info_field('body'),
+        field_info_instance('node', 'body', $node->type),
+        $node->language,
+        $node->body[$node->language],
+        array(
+          'type' => 'smarter_trim',
+          'settings' => array(
+            'summary_handler' => 'trim',
+            'trim_type' => 'first_p',
+            'trim_suffix' => '&hellip;',
+            'filter_options' => array('strip_html' => 'strip_html'),
+            'filter_preserve_tags' => '',
+            'more_link' => FALSE,
+            'link_content' => FALSE,
+          ),
+          'module' => 'multisite_formatters',
+        )
+      );
+  }
+  else {
+    // Manual trim.
+    $intro = $node->body[$node->language][0];
+    // Use summary if present.
+    return drupal_substr(trim(strip_tags(
+      (isset($intro['summary']) && drupal_strlen($intro['summary'])) ? $intro['summary'] : $intro['value']
+    )), 0, 150);
+  }
 }

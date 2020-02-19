@@ -489,25 +489,45 @@ div.admin.my-workbench .right {
 
 /* Policy layer */
 .node-type-topic div.view-mode-featured section.ecl-col-md-12 .ecl-editor.first.last p,
-.node-type-topic div.view-mode-featured section.ecl-col-md-12 .ecl-editor.first.last ul {
+.node-type-topic div.view-mode-featured section.ecl-col-md-12 .ecl-editor.first.last ul,
+.node-type-knowledge-centre div.view-mode-featured section.ecl-col-md-12 .ecl-editor.first.last p,
+.node-type-knowledge-centre div.view-mode-featured section.ecl-col-md-12 .ecl-editor.first.last ul {
   max-width: unset;
 }
 
+.view-mode-featured * + .ecl-heading--h2,
+.node-type-knowledge-centre .block-views .ecl-heading--h2 {
+  margin-top: 1rem;
+  clear: both;
+}
+
+.node-type-knowledge-centre .ecl-listing--three-columns .ecl-list-item__link {
+  padding-left: unset;
+}
+
+
+.node-type-knowledge-centre .ecl-expandable__button[aria-expanded="false"]::after {
+  content: unset;
+}
+
 @media (min-width: 992px) {
-  .node-type-topic .field-name-field-summary {
+  .node-type-topic .field-name-field-summary,
+  .node-knowledge-centre .field-name-field-summary {
     clear: left;
   }
 }
 
 @media (min-width: 992px) {
-  .node-type-topic .field-name-field-av-image {
+  .node-type-topic .field-name-field-av-image,
+  .node-type-knowledge-centre .field-name-field-av-image {
     float: left;
     margin-right: 2rem;
     width: 400px;
   }
 }
 
-.node-type-topic  h2#links {
+.node-type-topic h2#links,
+.node-type-knowledge-centre h2#links {
   margin-bottom: 0;
   clear: both;
 }
@@ -516,4 +536,36 @@ div.admin.my-workbench .right {
   margin-top: unset;
   border: 0;
   border-top: 1px solid gray;
+}
+
+.listing--grid--three-column {
+  margin: 0;
+  padding: 0;
+  list-style-type: none;
+}
+.listing--grid--three-column .list-item--grid h3 {
+  margin: 0;
+}
+.listing--grid--three-column .list-item--grid.featured {
+  font-weight: bold;
+  background-color: #eee;
+  padding: 8px;
+}
+.node-type-knowledge-centre .listing--grid--three-column .field-name-field-av-image {
+  float: unset;
+  width: 100%;
+  margin: unset;
+}
+
+@media (min-width: 992px) {
+  .listing--grid--three-column {
+    display: grid;
+    grid-template-columns: repeat(3, 33%);
+    grid-gap: 1rem;
+    width: calc(100% - 1.75rem);
+  }
+
+  .listing--grid--three-column .list-item--grid.featured {
+    grid-row-end: span 2;
+  }
 }
