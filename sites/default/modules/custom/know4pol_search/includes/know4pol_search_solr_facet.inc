@@ -35,8 +35,13 @@ function know4pol_search_facet_items_alter(&$build, &$settings) {
  * Implements know4pol_search_facetapi_enabled_facets_alter().
  */
 function know4pol_search_facetapi_enabled_facets_alter(array &$enabled_facets, $searcher, $realm_name) {
-  if ($searcher == 'apachesolr@solr' && isset($enabled_facets['bm_field_type']) && isset($enabled_facets['bundle'])) {
-    $enabled_facets['bm_field_type']['label'] = $enabled_facets['bundle']['label'];
+  if ($searcher == 'apachesolr@solr') {
+    if (isset($enabled_facets['bm_field_type']) && isset($enabled_facets['bundle'])) {
+      $enabled_facets['bm_field_type']['label'] = $enabled_facets['bundle']['label'];
+    }
+    if (isset($enabled_facets['sm_og_vocabulary'])) {
+      $enabled_facets['sm_og_vocabulary']['label'] = t('Specific taxonomy');
+    }
   }
 }
 
