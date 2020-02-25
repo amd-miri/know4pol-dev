@@ -43,13 +43,3 @@
     </div>
   <?php endif; ?>
 </div>
-
-
-<div style="margin-top:1rem">
-
-  <button class="" aria-controls="example-expandable-1" aria-expanded="false" data-label-expanded="Hide me" data-label-collapsed="What is this all about?" id="example-expandable-button-1" type="button">What is this all about?</button>
-  <div aria-hidden="true" aria-labelledby="example-expandable-button-1" id="example-expandable-1">
-    <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
-    <p>Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat...</p>
-  </div>
-</div>
