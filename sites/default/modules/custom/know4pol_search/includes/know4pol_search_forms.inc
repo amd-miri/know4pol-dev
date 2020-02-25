@@ -9,13 +9,9 @@
  * Implements hook_form().
  */
 function know4pol_search_form($form, $form_state) {
-  $con = context_get();
-  if (isset($con['context']['homepage'])) {
-    $setting_id = 0;
-  }
-  else {
-    $setting_id = arg(1);
-  };
+  $map = menu_get_item()['original_map'];
+  $setting_id = ($map[0] == 'home') ? 0 : $map[1];
+
   $form['knowledge_centre_nid'] = array(
     '#type' => 'hidden',
     '#value' => $setting_id,
@@ -23,7 +19,7 @@ function know4pol_search_form($form, $form_state) {
   // Text field.
   $form['keyword'] = array(
     '#type' => 'textfield',
-    '#default_value' => arg(2),
+    '#default_value' => '',
     '#prefix' => '<label id="know4pol-form-label" class="ecl-search-form__textfield-wrapper">',
     '#suffix' => '</label>',
     '#attributes' => array('class' => array('ecl-text-input', 'ecl-search-form__textfield')),
@@ -95,7 +91,7 @@ function know4pol_mainsearch_form($form, $form_state) {
   // Text field.
   $form['keyword'] = array(
     '#type' => 'textfield',
-    '#default_value' => arg(2),
+    '#default_value' => '',
     '#prefix' => '<label id="know4pol-form-label" class="ecl-search-form__textfield-wrapper">',
     '#suffix' => '</label>',
     '#attributes' => array('class' => array('ecl-text-input', 'ecl-search-form__textfield')),
@@ -183,11 +179,12 @@ function _know4pol_search_freetext_search_form($form, &$form_state, $keys = '') 
  */
 function _know4pol_search_freetext_search_form_submit(&$form, &$form_state) {
   // Should get the URL from the defined search pages.
-  if (arg(0) == 'search' && arg(1) == 'site') {
+  $arg = menu_get_item()['map'];
+  if ($arg[0] == 'search' && $arg[1] == 'site') {
     $redirect = 'search/site';
   }
   else {
-    $redirect = arg(0);
+    $redirect = $arg[0];
   }
   $redirect_value = rawurlencode($form_state['values']['keys']);
   if (drupal_strlen($form_state['values']['keys'])) {
