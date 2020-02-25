@@ -35,13 +35,15 @@ function know4pol_search_block_view($delta = '') {
   // Prevent strict warnings.
   $searchform = drupal_get_form('know4pol_search_form');
   $mainsearchform = drupal_get_form('know4pol_mainsearch_form');
+
   switch ($delta) {
     case 'apachesolr_freetext_search_block':
-      if (arg(0) == 'search' && arg(1) == 'site') {
-        $keys = urldecode(arg(2));
+      $arg = menu_get_item()['map'];
+      if ($arg[0] == 'search' && $arg[1] == 'site') {
+        $keys = urldecode($arg[2]);
       }
       else {
-        $keys = urldecode(arg(1));
+        $keys = urldecode($arg[1]);
       }
       $block_content = drupal_get_form('_know4pol_search_freetext_search_form', $keys);
       $block['content'] = drupal_render($block_content);

@@ -35,8 +35,9 @@
   <?php endif; ?>
   <?php if ($rows): ?>
     <div class="browse-by-block ecl-dropdown">
-      <button type="button" class="ecl-button ecl-button--default ecl-expandable__button" id="country_button" aria-expanded="false">Countries &#9660;</button>
-      <div id="countries-dropdown-list" class="row dropdown-list" aria-labelledby="country_button" aria-hidden="true">
+      <button class="ecl-button ecl-button--default ecl-expandable__button" aria-controls="countries-dropdown" type="button"
+              aria-expanded="false" id="countries-dropdown-button"><?php print t('Countries'); ?></button>
+      <div aria-hidden="true" aria-labelledby="countries-dropdown-button" id="countries-dropdown" class="row dropdown-list">
       <?php print $rows; ?>
       </div>
     </div>
