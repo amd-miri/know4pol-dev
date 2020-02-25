@@ -35,10 +35,21 @@
   <?php endif; ?>
   <?php if ($rows): ?>
     <div class="browse-by-block ecl-dropdown">
-      <button type="button" class="ecl-button ecl-button--default ecl-expandable__button" id="country_button" aria-expanded="false">Countries &#9660;</button>
-      <div id="countries-dropdown-list" class="row dropdown-list" aria-labelledby="country_button" aria-hidden="true">
+      <button class="ecl-button ecl-button--default ecl-expandable__button" aria-controls="countries-dropdown" type="button"
+              aria-expanded="false" id="countries-dropdown-button"><?php print t('Countries'); ?></button>
+      <div aria-hidden="true" aria-labelledby="countries-dropdown-button" id="countries-dropdown" class="row dropdown-list">
       <?php print $rows; ?>
       </div>
     </div>
   <?php endif; ?>
+</div>
+
+
+<div style="margin-top:1rem">
+
+  <button class="" aria-controls="example-expandable-1" aria-expanded="false" data-label-expanded="Hide me" data-label-collapsed="What is this all about?" id="example-expandable-button-1" type="button">What is this all about?</button>
+  <div aria-hidden="true" aria-labelledby="example-expandable-button-1" id="example-expandable-1">
+    <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+    <p>Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat...</p>
+  </div>
 </div>

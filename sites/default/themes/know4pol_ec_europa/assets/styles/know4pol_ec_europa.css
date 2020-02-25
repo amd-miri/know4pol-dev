@@ -505,11 +505,6 @@ div.admin.my-workbench .right {
   padding-left: unset;
 }
 
-
-.node-type-knowledge-centre .ecl-expandable__button[aria-expanded="false"]::after {
-  content: unset;
-}
-
 @media (min-width: 992px) {
   .node-type-topic .field-name-field-summary,
   .node-knowledge-centre .field-name-field-summary {
