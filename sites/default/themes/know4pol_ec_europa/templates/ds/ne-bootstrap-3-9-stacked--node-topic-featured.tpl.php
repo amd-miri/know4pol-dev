@@ -33,9 +33,7 @@
       <?php print $footer_top; ?>
     <?php endif; ?>
     <?php if ($footer): ?>
-      <h2 id="latest" class="ecl-heading ecl-heading--h2" anchor="<?php print t('News, Events, Resources'); ?>">
-        <?php print t('Latest on @topic from the KnowledgeBase', array('@topic' => $title)); ?>
-      </h2>
+      <h2 id="latest" class="ecl-heading ecl-heading--h2" anchor="<?php print t('News, Events, Resources'); ?>"><?php print t('Latest on @topic from the KnowledgeBase', array('@topic' => $title)); ?></h2>
       <?php print $footer; ?>
     <?php endif; ?>
     <?php if ($footer_bottom): ?>
