@@ -142,7 +142,8 @@ function know4pol_ec_europa_preprocess_field(array &$variables, $hook) {
  */
 function _know4pol_ec_europa_preprocess_field__field_vis_data_url__visualisation(array &$variables) {
   $el = &$variables['items'][0]['#element'];
-  $el['v_type'] = $variables['element']['#object']->field_vis_type[LANGUAGE_NONE][0]['value'];
+  $object = $variables['element']['#object'];
+  $el['v_type'] = $object->field_vis_type[LANGUAGE_NONE][0]['value'];
   // Build data paramters for the visualisation types.
   switch ($el['v_type']) {
     case "Tableau":
@@ -178,6 +179,9 @@ function _know4pol_ec_europa_preprocess_field__field_vis_data_url__visualisation
       break;
 
     case "Highcharts":
+      $variables['provider'] = (isset($object->field_vis_highcharts_gantt) && $object->field_vis_highcharts_gantt[LANGUAGE_NONE][0]['value'] == TRUE) ? 'highchartsgantt' : 'highcharts';
+      break;
+
     case "Image":
       // No preprocess yet.
       // Image could copy first image into previsualisation if empty.
