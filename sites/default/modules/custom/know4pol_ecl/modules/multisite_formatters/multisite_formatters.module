@@ -696,7 +696,7 @@ function multisite_formatters_field_formatter_view($entity_type, $entity, $field
           case 'trim':
             if ($settings['trim_ignore_words']['ignore']) {
               $ignore = drupal_strlen($settings['trim_words_ignored']) ? $settings['trim_words_ignored'] : MULTISITE_FORMATTERS_IGNORE_WORDS_LIST_DEFAULT;
-              $ignore = preg_split('/\s*,\s*/i', $ignore);
+              $ignore = preg_split('/\s*,\s*/i', drupal_strtolower($ignore));
             }
             else {
               $ignore = NULL;
@@ -797,7 +797,7 @@ function _multisite_formatters_trim_html_text($html, $max_len, $type, $suffix, a
   // Start counting in text.
   foreach ($text[0] as $index => $word) {
     // Do count if not in ignored word list.
-    if (!(is_array($ignore) && in_array($word[0], $ignore))) {
+    if (!(is_array($ignore) && in_array(drupal_strtolower($word[0]), $ignore))) {
       $total_len += ($type == 'words' ? 1 : drupal_strlen($word[0]));
     }
     $current_pos = $word[1] + drupal_strlen($word[0]);
