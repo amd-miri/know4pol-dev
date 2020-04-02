@@ -180,6 +180,9 @@ function _know4pol_ec_europa_preprocess_field__field_vis_data_url__visualisation
 
     case "Highcharts":
       $variables['provider'] = (isset($object->field_vis_highcharts_gantt) && $object->field_vis_highcharts_gantt[LANGUAGE_NONE][0]['value'] == TRUE) ? 'highchartsgantt' : 'highcharts';
+      if (isset($object->field_vis_render_to) && drupal_strlen($object->field_vis_render_to[LANGUAGE_NONE][0]['value'])) {
+        $variables['render_to'] = $object->field_vis_render_to[LANGUAGE_NONE][0]['value'];
+      }
       break;
 
     case "Image":
