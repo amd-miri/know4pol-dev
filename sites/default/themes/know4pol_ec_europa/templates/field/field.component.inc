@@ -87,7 +87,7 @@ function know4pol_ec_europa_preprocess_field(array &$variables, $hook) {
         $aboutpage = $ks_path . '/about';
         // Add the KS "About" link to content.
         if (drupal_lookup_path('source', $aboutpage) != FALSE) {
-          $variables['items'][0]['#markup'] .= '<p>' . l(t('About this Knowledge Centre'), $aboutpage) . '</p>';
+          $variables['items'][0]['#markup'] .= '<p>' . l(t('About this knowledge service'), $aboutpage) . '</p>';
         }
 
     }
