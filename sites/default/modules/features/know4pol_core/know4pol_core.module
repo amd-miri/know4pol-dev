@@ -1370,27 +1370,35 @@ function _know4pol_core_render_ks_name_topic_specific_taxonomies(array $field) {
  *   The rendered content.
  */
 function _know4pol_core_get_topic_keywords_fields_by_ks(array $knowledge_services_topics, array $knowledge_services_specific_keywords, array $knowledge_service) {
+  $ks_nid = $knowledge_service['target_id'];
+  // Gereante content for output.
   $content = "";
-  // First add the name of the knowledge service.
-  $knowledge_service_node = node_load($knowledge_service['target_id']);
+
+  // Name of the knowledge service.
+  $knowledge_service_node = node_load($ks_nid);
   $ks_name = $knowledge_service_node->title;
   $ks_url_alias = $knowledge_service_node->path['alias'];
   $content .= l($ks_name, $ks_url_alias, array('attributes' => array('class' => array('ecl-tag__item', 'know4pol-main-resource-meta-link'))));
 
-  // Second create the list of topics per knowledge service.
-  $ks_topics_content = "";
-  foreach ($knowledge_services_topics as $knowledge_services_topic) {
-    $knowledge_services_topic_term = node_load($knowledge_services_topic['target_id']);
-    if ($knowledge_services_topic_term->og_group_ref[LANGUAGE_NONE][0]['target_id'] == $knowledge_service['target_id']) {
-      $ks_topics_content .= _know4pol_core_create_topic_link($knowledge_services_topic_term->title, $knowledge_services_topic_term->path['alias']);
+  // List of topics per knowledge service if any.
+  if (count($knowledge_services_topics)) {
+    $ks_topics_content = "";
+    // Load all topics at once.
+    // if count)
+    $topics = node_load_multiple(array_column($knowledge_services_topics, 'target_id'));
+    foreach ($topics as $term) {
+      // Check term is published and from the KS the build is for.
+      if ($term->status == 1 && $term->og_group_ref[LANGUAGE_NONE][0]['target_id'] == $ks_nid) {
+        $ks_topics_content .= _know4pol_core_create_topic_link($term->title, $term->path['alias']);
+      }
+    }
+    if ($ks_topics_content != "") {
+      $content .= _know4pol_core_add_seperation_bar($ks_topics_content);
     }
   }
-  if ($ks_topics_content != "") {
-    $content .= _know4pol_core_add_seperation_bar($ks_topics_content);
-  }
 
-  // Third add the list of specific keywords per KS.
-  // First get the default vocabulary from the knowledge service content type.
+  // List of specific keywords per KS.
+  // Get the default vocabulary from the knowledge service content type.
   $ks_keyword_content = "";
   if (isset($knowledge_service_node->field_the_main_ks_keywords_vocab[LANGUAGE_NONE][0]['target_id'])) {
     $main_ks_keywords_vocab_id = $knowledge_service_node->field_the_main_ks_keywords_vocab[LANGUAGE_NONE][0]['target_id'];
