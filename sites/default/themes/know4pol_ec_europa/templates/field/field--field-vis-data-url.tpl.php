@@ -26,8 +26,11 @@
         </div>
         <script type="application/json">{
           "service": "charts",
-          "provider": "highcharts",
+          "provider": "<?php print $provider; ?>",
           "custom": "<?php print $item['#element']['url']; ?>"
+          <?php if(isset($render_to)): ?>,
+          "renderTo": "<?php print $render_to; ?>"
+          <?php endif; ?>
         }</script>
         <script defer src="//europa.eu/webtools/load.js" type="text/javascript"></script>
         <?php elseif ($item['#element']['v_type'] == "Map"): ?>
