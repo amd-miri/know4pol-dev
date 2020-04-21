@@ -1384,7 +1384,6 @@ function _know4pol_core_get_topic_keywords_fields_by_ks(array $knowledge_service
   if (count($knowledge_services_topics)) {
     $ks_topics_content = "";
     // Load all topics at once.
-    // if count)
     $topics = node_load_multiple(array_column($knowledge_services_topics, 'target_id'));
     foreach ($topics as $term) {
       // Check term is published and from the KS the build is for.

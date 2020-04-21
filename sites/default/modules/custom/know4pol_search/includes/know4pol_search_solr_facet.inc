@@ -32,7 +32,7 @@ function know4pol_search_facet_items_alter(&$build, &$settings) {
 }
 
 /**
- * Implements know4pol_search_facetapi_enabled_facets_alter().
+ * Implements hook_search_facetapi_enabled_facets_alter().
  */
 function know4pol_search_facetapi_enabled_facets_alter(array &$enabled_facets, $searcher, $realm_name) {
   if ($searcher == 'apachesolr@solr') {
@@ -227,6 +227,7 @@ function _know4pol_search_facet_filter_field_ks_related_topics(array $build) {
     $query->join('og_membership', 'ogm', 'ogm.etid = n.nid');
     $query->condition('ogm.gid', $gid, '=');
     $query->condition('n.type', 'topic', '=');
+    $query->condition('n.status', '1', '=');
     $ks_topics = $query->execute()->fetchAll();
     $new_topic_list = array();
     foreach ($ks_topics as $topic) {

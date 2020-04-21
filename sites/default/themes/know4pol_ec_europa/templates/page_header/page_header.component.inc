@@ -111,10 +111,7 @@ function know4pol_ec_europa_preprocess_page_header(&$variables, $hook) {
         if (isset($node->field_type[LANGUAGE_NONE][0]['value'])) {
           $variables['meta']['#type'] = check_plain(field_info_field('field_type')['settings']['allowed_values'][$node->field_type[LANGUAGE_NONE][0]['value']]);
         }
-        $intro = $node->body[$node->language][0];
-        if (isset($intro['summary'])) {
-          $variables['introduction'] = check_plain(drupal_substr(trim(strip_tags($intro['summary'])), 0, 150));
-        }
+        $variables['introduction'] = _know4pol_ec_europa_smart_trim($node);
         break;
     }
     // Specific for those types.
@@ -223,7 +220,11 @@ function _know4pol_ec_europa_smart_trim($node) {
           'type' => 'smarter_trim',
           'settings' => array(
             'summary_handler' => 'trim',
-            'trim_type' => 'first_p',
+            'trim_type' => 'trim',
+            'trim_length' => 20,
+            'trim_unit' => 'words',
+            'trim_ignore_words' => array('ignore' => TRUE),
+            'trim_words_ignored' => '',
             'trim_suffix' => '&hellip;',
             'filter_options' => array('strip_html' => 'strip_html'),
             'filter_preserve_tags' => '',

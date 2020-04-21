@@ -5,7 +5,8 @@
  * Defines custom Nexteuropa components field formatters.
  */
 
- define('MULTISITE_FORMATTERS_NOT_BLOCK_TAGS', '<b><strong><u><span><em><i><br>');
+define('MULTISITE_FORMATTERS_NOT_BLOCK_TAGS', '<b><strong><u><span><em><i><br>');
+define('MULTISITE_FORMATTERS_IGNORE_WORDS_LIST_DEFAULT', t('a, an, and, as, at, before, but, by, for, from, is, in, into, like, of, off, on, or, onto, per, since, than, the, this, that, to, up, via, with'));
 
 /**
  * Implements hook_theme().
@@ -59,6 +60,8 @@ function multisite_formatters_field_formatter_info() {
         'trim_type' => 'first_p',
         'trim_length' => 300,
         'trim_unit' => 'chars',
+        'trim_ignore_words' => array(),
+        'trim_words_ignored' => '',
         'trim_suffix' => '&hellip;',
         'link_content' => 0,
         'more_link' => FALSE,
@@ -225,6 +228,35 @@ function multisite_formatters_field_formatter_settings_form($field, $instance, $
       ),
     );
 
+    $element['trim_ignore_words'] = array(
+      '#title' => '',
+      '#type' => 'checkboxes',
+      '#options' => array(
+        'ignore' => t("Ignore some words while counting"),
+      ),
+      '#default_value' => $settings['trim_ignore_words'],
+      '#states' => array(
+        'visible' => array(
+          'select[name="fields[' . $field['field_name'] . '][settings_edit_form][settings][trim_type]"' => array('value' => 'trim'),
+          'select[name="fields[' . $field['field_name'] . '][settings_edit_form][settings][trim_unit]"' => array('value' => 'words'),
+        ),
+      ),
+    );
+
+    $element['trim_words_ignored'] = array(
+      '#title' => '',
+      '#description' => t('Coma separated list of words to ignore while counting. Default is "@wordlist"', array('@wordlist' => MULTISITE_FORMATTERS_IGNORE_WORDS_LIST_DEFAULT)),
+      '#type' => 'textfield',
+      '#default_value' => $settings['trim_words_ignored'],
+      '#states' => array(
+        'visible' => array(
+          'select[name="fields[' . $field['field_name'] . '][settings_edit_form][settings][trim_type]"' => array('value' => 'trim'),
+          'select[name="fields[' . $field['field_name'] . '][settings_edit_form][settings][trim_unit]"' => array('value' => 'words'),
+          'input[name="fields[' . $field['field_name'] . '][settings_edit_form][settings][trim_ignore_words][ignore]"' => array('checked' => TRUE),
+        ),
+      ),
+    );
+
     $element['trim_suffix'] = array(
       '#title' => t('Suffix'),
       '#type' => 'textfield',
@@ -372,11 +404,20 @@ function multisite_formatters_field_formatter_settings_summary($field, $instance
         break;
 
       case 'trim':
-        $summary[] =
-            t('Standard trim to') . ' ' .
-            $settings['trim_length'] . ' ' . $settings['trim_unit'] .
-            (drupal_strlen($settings['trim_suffix']) ? (' ' . t('with suffix') . ' ' . $settings['trim_suffix']) : '');
+        $summary[] = t('Standard trim to @count @type', array('@count' => $settings['trim_length'], '@type' => $settings['trim_unit']));
+        if ($settings['trim_ignore_words']['ignore'] == TRUE) {
+          if (drupal_strlen($settings['trim_words_ignored'])) {
+            $summary[] = t('ignoring words: "@wordlist"', array('@wordlist' => $settings['trim_words_ignored']));
+          }
+          else {
+            $summary[] = t('ignoring default word list.');
+          }
+        }
+        if (drupal_strlen($settings['trim_suffix'])) {
+          $summary[] = t('appended with @suffix if text is longer', array('@suffix' => $settings['trim_suffix']));
+        }
     }
+
     switch ($settings['link_content']) {
       case 'text':
         $summary[] = t("Link on text");
@@ -653,7 +694,14 @@ function multisite_formatters_field_formatter_view($entity_type, $entity, $field
             break;
 
           case 'trim':
-            $output = _multisite_formatters_trim_html_text($output, $settings['trim_length'], $settings['trim_unit'], $settings['trim_suffix']);
+            if ($settings['trim_ignore_words']['ignore']) {
+              $ignore = drupal_strlen($settings['trim_words_ignored']) ? $settings['trim_words_ignored'] : MULTISITE_FORMATTERS_IGNORE_WORDS_LIST_DEFAULT;
+              $ignore = preg_split('/\s*,\s*/i', drupal_strtolower($ignore));
+            }
+            else {
+              $ignore = NULL;
+            }
+            $output = _multisite_formatters_trim_html_text($output, $settings['trim_length'], $settings['trim_unit'], $settings['trim_suffix'], $ignore);
             break;
         }
         // $settings['link_content'].
@@ -723,11 +771,13 @@ function multisite_formatters_field_formatter_view($entity_type, $entity, $field
  *   The element type to count: word or char.
  * @param string $suffix
  *   A suffix to add if cropped.
+ * @param array $ignore
+ *   A list of words to ignore.
  *
  * @return string
  *   The trimmed text
  */
-function _multisite_formatters_trim_html_text($html, $max_len, $type, $suffix) {
+function _multisite_formatters_trim_html_text($html, $max_len, $type, $suffix, array $ignore = NULL) {
   // Decode html entities to avoid too much trim.
   $html = html_entity_decode($html);
 
@@ -746,7 +796,10 @@ function _multisite_formatters_trim_html_text($html, $max_len, $type, $suffix) {
 
   // Start counting in text.
   foreach ($text[0] as $index => $word) {
-    $total_len += ($type == 'words' ? 1 : drupal_strlen($word[0]));
+    // Do count if not in ignored word list.
+    if (!(is_array($ignore) && in_array(drupal_strtolower($word[0]), $ignore))) {
+      $total_len += ($type == 'words' ? 1 : drupal_strlen($word[0]));
+    }
     $current_pos = $word[1] + drupal_strlen($word[0]);
     // Catch up with the tags length to this word.
     // Go trought tags with array boundaries as safeguard.
