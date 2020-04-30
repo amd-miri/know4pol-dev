@@ -819,7 +819,7 @@ function know4pol_core_update_7037() {
   ";
   db_query($sql);
 
-  // 2 - Same in the field_revision table
+  // 2 - Same in the field_revision table.
   $sql = "
     INSERT INTO field_revision_og_vocabulary
     (entity_type, bundle, deleted, revision_id, language, delta, og_vocabulary_target_id, entity_id)
@@ -902,7 +902,7 @@ function know4pol_core_update_7037() {
   ";
   db_query($sql);
 
-  // 4 - Use topic entity ref 'Megatrend' on all those
+  // 4 - Use topic entity ref 'Megatrend' on all those.
   $sql = "
     INSERT INTO field_data_field_ks_related_topics
     (entity_type, bundle, deleted, entity_id, revision_id, language, delta, field_ks_related_topics_target_id)

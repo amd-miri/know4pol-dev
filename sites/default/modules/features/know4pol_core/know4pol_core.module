@@ -1371,7 +1371,7 @@ function _know4pol_core_render_ks_name_topic_specific_taxonomies(array $field) {
  */
 function _know4pol_core_get_topic_keywords_fields_by_ks(array $knowledge_services_topics, array $knowledge_services_specific_keywords, array $knowledge_service) {
   $ks_nid = $knowledge_service['target_id'];
-  // Gereante content for output.
+  // Generate content for output.
   $content = "";
 
   // Name of the knowledge service.
