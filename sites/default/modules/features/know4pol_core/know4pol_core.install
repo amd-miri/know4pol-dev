@@ -743,3 +743,195 @@ function know4pol_core_update_7035() {
     'bulk_schedule',
   ), TRUE);
 }
+
+/**
+ * KNOW4POL-000 - Clean invalid topics associations.
+ */
+function know4pol_core_update_7036() {
+  $sql = "
+  DELETE kst.* FROM field_data_field_ks_related_topics AS kst
+  WHERE EXISTS (
+    SELECT gid FROM og_membership omt
+    WHERE
+      omt.etid = kst.field_ks_related_topics_target_id
+      AND omt.gid NOT IN (
+        SELECT gid FROM og_membership
+        WHERE etid = kst.entity_id
+      )
+  );
+  ";
+  db_query($sql);
+}
+
+/**
+ * KNOW4POL-000 - Reassign Megatrends hub content automation.
+ */
+function know4pol_core_update_7037() {
+  // Tag with local taxonomy corresponding to the topic of voc Megatrends hub.
+  // 1 - Local taxonomy in og_vocab.
+  $sql = "
+    INSERT INTO field_data_og_vocabulary
+    (entity_type, bundle, deleted, revision_id, language, delta, og_vocabulary_target_id, entity_id)
+
+    SELECT entity_type, bundle, 0, vid, 'und', (
+        CASE nid
+        WHEN @curNid THEN @curDelta := @curDelta + 1
+        ELSE @curDelta := 1
+        END
+      ) + maxdelta delta, tid, (@curNid := p.nid) nid
+    FROM (
+        SELECT
+           kst.entity_type, bundle, ne.nid, ne.vid,
+           COALESCE(
+            (
+              SELECT max(delta)
+              FROM field_data_og_vocabulary
+              WHERE entity_id = ne.nid
+              AND revision_id = ne.vid
+             ) ,-1) maxdelta, ttd.tid
+        FROM
+          `field_data_field_ks_related_topics` kst
+          INNER JOIN og_membership omt ON omt.etid = kst.field_ks_related_topics_target_id
+          INNER JOIN node nt ON nt.nid = kst.field_ks_related_topics_target_id
+          INNER JOIN node ne ON ne.nid = kst.entity_id
+          INNER JOIN `taxonomy_term_data` ttd ON (ttd.name = nt.title AND ttd.vid = 62)
+
+        WHERE
+          omt.gid = 7922
+          AND bundle in (
+            SELECT DISTINCT bundle
+            FROM og_vocab
+            WHERE
+              entity_type = 'node'
+              AND vid = 62
+          )
+          AND NOT EXISTS (
+            SELECT tid
+            FROM field_data_og_vocabulary ogvc
+            WHERE
+              ogvc.entity_id = ne.nid
+              AND ogvc.revision_id = ne.vid
+              AND ogvc.og_vocabulary_target_id = ttd.tid
+          )
+        ORDER BY ne.nid LIMIT 1000
+      ) p JOIN (SELECT @curDelta := 0, @curNid := 0) r
+    ;
+  ";
+  db_query($sql);
+
+  // 2 - Same in the field_revision table
+  $sql = "
+    INSERT INTO field_revision_og_vocabulary
+    (entity_type, bundle, deleted, revision_id, language, delta, og_vocabulary_target_id, entity_id)
+
+    SELECT entity_type, bundle, 0, vid, 'und', (
+        CASE nid
+        WHEN @curNid THEN @curDelta := @curDelta + 1
+        ELSE @curDelta := 1
+        END
+      ) + maxdelta delta, tid, (@curNid := p.nid) nid
+    FROM (
+        SELECT
+           kst.entity_type, bundle, ne.nid, ne.vid,
+           COALESCE(
+            (
+              SELECT max(delta)
+              FROM field_data_og_vocabulary
+              WHERE entity_id = ne.nid
+              AND revision_id = ne.vid
+             ) ,-1) maxdelta, ttd.tid
+        FROM
+          `field_data_field_ks_related_topics` kst
+          INNER JOIN og_membership omt ON omt.etid = kst.field_ks_related_topics_target_id
+          INNER JOIN node nt ON nt.nid = kst.field_ks_related_topics_target_id
+          INNER JOIN node ne ON ne.nid = kst.entity_id
+          INNER JOIN `taxonomy_term_data` ttd ON (ttd.name = nt.title AND ttd.vid = 62)
+
+        WHERE
+          omt.gid = 7922
+          AND bundle in (
+            SELECT DISTINCT bundle
+            FROM og_vocab
+            WHERE
+              entity_type = 'node'
+              AND vid = 62
+          )
+          AND NOT EXISTS (
+            SELECT tid
+            FROM field_revision_og_vocabulary ogvc
+            WHERE
+              ogvc.entity_id = ne.nid
+              AND ogvc.revision_id = ne.vid
+              AND ogvc.og_vocabulary_target_id = ttd.tid
+          )
+        ORDER BY ne.nid LIMIT 1000
+      ) p JOIN (SELECT @curDelta := 0, @curNid := 0) r
+     ;
+  ";
+  db_query($sql);
+
+  // 3 - Indexes.
+  $sql = "
+    INSERT INTO taxonomy_index (nid, tid, created, sticky)
+    SELECT
+       ne.nid, ttd.tid, UNIX_TIMESTAMP(), 0
+    FROM
+      `field_data_field_ks_related_topics` kst
+      INNER JOIN og_membership omt ON omt.etid = kst.field_ks_related_topics_target_id
+      INNER JOIN node nt ON nt.nid = kst.field_ks_related_topics_target_id
+      INNER JOIN node ne ON ne.nid = kst.entity_id
+      INNER JOIN `taxonomy_term_data` ttd ON (ttd.name = nt.title AND ttd.vid = 62)
+
+    WHERE
+      omt.gid = 7922
+      AND bundle in (
+        SELECT DISTINCT bundle
+        FROM og_vocab
+        WHERE
+          entity_type = 'node'
+          AND vid = 62
+      )
+      AND NOT EXISTS (
+        SELECT nid
+        FROM taxonomy_index ti
+        WHERE
+          ti.nid = ne.nid
+          AND ti.tid = ttd.tid
+      )
+    ;
+  ";
+  db_query($sql);
+
+  // 4 - Use topic entity ref 'Megatrend' on all those
+  $sql = "
+    INSERT INTO field_data_field_ks_related_topics
+    (entity_type, bundle, deleted, entity_id, revision_id, language, delta, field_ks_related_topics_target_id)
+
+    SELECT DISTINCT
+      'node' entity_type, bundle, 0 deleted, entity_id, revision_id, 'und' language,
+      COALESCE(
+        (
+          SELECT max(delta) +1
+          FROM field_data_field_ks_related_topics kstd
+          WHERE kstd.revision_id = kst.revision_id
+        ), 0) delta, 38215
+    FROM
+      `field_data_field_ks_related_topics` kst
+      INNER JOIN og_membership omt ON omt.etid = kst.field_ks_related_topics_target_id
+      INNER JOIN node nt ON nt.nid = kst.field_ks_related_topics_target_id
+      INNER JOIN `taxonomy_term_data` ttd ON (ttd.name = nt.title AND ttd.vid = 62)
+    WHERE
+      omt.gid = 7922
+      AND NOT EXISTS (
+        SELECT kstv.entity_id
+        FROM field_data_field_ks_related_topics kstv
+        WHERE
+          kstv.entity_id = kst.entity_id
+          AND field_ks_related_topics_target_id = 38215
+      )
+    GROUP BY
+      entity_type, bundle, kst.deleted, entity_id, language, field_ks_related_topics_target_id
+    ;
+  ";
+  db_query($sql);
+}
