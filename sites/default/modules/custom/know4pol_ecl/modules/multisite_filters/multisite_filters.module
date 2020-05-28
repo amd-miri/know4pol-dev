@@ -5,9 +5,9 @@
  * Collapse_text is an input filter that allows text to be collapsible.
  */
 
- /**
-  * Implements hook_filter_info_alter().
-  */
+/**
+ * Implements hook_filter_info_alter().
+ */
 function multisite_filters_filter_info_alter(&$info) {
   // This alters collapse_text_filter, if not installed do nothing.
   if (!isset($info['collapse_text_filter'])) {
@@ -126,19 +126,9 @@ function multisite_filters_filter_process($text, $filter, $format, $langcode, $c
 }
 
 /**
- * Implements hook_theme().
+ * Implements hook_theme_registry_alter().
  */
-function multisite_filters_theme($existing, $type, $theme, $path) {
-  return array(
-    'expandable' => array(
-      'variables' => array(
-        'title' => t('Show more'),
-        'title_close' => NULL,
-        'body' => NULL,
-        'opened' => FALSE,
-        'button' => FALSE,
-      ),
-      'template' => 'expandable',
-    ),
-  );
+function multisite_filters_theme_registry_alter(&$theme_registry) {
+  $theme_registry['expandable']['variables']['opened'] = FALSE;
+  $theme_registry['expandable']['variables']['title_close'] = NULL;
 }
