@@ -1,0 +1,8 @@
+<?php
+
+/**
+ * @file
+ * Code for the know4pol_file_display feature.
+ */
+
+include_once 'know4pol_file_display.features.inc';
