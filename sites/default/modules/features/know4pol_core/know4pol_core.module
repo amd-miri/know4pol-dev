@@ -254,8 +254,6 @@ function know4pol_core_form_node_form_alter(&$form, &$form_state, $form_id) {
           $form['field_pub_files_ref']['#disabled'] = TRUE;
           $form['field_last_update']['#disabled'] = TRUE;
           $form['field_pub_type']['#disabled'] = TRUE;
-          $form['field_related_organisations']['#disabled'] = TRUE;
-          $form['field_project_activity']['#disabled'] = TRUE;
           $form['field_pub_dc_date_accessioned']['#disabled'] = TRUE;
           $form['field_pub_dc_date_available']['#disabled'] = TRUE;
           $form['field_pub_dc_date_created']['#disabled'] = TRUE;
