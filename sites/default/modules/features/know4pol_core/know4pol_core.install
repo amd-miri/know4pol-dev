@@ -935,3 +935,13 @@ function know4pol_core_update_7037() {
   ";
   db_query($sql);
 }
+
+/**
+ * KNOW4POL-735,736,737,738 update.
+ */
+function know4pol_core_update_7038() {
+  module_enable(array(
+    'know4pol_file_display',
+  ),
+    TRUE);
+}
