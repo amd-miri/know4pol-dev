@@ -33,4 +33,3 @@ features[file_display][] = video__featured__no_wrapper_media_avportal_video
 features[file_display][] = video__featured__no_wrapper_media_dailymotion_video
 features[file_display][] = video__featured__no_wrapper_media_vimeo_video
 features[file_display][] = video__featured__no_wrapper_media_youtube_video
-project path = site/default/modules/features
