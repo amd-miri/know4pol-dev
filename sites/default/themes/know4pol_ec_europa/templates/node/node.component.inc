@@ -41,6 +41,13 @@ function know4pol_ec_europa_preprocess_node(&$variables, $hook) {
         unset($variables['content']['field_briefing_file']);
       }
       break;
+
+    case 'topic':
+      // Not in featured mode, no picture.
+      if ($variables['view_mode'] == 'navigation' && !$variables['field_featured'][LANGUAGE_NONE][0]['value']) {
+        unset($variables['content']['field_av_image']);
+      }
+      break;
   }
 }
 
