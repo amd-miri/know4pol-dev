@@ -72,7 +72,7 @@
 
   <?php print render($title_prefix); ?>
   <?php if (!$page): ?>
-    <h2<?php print $title_attributes; ?>><a href="<?php print $file_url; ?>"><?php print $label; ?></a></h2>
+    <h2<?php print $title_attributes; ?>><?php print l($label, $file_url); ?></h2>
   <?php endif; ?>
   <?php print render($title_suffix); ?>
 
