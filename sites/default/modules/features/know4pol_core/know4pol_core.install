@@ -945,3 +945,29 @@ function know4pol_core_update_7038() {
   ),
     TRUE);
 }
+
+/**
+ * KNOW4POL-747 update.
+ */
+function know4pol_core_update_7039() {
+  // Unpublish dataset not assigned to a KS.
+  $sql = "
+     UPDATE node ne
+     SET status = 0
+     WHERE
+      ne.status = 1
+      AND ne.type = 'dataset'
+      AND NOT EXISTS (
+        SELECT id FROM og_membership omt
+        WHERE
+          omt.group_type = 'node'
+          AND omt.entity_type = 'node'
+          AND omt.etid = ne.nid
+       )
+    ";
+  db_query($sql);
+  module_enable(array(
+    'know4pol_feeds',
+  ),
+    TRUE);
+}

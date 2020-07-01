@@ -1,0 +1,8 @@
+<?php
+
+/**
+ * @file
+ * Code for the know4pol_core feature.
+ */
+
+include_once 'know4pol_feeds.features.inc';
