@@ -966,6 +966,13 @@ function know4pol_core_update_7039() {
        )
     ";
   db_query($sql);
+}
+
+/**
+ * KNOW4POL-747 update.
+ */
+function know4pol_core_update_7040() {
+  // Update feed importer settings.
   module_enable(array(
     'know4pol_feeds',
   ),
