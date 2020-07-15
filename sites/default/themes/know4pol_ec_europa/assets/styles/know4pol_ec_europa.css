@@ -495,6 +495,10 @@ div.admin.my-workbench .right {
   max-width: unset;
 }
 
+.node-type-topic div.view-mode-featured .field-name-field-av-summary ul ul {
+  overflow: hidden;
+}
+
 .view-mode-featured * + .ecl-heading--h2,
 .node-type-knowledge-centre .block-views .ecl-heading--h2 {
   margin-top: 1rem;
