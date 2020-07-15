@@ -349,7 +349,7 @@ function og_rules_get_members(EntityDrupalWrapper $group_content) {
   }
   // Remove duplicate items.
   $members = array_keys(array_flip($members));
-  return array('group_members' => $members);
+  return array('og_ui_handler_area_og_membership_overview ' => $members);
 }
 
 /**

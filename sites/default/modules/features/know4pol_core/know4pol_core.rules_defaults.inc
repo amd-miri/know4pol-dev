@@ -2,7 +2,7 @@
 
 /**
  * @file
- * Fff.rules_defaults.inc.
+ * know4pol_core.rules_defaults.inc
  */
 
 /**
@@ -10,6 +10,29 @@
  */
 function know4pol_core_default_rules_configuration() {
   $items = array();
+  $items['rules_autopublish_imported_content'] = entity_import('rules_config', '{ "rules_autopublish_imported_content" : {
+      "LABEL" : "Autopublish imported content",
+      "PLUGIN" : "reaction rule",
+      "OWNER" : "rules",
+      "REQUIRES" : [ "rules", "feeds" ],
+      "ON" : {
+        "feeds_import_bioeconomy_datasets_import" : [],
+        "feeds_import_kcmd_datasets_import" : [],
+        "feeds_import_kcmd_dgs_import" : [],
+        "feeds_import_kcmd_keyword_import" : [],
+        "feeds_import_kcmd_networks_import" : [],
+        "feeds_import_kcmd_other_organisation_import" : [],
+        "feeds_import_kcmd_project_import" : [],
+        "feeds_import_kcmd_stakeholders_import" : [],
+        "feeds_import_kcmd_web_portals_import" : [],
+        "feeds_import_pubsy_import" : [],
+        "feeds_import_pubsy_update_specific_date" : [],
+        "feeds_import_pubsy_update" : [],
+        "feeds_import_jrc_datasets_import" : []
+      },
+      "DO" : [ { "node_publish" : { "node" : [ "node" ] } } ]
+    }
+  }');
   $items['rules_redirection_online_ressource'] = entity_import('rules_config', '{ "rules_redirection_online_ressource" : {
       "LABEL" : "Redirection online ressource",
       "PLUGIN" : "reaction rule",

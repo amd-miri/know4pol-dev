@@ -694,7 +694,7 @@ function multisite_formatters_field_formatter_view($entity_type, $entity, $field
             break;
 
           case 'trim':
-            if ($settings['trim_ignore_words']['ignore']) {
+            if (isset($settings['trim_ignore_words']['ignore']) && $settings['trim_ignore_words']['ignore']) {
               $ignore = drupal_strlen($settings['trim_words_ignored']) ? $settings['trim_words_ignored'] : MULTISITE_FORMATTERS_IGNORE_WORDS_LIST_DEFAULT;
               $ignore = preg_split('/\s*,\s*/i', drupal_strtolower($ignore));
             }
