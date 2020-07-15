@@ -280,7 +280,7 @@ function know4pol_core_form_node_form_alter(&$form, &$form_state, $form_id) {
 
     // Specific field in all content types.
     if (isset($form['field_banner_image'])) {
-      if (!user_has_role(7)) {
+      if (!user_has_role(8)) {
         // KNOW4POL-397, banner image: only admin can setup this field.
         $form['field_banner_image']['#disabled'] = TRUE;
       }
