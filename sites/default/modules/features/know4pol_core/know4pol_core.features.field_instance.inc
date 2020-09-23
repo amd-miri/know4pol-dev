@@ -2,7 +2,7 @@
 
 /**
  * @file
- * Fff.features.field_instance.inc.
+ * Know4pol_core.features.field_instance.inc.
  */
 
 /**

@@ -2,13 +2,13 @@
 
 /**
  * @file
- * Test.features.user_permission.inc.
+ * Know4pol_core.features.user_permission.inc.
  */
 
 /**
  * Implements hook_user_default_permissions().
  */
-function knw4pol_core_user_default_permissions() {
+function know4pol_core_user_default_permissions() {
   $permissions = array();
 
   // Exported permission: 'administer know4pol search'.
